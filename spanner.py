@@ -24,6 +24,14 @@ def query_data(instance_id, database_id,country):
             params= {"country_name":country},
             param_types={"country_name":spanner.param_types.STRING}
         )
+        
+
+ operation = database.update_ddl(["CREATE TABLE Audience_Attributes (id STRING(36), country STRING(2), name STRING(250), label STRING(250), description STRING(500)) PRIMARY KEY (id)"])
+# operation.result()
+# operation2 = database.update_ddl(["CREATE TABLE Audience_Attribute_Values (id STRING(36), attribute_id STRING(36), value STRING(250), label STRING(250), description STRING(500)) PRIMARY KEY (id)"])
+# operation2.result()
+# operation3 = database.update_ddl(["ALTER TABLE Audience_Attribute_Values ADD CONSTRAINT Audience_Attribute_Values_attribute_id_fk FOREIGN KEY (attribute_id) REFERENCES Audience_Attributes (id)"])
+# operation3.result()
 
         for row in results:
             print(row)
