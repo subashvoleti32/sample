@@ -199,4 +199,34 @@ def test_insert_attributes_invalid_attribute_values():
         ]
     }
     
+    
+    
+    def test_query_data():
+    # Create a mock Spanner client and instance
+    mock_spanner_client = Mock(spec=spanner.Client)
+    mock_instance = Mock(spec=spanner.Instance)
+    mock_database = Mock(spec=spanner.Database)
+
+    # Patch the spanner.Client and spanner.Client.instance methods to return the mock objects
+    with patch("main.spanner.Client", return_value=mock_spanner_client):
+        with patch.object(mock_spanner_client, "instance", return_value=mock_instance):
+            with patch.object(mock_instance, "database", return_value=mock_database):
+                # Create a mock snapshot and mock results
+                mock_snapshot = Mock()
+                mock_results = Mock()
+                mock_snapshot.execute_sql.return_value = mock_results
+
+                # Patch the database.snapshot method to return the mock snapshot
+                with patch.object(mock_database, "snapshot", return_value=mock_snapshot):
+                    # Call the query_data function and assert the expected behavior
+                    result = query_data("test2-instance", "test7-database", "USA")
+
+                    assert mock_spanner_client.instance.call_count == 1
+                    assert mock_instance.database.call_count == 1
+                    assert mock_database.snapshot.call_count == 1
+                    assert mock_snapshot.execute_sql.call_count == 1
+
+                    assert result == mock_results
+
+    
    
