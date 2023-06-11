@@ -1,3 +1,10 @@
+
+[['44acf2d7-3c0c-4751-b172-2bbb40b2191d', 'CA', 'Gender'], ['5b0bb06f-b837-4711-bcdd-be7a7b01b719', 'CA', 'Age'], ['90650d42-3bb0-4707-b393-a46df3ee1503', 'US', 'Gender'], ['114d5d90-8155-4c4d-95ce-3cdc155493cb', 'US', 'Age']]
+
+[['114d5d90-8155-4c4d-95ce-3cdc155493cb', 'US', 'Age'], ['5b0bb06f-b837-4711-bcdd-be7a7b01b719', 'CA', 'Age'], ['44acf2d7-3c0c-4751-b172-2bbb40b2191d', 'CA', 'Gender'], ['90650d42-3bb0-4707-b393-a46df3ee1503', 'US', 'Gender']]
+
+
+
 def test_get_attribute_by_country_invalid_param():
     response = client.get("/attributes/123")
     assert response.status_code == 422
