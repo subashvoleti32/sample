@@ -1,3 +1,12 @@
+  File "C:\LTVO\june10\ims-ltvo-audience-service\api\src\controller\application.py", line 24, in get_attribute_by_country
+    return {"attributes":[Attribute(*item) for item in res]}
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\LTVO\june10\ims-ltvo-audience-service\api\src\controller\application.py", line 24, in <listcomp>
+    return {"attributes":[Attribute(*item) for item in res]}
+                          ^^^^^^^^^^^^^^^^
+  File "pydantic\main.py", line 332, in pydantic.main.BaseModel.__init__
+TypeError: __init__() takes exactly 1 positional argument (6 given)
+
 @app.get("/attributes")
 def get_attribute_by_country(country:str):
     res = AudienceAttributeService().get_attribute_by_country(country)
