@@ -1,3 +1,7 @@
+ pydantic.error_wrappers.ValidationError: 1 validation error for AttributeListResponse
+response -> attributes
+  field required (type=value_error.missing)
+ 
  attributes = [Attribute(*item) for item in res]
                   ^^^^^^^^^^^^^^^^
   File "pydantic\main.py", line 332, in pydantic.main.BaseModel.__init__
