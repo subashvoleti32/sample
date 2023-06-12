@@ -1,3 +1,55 @@
+@app.get("/attributes")
+def get_attribute_by_country(country:str):
+    res = AudienceAttributeService().get_attribute_by_country(country)
+    if not res:
+        raise HTTPException(status_code=400,detail="No country is present")
+    return res
+
+
+country = Table(
+    "attribute_country",
+    metadata,
+    Column("country_uuid", String(36), primary_key=True),
+    Column("country_name", String(200))
+)
+
+attribute = Table(
+    "attributes_names",
+    metadata,
+    Column("uuid", String(36), primary_key=True, nullable=False),
+    Column("country_uuid", String(36), ForeignKey("attribute_country.country_uuid")),
+    Column("attribute_name", String(36),nullable=False)
+)
+
+
+country = Table(
+    "attribute_country",
+    metadata,
+    Column("country_uuid", String(36), primary_key=True),
+    Column("country_name", String(200))
+)
+
+attribute = Table(
+    "attributes_names",
+    metadata,
+    Column("uuid", String(36), primary_key=True, nullable=False),
+    Column("country_uuid", String(36), ForeignKey("attribute_country.country_uuid")),
+    Column("attribute_name", String(36),nullable=False)
+)
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
 raise ValidationError(errors, field.type_)
 pydantic.error_wrappers.ValidationError: 1 validation error for Attribute
 response
