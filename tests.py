@@ -236,4 +236,9 @@ def test_insert_attributes_invalid_attribute_values():
                     assert result == mock_results
 
     
-   
+   @app.get("/attributes")
+def get_attribute_by_country(country:str):
+    res = AudienceAttributeService().get_attribute_by_country(country)
+    if not res:
+        raise HTTPException(status_code=400,detail="No country is present")
+    return res 
