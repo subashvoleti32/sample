@@ -1,4 +1,9 @@
- pydantic.error_wrappers.ValidationError: 1 validation error for AttributeListResponse
+raise ValidationError(errors, field.type_)
+pydantic.error_wrappers.ValidationError: 1 validation error for Attribute
+response
+  value is not a valid list (type=type_error.list)
+
+pydantic.error_wrappers.ValidationError: 1 validation error for AttributeListResponse
 response -> attributes
   field required (type=value_error.missing)
  
