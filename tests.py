@@ -1,3 +1,6 @@
+ File "pydantic\main.py", line 332, in pydantic.main.BaseModel.__init__
+TypeError: __init__() takes exactly 1 positional argument (6 given)
+
 raise ValidationError(errors, field.type_)
 pydantic.error_wrappers.ValidationError: 1 validation error for AttributeListResponse
 response -> attributes
