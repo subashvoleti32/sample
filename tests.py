@@ -1,3 +1,8 @@
+ attributes = [Attribute(*item) for item in res]
+                  ^^^^^^^^^^^^^^^^
+  File "pydantic\main.py", line 332, in pydantic.main.BaseModel.__init__
+TypeError: __init__() takes exactly 1 positional argument (6 given)
+ 
  File "pydantic\main.py", line 332, in pydantic.main.BaseModel.__init__
 TypeError: __init__() takes exactly 1 positional argument (6 given)
 
