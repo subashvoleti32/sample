@@ -1,3 +1,7 @@
+raise ValidationError(errors, field.type_)
+pydantic.error_wrappers.ValidationError: 1 validation error for AttributeListResponse
+response -> attributes
+  field required (type=value_error.missing)
 [
   [
     "5cd453b7-e7b0-4edf-a904-cd67fe50bde9",
