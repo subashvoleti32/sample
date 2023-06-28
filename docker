@@ -111,3 +111,30 @@ RUN chmod +x /app/spanner_emulator_setup.sh
 # Execute the shell script
 CMD ["bash", "/app/spanner_emulator_setup.sh"]
 
+
+
+FROM google/cloud-sdk:latest
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -sSL https://sdk.cloud.google.com | bash
+
+# Configure gcloud
+RUN gcloud components install spanner-emulator beta
+
+# Copy the shell script and the Python script
+COPY spanner_emulator_setup.sh /app/spanner_emulator_setup.sh
+COPY insert_data_emulator.py /app/insert_data_emulator.py
+
+# Make the shell script executable
+RUN chmod +x /app/spanner_emulator_setup.sh
+
+# Run the shell script
+RUN /app/spanner_emulator_setup.sh
+
+# Expose any necessary ports
+EXPOSE 9010 9020
+
+# Set the entrypoint to the Python script
+ENTRYPOINT ["python", "/app/insert_data_emulator.py"]
