@@ -1,0 +1,2 @@
+ERROR: failed to solve: process "/bin/sh -c /app/spanner_emulator_setup.sh" did not complete successfully: exit code: 
+127
