@@ -27,3 +27,38 @@ EXPOSE 8000
 
 #It is the command that will start and run the FastAPI application container
 CMD ["uvicorn", "src.controller.application:app", "--host", "0.0.0.0"]
+
+
+#!/bin/bash
+
+{
+docker pull gcr.io/cloud-spanner-emulator/emulator
+docker run -p 9010:9010 -p 9020:9020 gcr.io/cloud-spanner-emulator/emulator
+ } &
+ 
+gcloud config configurations create emulator
+gcloud config set auth/disable_credentials true
+gcloud config set project test2-project 
+gcloud config set api_endpoint_overrides/spanner http://localhost:9020/
+gcloud spanner instances create test2-instance  --config=emulator-config --description="test2-instance" --nodes=1
+# gcloud spanner databases create test-database --instance=test2-instance
+export SPANNER_EMULATOR_HOST=localhost:9010
+set SPANNER_EMULATOR_HOST=localhost:9010
+gcloud spanner databases create test-database --instance test2-instance --ddl "CREATE TABLE attribute_country (country_code STRING(36), country_name STRING(200)) PRIMARY KEY (country_code)"
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_names (country_code STRING(36), attribute_name STRING(250)) PRIMARY KEY (country_code,attribute_name)"
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_label (country_code STRING(36), attribute_name STRING(250),label STRING(306),description STRING(250),CreatedAt TIMESTAMP,UpdatedAt TIMESTAMP) PRIMARY KEY (country_code,attribute_name)"
+
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value_label (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250),label STRING(306),description STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+
+
+ 
+
+python insert_data_emulator.py
