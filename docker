@@ -638,4 +638,565 @@ def test_create_audience_invalid_attribute_value_structure():
         "age_range": [18, 25],
         "audience_list": [
             {
-               
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import json
+from fastapi.testclient import TestClient
+from main import app
+
+client = TestClient(app)
+
+# Valid test cases
+def test_create_audience_valid_case1():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case2():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Female"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case3():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Male"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case4():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case5():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Male"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case6():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Female", "Male"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case7():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female", "Male"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case8():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case9():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "
+def test_create_audience_valid_case10():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Female"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case11():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Male"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case12():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case13():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Male"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case14():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Female", "Male"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+def test_create_audience_valid_case15():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female", "Male"],
+        "Age_range": [0, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+
+# Invalid test cases
+def test_create_audience_invalid_gender_case16():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Invalid"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_case17():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [-1, 99]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_missing_name_case18():
+    payload = {
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_a
+
+
+def test_create_audience_missing_description_case19():
+    payload = {
+        "Audience Name": "W1825",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_missing_gender_case20():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_missing_age_range_case21():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_type_case22():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": "18-25"
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_gender_type_case23():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": "Adult",
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_empty_payload_case24():
+    payload = {}
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_missing_fields_case25():
+    payload = {
+        "Audience Name": "W1825"
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_values_case26():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [25, 18]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_gender_values_case27():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Invalid"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_extra_fields_case28():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25],
+        "ExtraField": "Value"
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_case_sensitive_gender_case29():
+    payload = {
+        "Audience
+def test_create_audience_case_sensitive_gender_case29():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["aDulT"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_case_sensitive_name_case30():
+    payload = {
+        "Audience Name": "w1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+def test_create_audience_case_sensitive_gender_case29():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["aDulT"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_case_sensitive_name_case30():
+    payload = {
+        "Audience Name": "w1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+def test_create_audience_invalid_wrong_age_range_type_case10():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": "18-25"
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_empty_gender_case11():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": [],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_empty_age_range_case12():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": []
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_out_of_range_case13():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [100, 120]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_duplicate_gender_case14():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_duplicate_age_range_case15():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 18]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_gender_value_case16():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Invalid"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_value_case17():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [-1, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_missing_name_and_description_case18():
+    payload = {
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test
+def test_create_audience_invalid_missing_name_and_description_case18():
+    payload = {
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_missing_gender_case19():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_missing_age_range_case20():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_wrong_gender_type_case21():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": "Adult",
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_wrong_age_range_type_case22():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": "18-25"
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_empty_gender_case23():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": [],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_empty_age_range_case24():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": []
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_out_of_range_case25():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [100, 120]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_duplicate_gender_case26():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Adult"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_duplicate_age_range_case27():
+    payload = {
+        "Audience Name":
+def test_create_audience_invalid_duplicate_age_range_case27():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 18]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_gender_value_case28():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Invalid"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_age_range_value_case29():
+    payload = {
+        "Audience Name": "W1825",
+        "Description": "women's age is 18 to 25",
+        "Gender": ["Adult", "Female"],
+        "Age_range": [-1, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+def test_create_audience_invalid_missing_name_and_description_case30():
+    payload = {
+        "Gender": ["Adult", "Female"],
+        "Age_range": [18, 25]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
