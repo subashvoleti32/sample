@@ -151,3 +151,491 @@ ENTRYPOINT ["python", "/app/insert_data_emulator.py"]
 						1) it will show all attributes[need to trigger get_all_attributes api]
 						2) when u select a attribute name it should retrieve all values of that attribute[need to trigger get_all_attribute_values api]
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import json
+from fastapi.testclient import TestClient
+from main import app
+
+client = TestClient(app)
+
+
+def test_create_audience_valid():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+    assert response.json() == payload
+
+
+def test_create_audience_missing_required_field():
+    payload = {
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_age_range():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [25, 18],  # Invalid age range
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_empty_attribute_values():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": []  # Empty attribute values
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_attribute_value_type():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["
+def test_create_audience_invalid_payload_structure():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "attribute": "attribute1",  # Invalid attribute field name
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_gender_values():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Invalid"],  # Invalid gender value
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_age_range_values():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 120],  # Invalid age range value
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_duplicate_attribute_names():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute1",  # Duplicate attribute name
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_empty_payload():
+    payload = {}
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_a
+def test_create_audience_valid_with_additional_fields():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ],
+        "additional_field": "additional_value"  # Additional field
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+    assert response.json() == payload
+
+
+def test_create_audience_invalid_attribute_value_structure():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"val": "value1"},  # Invalid attribute value field name
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_attribute_values():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"val": "value5"}  # Invalid attribute value field name
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_empty_gender():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": [],  # Empty gender values
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_invalid_payload_type():
+    payload = "invalid_payload"  # Invalid payload type (should be JSON
+def test_create_audience_invalid_payload_type():
+    payload = "invalid_payload"  # Invalid payload type (should be JSON)
+    response = client.post("/audiences", data=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_missing_required_attribute_fields():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_missing_required_value_fields():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"val": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ]
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_empty_attribute_list():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": []  # Empty audience list
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 422
+
+
+def test_create_audience_additional_fields():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+                "name": "attribute1",
+                "values": [
+                    {"value": "value1"},
+                    {"value": "value2"},
+                    {"value": "value3"}
+                ]
+            },
+            {
+                "name": "attribute2",
+                "values": [
+                    {"value": "value4"},
+                    {"value": "value5"}
+                ]
+            }
+        ],
+        "additional_field": "additional_value"  # Additional field
+    }
+    response = client.post("/audiences", json=payload)
+    assert response.status_code == 200
+    assert response.json() == payload
+
+
+def test_create_audience_invalid_attribute_value_structure():
+    payload = {
+        "name": "W1825",
+        "description": "women's age is 18 to 25",
+        "gender": ["Adult", "Female", "Male"],
+        "age_range": [18, 25],
+        "audience_list": [
+            {
+               
