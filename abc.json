@@ -1,0 +1,17 @@
+{
+	"Audience Name": "W1825",
+	"Description": "women 's age is 18 to 25",
+	"Gender": "[Adult, Female, Male]",
+	"Age_range": "[0 - 99]",
+	"Audience_List": {
+		"Gender": {
+				"attribute_name": "Gender",
+				"attribute_value": "Female",
+				"label": "Female"
+		},
+		"Age": {
+				"attribute_name": "Age",
+				"attribute_value": "18+",
+				"label": "Age"
+		}
+	}}
