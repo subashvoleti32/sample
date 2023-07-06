@@ -58,3 +58,8 @@ async def create_audience(audience:AudienceSchema):
     }
   ]
 }
+
+
+raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.FailedPrecondition: 400 Could not parse {'Gender': AttributeValue(attribute_name='Gender', 
+attribute_value='Male', label='Male'), 'Age': AttributeValue(attribute_name='Age', attribute_value='18+', label='18+'), 'Race': AttributeValue(attribute_name='Race', attribute_value='Black', label='Black')} as a JSON. See https://cloud.google.com/spanner/docs/data-types for more details
