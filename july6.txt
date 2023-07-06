@@ -6,3 +6,19 @@ raise ValueError("Unknown type: %s" % (value,))
 ValueError: Unknown type: {'Age': {'country_code': 'US', 'atribute_name': 'Age', 'attribute_value': '18+', 'label': '18+'}, 'Gender': {'country_code': 'US', 'atribute_name': 'Gender', 'attribute_value': 'Male', 'label': 'Male'}, 'Race': {'country_code': 'US', 'atribute_name': 'Race', 'attribute_value': 'Black', 'label': 'Black'}}
 
 gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE audience_create (name STRING(36),description STRING(400), Gender STRING(250), Agerange ARRAY<STRING(50)>,audience_list JSON) PRIMARY KEY (name)"
+
+@app.post("/audience")
+async def create_audience(audience:AudienceSchema):
+    with database.batch() as batch:
+        batch.insert(
+            table='audience_create',
+            columns=('name','description','Gender','Agerange','audience_list'),
+            values=[(
+                audience.name,
+                audience.description,
+                audience.Gender,
+                audience.Agerange,
+                audience.audience_list
+            )]
+        )
+        return {"message":"Audience inserted successfully"}
