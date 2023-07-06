@@ -22,3 +22,39 @@ async def create_audience(audience:AudienceSchema):
             )]
         )
         return {"message":"Audience inserted successfully"}
+
+
+{
+  "detail": [
+    {
+      "loc": [
+        "body",
+        "audience_list",
+        "Age",
+        "attribute_name"
+      ],
+      "msg": "field required",
+      "type": "value_error.missing"
+    },
+    {
+      "loc": [
+        "body",
+        "audience_list",
+        "Gender",
+        "attribute_name"
+      ],
+      "msg": "field required",
+      "type": "value_error.missing"
+    },
+    {
+      "loc": [
+        "body",
+        "audience_list",
+        "Race",
+        "attribute_name"
+      ],
+      "msg": "field required",
+      "type": "value_error.missing"
+    }
+  ]
+}
