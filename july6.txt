@@ -1,2 +1,6 @@
 raise ValueError("Unknown type: %s" % (value,))
 ValueError: Unknown type: {'Age': AttributeValue(country_code='US', atribute_name='Age', attribute_value='18+', label='18+'), 'Gender': AttributeValue(country_code='US', atribute_name='Gender', attribute_value='Female', label='Female')}
+
+
+raise ValueError("Unknown type: %s" % (value,))
+ValueError: Unknown type: {'Age': {'country_code': 'US', 'atribute_name': 'Age', 'attribute_value': '18+', 'label': '18+'}, 'Gender': {'country_code': 'US', 'atribute_name': 'Gender', 'attribute_value': 'Male', 'label': 'Male'}, 'Race': {'country_code': 'US', 'atribute_name': 'Race', 'attribute_value': 'Black', 'label': 'Black'}}
