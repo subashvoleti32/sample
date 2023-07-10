@@ -1,0 +1,59 @@
+{
+  "name": "W3235",
+  "description": "WOMEN'S AGE BETWEEN 32 TO 35",
+  "Gender": "Female",
+  "minimum_age": 18,
+  "maximum_age": 99,
+  "country": "US",
+  "audience_list": {
+
+   "gender":"m",
+   "race":"Black"
+}
+}
+
+
+@app.post("/audience")
+async def create_audience(audience:AudienceSchema):
+    with database.batch() as batch:
+        batch.insert(
+            table='audience_create',
+            columns=('name','description','Gender','minimum_age','maximum_age','country','audience_list'),
+            values=[(
+                audience.name,
+                audience.description,
+                audience.Gender,
+                audience.minimum_age,
+                audience.maximum_age,
+                audience.country,
+                str(audience.audience_list)
+            )]
+        )
+        return audience
+
+class AudienceSchema(BaseModel):
+    name:str=Field(...,title="Audience name")
+    description:str=Field(...,title="Description")
+    Gender:str=Field(...,title="Gender",regex="^(adult|Male|Female)$")
+    minimum_age:int=Field(default=18)
+    maximum_age:int=Field(default=99)
+    country:str=Field(title='Country Name')
+    audience_list:Dict
+    @validator('name')
+    def name_validator(cls,name):
+        for s in name:
+            if s in word:
+                raise ValueError("Name should not contain special characters")
+        return name
+    @validator('minimum_age')
+    def age_validator(cls,minimum_age):
+        if minimum_age<0 or minimum_age>120:
+            raise ValueError("Minimum Age should not be less than 0 or greater than 99")
+        return minimum_age
+
+    @validator('maximum_age')
+    def age_validator1(cls,maximum_age):
+        if maximum_age<0 or maximum_age>120:
+            raise ValueError("Maximum Age should not be less than 0 or greater than 99")
+        return maximum_age
+    
