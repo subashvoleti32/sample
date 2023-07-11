@@ -5,3 +5,11 @@ getting above error
 import os
 sys.path.append("..../")
 
+
+import os
+sys.path.append("../")
+
+from ..service.audience_service import AudienceAttributeService
+File "C:\LTVO\july-4-1\ims-ltvo-audience-service\api\src\controller\template_demo.py", line 8, in <module>
+    from ..service.audience_service import AudienceAttributeService
+ImportError: attempted relative import with no known parent package
