@@ -1,3 +1,7 @@
    from ..service.audience_service import AudienceAttributeService
 ImportError: attempted relative import with no known parent package
 getting above error 
+
+import os
+sys.path.append("..../")
+
