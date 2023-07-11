@@ -150,3 +150,49 @@ THEN a Get request to the API with PARAM “CA” should return:
         ],
     ]
 }
+
+
+
+
+{
+  "min_age": 18,
+  "max_age": 99,
+  "country": "US",
+  "audience_attributes": [
+    {
+      "attribute_name": "Gender",
+      "attribute_value": [
+        {
+          "value": "Male",
+          "label": "Male"
+        }, 
+        {
+          "value": "Female",
+          "label": "Female"
+        }
+      ]
+    },
+    {
+      "attribute_name": "race",
+      "attribute_value": [
+        {
+          "value": "AA",
+          "label": "African American"
+        },
+        {
+          "value": "HA",
+          "label": "Hispanic American"
+        }
+      ]
+    },
+    {
+      "attribute_name": "origin",
+      "attribute_value": [
+        {
+          "value": "unknown",
+          "label": "Origin"
+        }
+      ]
+    }
+  ]
+}
