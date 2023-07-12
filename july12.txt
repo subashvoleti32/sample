@@ -1,0 +1,31 @@
+@app.post("/audience")
+async def create_audience(audience:AudienceSchema):
+    with database.batch() as batch:
+        batch.insert(
+            table='audience_create',
+            columns=('name','description','Gender','minimum_age','maximum_age','country','audience_list'),
+            values=[(
+                audience.name,
+                audience.description,
+                audience.Gender,
+                audience.minimum_age,
+                audience.maximum_age,
+                audience.country,
+                str(audience.audience_list)
+            )]
+        )
+        return audience
+
+{
+  "audiences": [
+    {
+      "name": "W1825",
+      "description": "Women's Age Between 18 to 25",
+      "Gender": "adult",
+      "minimum_age": 18,
+      "maximum_age": 99,
+      "country": "US",
+      "audience_list": "{'gender': 'M', 'LifeStage': 'Black'}"
+    }
+  ]
+}
