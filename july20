@@ -22,3 +22,69 @@ def get_audience_response(self):
             print(f"Exception is {e}")
         finally:
             self.db.close()
+
+
+{
+
+              min_age: 16,
+
+              max_age: 120,
+
+              country: 'CA',
+
+              gender: {
+
+                 attribute_value: [
+
+                    {
+
+                      value: 'Male',
+
+                      label: 'm',
+
+                    },
+
+                    {
+
+                      value: 'Female',
+
+                      label: 'f',
+
+                    },
+
+                  ],
+
+              },
+
+
+              audience_attributes: [
+
+                {
+
+                  attribute_name: 'region',
+
+                  attribute_value: [
+
+                    {
+
+                      value: 'national',
+
+                      label: 'English Speaking Regions',
+
+                    },
+
+                    {
+
+                      value: 'quebec',
+
+                      label: 'French Speaking Regions',
+
+                    },
+
+                  ],
+
+                },
+
+              ],
+
+            }
