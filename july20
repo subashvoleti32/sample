@@ -88,3 +88,51 @@ def get_audience_response(self):
               ],
 
             }
+
+
+
+
+def get_audiences_template(country: str):
+    response = {}
+    existing_countries = {}
+    for template in TEMPLATES:
+        existing_countries[template['country']] = existing_countries.get(template['country'], 0) + 1 
+
+    if existing_countries.get(country, 0) > 1:
+        raise HTTPException(status_code=404,detail=f"Country template {country} is already present.It cannot be duplicated")
+    
+    for template in TEMPLATES:
+        if template["country"] == country:
+            response["min_age"] = template["min_age"]
+            response["max_age"] = template["max_age"]
+            response["country"] = template["country"]
+            response["audience_attributes"] = []
+
+            for attribute in template["audience_attributes"]:
+                attribute_values = []
+
+                for attr_value in ATTRIBUTE_VALUES:
+                    if (
+                        attr_value["Country"] == country
+                        and attr_value["Parent Attribute Name"] == attribute
+                    ):
+                        attribute_values.append(
+                            {
+                                "value": attr_value["Audience Attribute Value"],
+                                "label": attr_value["Audience Attribute Label"],
+                            }
+                        )
+
+                response["audience_attributes"].append(
+                    {
+                        "attribute_name": attribute,
+                        "attribute_value": attribute_values
+                    }
+                )
+
+            break
+    else:
+        raise HTTPException(status_code=404,detail="Country Not found")
+
+    return response
+
