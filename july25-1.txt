@@ -210,3 +210,21 @@ output:-
 		}
       ]
 }
+
+
+attributes_value_label				
+Country_Code	attribute_name	attribute_value	Label	Description
+US	Gender	Female	Female	
+US	Gender	Male	Male	
+CA	Gender	Female	F	
+CA	Gender	Male	M	
+US	Age	18+	18+	
+US	Age	36-42	36-42	
+US	Age	50-60	50-60	
+CA	Age	18+	18+	
+CA	Age	36-42	36-42	
+CA	Age	50-60	50-60	
+CA	Age	36-42	36-42	
+CA	Age	50-60	50-60	
+CA	race	3	Black	
+CA	race	4	Asian/Pacific	
