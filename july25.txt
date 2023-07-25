@@ -14,3 +14,38 @@ display_audience_route=APIRouter(prefix='/ltvo-audience/v1',tags=["DisplayAudien
 def get_audience_response(country:str):
     res= AudienceAttributeService().get_audience_response(country)
     return {"audiences":[AudienceSchemaResponse(**dict(zip(AudienceSchemaResponse.__fields__,item))) for item in res]}
+def get_audience_response(self,country:str):
+        try:
+            # db_res2 = self.db.query(value_label).filter(value_label.c.attribute_value == attribute_value and value_label.c.country_code == country_name)
+            db_res2 = self.db.query(audience_table_create).filter(audience_table_create.c.Country == country).all()
+            #db_res1 = self.db.query(audience_table,value_label).filter(audience_table_create.c.Country == value_label.c.country_code)
+            return db_res2
+        except Exception as e:
+            print(f"Exception is {e}")
+        finally:
+            self.db.close()
+    def create_audience(self,audience:AudienceSchema):
+        try:
+            if audience.name == 'HouseHold':
+                return {"message":"Do Something Special"}
+            else:
+              with database.batch() as batch:
+                batch.insert(
+                    table='audience_create',
+                    columns=('name','description','gender','minimum_age','maximum_age','country','attributes'),
+                    values=[(
+                        audience.name,
+                        audience.description,
+                        audience.gender,
+                        audience.minimum_age,
+                        audience.maximum_age,
+                        audience.country,
+                        json.dumps(audience.attributes)
+                    )]
+                )
+                return audience
+        except Exception as e:
+            print(f'exception as {e}')
+        finally:
+            self.db.close()
+    
