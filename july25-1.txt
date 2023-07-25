@@ -154,3 +154,19 @@ query = f"""
         WHERE
             a.name = @audience_name
     """
+
+[
+    "US",
+    "race",
+    "Black",
+    "03"
+  ],
+
+attributes: [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' },
+      ]
+    }
