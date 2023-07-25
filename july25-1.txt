@@ -301,3 +301,6 @@ CA	Age	36-42	36-42
 CA	Age	50-60	50-60	
 CA	race	3	Black	
 CA	race	4	Asian/Pacific	
+
+
+[('W1040', "Women's Age between 10 to 40", 'm', 10, 40, 'US', {'race': '3'}), ('W1140', "Women's Age between 10 to 40", 'm', 10, 40, 'US', {'Gender': 'm', 'race': '3'})]
