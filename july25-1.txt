@@ -170,3 +170,43 @@ attributes: [
            "attribute_value": { value: 3, label: 'Black' },
       ]
     }
+
+
+
+
+
+
+
+
+
+INPUT:-
+{
+  "name": "string",
+  "description": "string",
+  "gender": "string",
+  "minimum_age": 120,
+  "maximum_age": 120,
+  "country": "string",
+  "attributes": {
+   "race":"3"
+  }
+}
+--------------------------------------------
+output:-
+
+{
+  "name": "W1030",
+  "description": "Women's Age Between 10 to 30",
+  "gender": {"label": "Male", "value":"m"},
+  "minimum_age": 10,
+  "maximum_age": 30,
+  "country": "US",
+  "attributes": [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' }
+		}
+      ]
+}
