@@ -112,3 +112,45 @@ gcloud spanner databases ddl update test-database --instance=test2-instance --dd
  raise exceptions.from_grpc_error(exc) from exc
 google.api_core.exceptions.InvalidArgument: 400 Syntax error: Expected "[" but got "(" [at 9:124]
 ...attribute_value STRUCT<value INT64, label STRING>>>(
+
+
+
+
+
+
+
+
+
+
+query = f"""
+        SELECT
+            a.name,
+            a.description,
+            a.gender,
+            a.minimum_age,
+            a.maximum_age,
+            a.country,
+            ARRAY<STRUCT<attribute_name STRING, attribute_label STRING, attribute_value STRUCT<value INT64, label STRING>>>>(
+                (an.attribute_name, al.label, STRUCT(av.value, avl.label))
+            ) as attributes
+        FROM
+            audience_create a
+        LEFT JOIN
+            attributes_names an
+        ON
+            a.name = an.name
+        LEFT JOIN
+            attributes_label al
+        ON
+            a.name = al.name AND an.attribute_name = al.attribute_name
+        LEFT JOIN
+            attributes_value av
+        ON
+            a.name = av.name AND an.attribute_name = av.attribute_name
+        LEFT JOIN
+            attributes_value_label avl
+        ON
+            a.name = avl.name AND an.attribute_name = avl.attribute_name AND av.attribute_value = avl.attribute_value
+        WHERE
+            a.name = @audience_name
+    """
