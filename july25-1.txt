@@ -68,3 +68,44 @@ gcloud spanner databases ddl update test-database --instance=test2-instance --dd
 
 gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE audience_create (name STRING(50),description STRING(100), gender STRING(6), minimum_age INT64,maximum_age INT64,country STRING(2),attributes JSON) PRIMARY KEY (name)"
 
+
+
+ query = f"""
+        SELECT
+            a.name,
+            a.description,
+            a.gender,
+            a.minimum_age,
+            a.maximum_age,
+            a.country,
+            ARRAY<STRUCT<attribute_name STRING, attribute_label STRING, attribute_value STRUCT<value INT64, label STRING>>>(
+                STRUCT<attribute_name, attribute_label, attribute_value>(
+                    an.attribute_name,
+                    al.label,
+                    STRUCT<value, label>(
+                        av.value,
+                        avl.label
+                    )
+                )
+            ) as attributes
+        FROM
+            audience_create a
+        LEFT JOIN
+            attributes_names an
+        ON
+            a.name = an.name
+        LEFT JOIN
+            attributes_label al
+        ON
+            a.name = al.name AND an.attribute_name = al.attribute_name
+        LEFT JOIN
+            attributes_value av
+        ON
+            a.name = av.name AND an.attribute_name = av.attribute_name
+        LEFT JOIN
+            attributes_value_label avl
+        ON
+            a.name = avl.name AND an.attribute_name = avl.attribute_name AND av.attribute_value = avl.attribute_value
+        WHERE
+            a.name = @audience_name
+    """
