@@ -1,0 +1,51 @@
+{
+      name: 'W3050',
+      description: "WOMEN'S AGE BETWEEN 30 TO 50.",
+      gender: 'm',
+      min_age: 5,
+      max_age: 99,
+      country: 'US',
+      attributes: {
+        race: "3"
+      },
+    }
+
+ 
+
+ 
+
+GET:
+
+ 
+
+    audiences: [ {
+      name: 'W3050',
+      description: "WOMEN'S AGE BETWEEN 30 TO 50.",
+      gender: {"label": "Female", "value":"w"},
+      min_age: 5,
+      max_age: 99,
+      country: 'US',
+      attributes: [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' },
+      ]
+    }, {
+      name: 'M1865',
+      description: "MEN AGE BETWEEN 18 TO 65.",
+      gender: {"label": "Male", "value":"m"},
+      min_age: 18,
+      max_age: 65,
+      country: 'US',
+      attributes: [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' },
+      ]
+    },
+
+];
