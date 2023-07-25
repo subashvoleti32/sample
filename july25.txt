@@ -1,0 +1,16 @@
+from fastapi import APIRouter
+from ..controller.application import *
+
+create_audience_route=APIRouter(prefix='/ltvo-audience/v1',tags=["Create_Audience"])
+
+@create_audience_route.post("/audience",tags=["Create_Audience"])
+async def create_audience(audience:AudienceSchema):
+    res= AudienceAttributeService().create_audience(audience)
+    if res is None:
+        raise HTTPException(status_code=409,detail=f'Audience Name {audience.name} Already Exists.')
+    return res
+display_audience_route=APIRouter(prefix='/ltvo-audience/v1',tags=["DisplayAudience"])
+@display_audience_route.get('/audience',tags=["DisplayAudience"])
+def get_audience_response(country:str):
+    res= AudienceAttributeService().get_audience_response(country)
+    return {"audiences":[AudienceSchemaResponse(**dict(zip(AudienceSchemaResponse.__fields__,item))) for item in res]}
