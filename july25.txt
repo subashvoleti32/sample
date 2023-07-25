@@ -49,3 +49,14 @@ def get_audience_response(self,country:str):
         finally:
             self.db.close()
     
+audience_table_create = Table(
+    "audience_create",
+    metadata,
+    Column("name",String(50),primary_key=True),
+    Column("description",String(100)),
+    Column("gender", String(6)),
+    Column("minimum_age", Integer()),
+    Column("maximum_age", Integer()),
+    Column("Country", String(2)),
+    Column("attributes", String(1000))
+)
