@@ -60,3 +60,15 @@ audience_table_create = Table(
     Column("Country", String(2)),
     Column("attributes", String(1000))
 )
+
+
+
+
+class AudienceSchema(BaseModel):
+    name:str=Field(...,title="Audience name")
+    description:Optional[str] =Field(...,title="Description") 
+    gender:str=Field(default='Adult')
+    minimum_age:int=Field(ge=0,le=120)
+    maximum_age:int=Field(ge=0,le=120)
+    country:StrictStr=Field(title='Country Name')
+    attributes:Dict
