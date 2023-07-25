@@ -1,0 +1,3 @@
+[('US', 'Gender', 'Female', 'Female', 'The Gender of  Audience'), ('US', 'Age', '18+', '18+', 'The Age range of audience member'), ('US', 'Gender', 'Male', 'Male', 'The Gender of  Audience'), ('US', 'Age', '36-42', '36 to 
+42', '36 to 42 years old'), ('US', 'race', '03', 'Black', '36 to 42 years old'), ('US', 'Age', '50-60', '50 to 
+60', '50 to 60 years old person')]
