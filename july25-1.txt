@@ -210,7 +210,80 @@ output:-
 		}
       ]
 }
+------------------------
+input:-
+---------------------------
+{
+  "audiences": [
+    {
+      "name": "W1040",
+      "description": "Women's Age between 10 to 40",
+      "gender": "m",
+      "minimum_age": 10,
+      "maximum_age": 40,
+      "country": "US",
+      "attributes": {
+        "race": "3"
+      }
+    },
+    {
+      "name": "W1140",
+      "description": "Women's Age between 10 to 40",
+      "gender": "m",
+      "minimum_age": 10,
+      "maximum_age": 40,
+      "country": "US",
+      "attributes": {
+        "Gender": "m",
+        "race": "3"
+      }
+    }
+  ]
+}
 
+
+-----------------------
+output------------
+{
+{
+  "name": "W1030",
+  "description": "Women's Age Between 10 to 30",
+  "gender": {"label": "Male", "value":"m"},
+  "minimum_age": 10,
+  "maximum_age": 30,
+  "country": "US",
+  "attributes": [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' }
+		}
+      ]
+},
+{
+  "name": "W1030",
+  "description": "Women's Age Between 10 to 30",
+  "gender": {"label": "Male", "value":"m"},
+  "minimum_age": 10,
+  "maximum_age": 30,
+  "country": "US",
+  "attributes": [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' }
+		},
+	{ "attribute_name": "Gender",
+
+           "attribute_label": "Gender",
+
+           "attribute_value": { value: 'm', label: 'Male' }
+		}
+      ]
+}
+}
 
 attributes_value_label				
 Country_Code	attribute_name	attribute_value	Label	Description
