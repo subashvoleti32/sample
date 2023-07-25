@@ -108,4 +108,7 @@ gcloud spanner databases ddl update test-database --instance=test2-instance --dd
             a.name = avl.name AND an.attribute_name = avl.attribute_name AND av.attribute_value = avl.attribute_value
         WHERE
             a.name = @audience_name
-    """
+    """'
+ raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 Syntax error: Expected "[" but got "(" [at 9:124]
+...attribute_value STRUCT<value INT64, label STRING>>>(
