@@ -8,3 +8,148 @@ attribute_value_dict = [
         #         "attribute_value":item[2],
         #         "label":item[3]
         #         }
+
+from fastapi import APIRouter
+from ..controller.application import *
+db=sessionLocal()
+display_audience_route=APIRouter(prefix='/ltvo-audience/v1',tags=["DisplayAudience"])
+
+
+audience_db = db.query(audience_table_create).all()
+output_list1=[
+                {
+                    "name":item[0],
+                    "description":item[1],
+                    "gender":item[2],
+                    "minimum_age":item[3],
+                    "maximum_age":item[4],
+                    "country":item[5],
+                    "attributes":item[6]
+                }
+                for item in audience_db
+            ]
+print(output_list1)
+print('########################################################################')
+attribute_values=db.query(value_label).all()
+output_list = [
+                {
+                    "country_code":item[0],
+                    "attribute_name":item[1],
+                    "attribute_value":item[2],
+                    "attribute_label":item[3],
+                    "Label":item[4]
+                }
+                for item in attribute_values
+            ]
+print(output_list)   
+def get_audience_attributes1(country):
+    attributes = {}
+    for attr in output_list:
+        if attr["country_code"] == country:
+            parent_attr_name = attr["attribute_name"]
+            if parent_attr_name not in attributes:
+                attributes[parent_attr_name] = []
+            attributes[parent_attr_name].append(
+                {
+                    "attribute_name": attr["attribute_name"],
+                    "attribute_value":attr["attribute_value"],
+                    "attribute_label": attr["attribute_label"],
+                    "Label":attr["label"]
+                }
+            )
+    return attributes
+@display_audience_route.get('/audience',tags=["DisplayAudience"])
+def get_audience_response(country:str):
+    template = next((t for t in output_list1 if t["country"] == country), None)
+    print(template)
+    if template is None:
+        raise HTTPException(status_code=404, detail="Country Not Found")
+    response = {
+        "name": output_list1[0],
+        "description": output_list1[1],
+        "gender": get_audience_attributes1(country).get("gender", []),
+        "minimum_age":output_list1[3],
+        "maximum_age":output_list1[4],
+        "country":output_list1[5],
+        "audience_attributes": [
+            {"attribute_name": attr, "attribute_value": values}
+            for attr, values in get_audience_attributes1(country).items()
+            if attr != "gender"
+        ],
+    }
+    return response
+
+{
+      name: 'W3050',
+      description: "WOMEN'S AGE BETWEEN 30 TO 50.",
+      gender: 'm',
+      min_age: 5,
+      max_age: 99,
+      country: 'US',
+      attributes: {
+        race: "3",
+		"Age":"18+"
+      },
+    }
+}
+{
+      name: 'W3050',
+      description: "WOMEN'S AGE BETWEEN 30 TO 50.",
+      gender: 'm',
+      min_age: 5,
+      max_age: 99,
+      country: 'US',
+      attributes: {
+        race: "3",
+		"Age":"18+"
+      },
+    }
+}
+
+
+ 
+
+ 
+
+GET:
+
+ 
+
+    audiences: [ {
+      name: 'W3050',
+      description: "WOMEN'S AGE BETWEEN 30 TO 50.",
+      gender: {"label": "Female", "value":"w"},
+      min_age: 5,
+      max_age: 99,
+      country: 'US',
+      attributes: [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' },
+		},
+		{ "attribute_name": "Age",
+
+           "attribute_label": "Age",
+
+           "attribute_value": { value: "18+", label: '18+' }
+		 }
+      ]
+    }, {
+      name: 'M1865',
+      description: "MEN AGE BETWEEN 18 TO 65.",
+      gender: {"label": "Male", "value":"m"},
+      min_age: 18,
+      max_age: 65,
+      country: 'US',
+      attributes: [
+        { "attribute_name": "race",
+
+           "attribute_label": "Race",
+
+           "attribute_value": { value: 3, label: 'Black' },
+      ]
+    },
+
+]
