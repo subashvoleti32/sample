@@ -49,3 +49,22 @@ GET:
     },
 
 ];
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_names (country_code STRING(36), attribute_name STRING(250)) PRIMARY KEY (country_code,attribute_name)"
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_label (country_code STRING(36), attribute_name STRING(250),label STRING(306),description STRING(250),CreatedAt TIMESTAMP,UpdatedAt TIMESTAMP) PRIMARY KEY (country_code,attribute_name)"
+
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value_label (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250),label STRING(306),description STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE audience (name STRING(36),description STRING(400), Gender STRING(250), Agerange ARRAY<INT64>) PRIMARY KEY (name,description)"
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE audience_create (name STRING(50),description STRING(100), gender STRING(6), minimum_age INT64,maximum_age INT64,country STRING(2),attributes JSON) PRIMARY KEY (name)"
+
