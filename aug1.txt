@@ -146,3 +146,73 @@ audiences": [
         }
       ]
     }
+
+
+
+==== /v1/estimate-sample-size
+
+
+Request URL: <host>/v1/estimate-sample-size?audience_name=<name>
+SELECT Count(DISTINCT a.member_id)
+FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a 
+JOIN `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m 
+ON a.member_id = m.member_id AND a.record_date = m.record_date 
+WHERE a.record_date Between "2023-05-01" AND "2023-05-31"  AND 
+ member_attribute_name = 'race' AND member_attribute_val = '3' AND m.age_qty BETWEEN 18 AND 65;"
+
+Implementation:
+
+ def build_sample_size_query(attributes, min_age, max_age):
+ 
+    base_query = """
+        SELECT Count(DISTINCT a.member_id)
+        FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a 
+        JOIN `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m 
+        ON a.member_id = m.member_id AND a.record_date = m.record_date 
+        WHERE a.record_date Between "2023-05-01" AND "2023-05-31 " 
+    """
+    
+    # assumed data
+    attributes = {
+        "race": 3,
+        "gender": 'f'
+    }
+    
+    where_clauses = []
+    for attr_name, attr_value in attributes.items():
+        where_clause = f'{attr_name} = "{attr_value}"'
+        where_clauses.append(where_clause)
+        
+    where_clause_str = ' AND '.join(where_clauses)
+    
+    return base_query + where_clause_str
+    
+
+ @router('v1/estimate-sample-size/')
+ def get_estimate_sample_size(request):
+ 
+    audience_name = request.args('audience_name')
+    
+    # query spanner to pull attributes for this audience_name
+    attributes = //get_attributes_data()
+    
+    
+    # build gcp client object for big query
+    big_query_client = create_gcp_big_query_client()
+    
+    total_population_size_query = base_query = """
+        SELECT Count(DISTINCT a.member_id)
+        FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a 
+        JOIN `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m 
+        ON a.member_id = m.member_id AND a.record_date = m.record_date 
+        WHERE a.record_date Between "2023-05-01" AND "2023-05-31 " 
+    """
+
+    total_population = big_query_client.query(total_population_size_query)
+    
+    
+    sample_size_query = build_sample_size_query(attributes, any_extra_data)
+    sample_size = big_query_client.query(sample_size_query)
+    
+    
+    return { 'sample_size': sample-size, 'total_population': total_population}
