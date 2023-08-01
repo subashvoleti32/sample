@@ -1,0 +1,148 @@
+from fastapi import APIRouter
+from ..controller.application import *
+db=sessionLocal()
+display_audience_route=APIRouter(prefix='/ltvo-audience/v1',tags=["DisplayAudience"])
+
+def audience_data_ouput():
+    try:
+        audience_db = db.query(audience_table_create).all()
+    finally:
+        db.close()
+
+    output_list1=[
+                    {
+                        "name":item[0],
+                        "description":item[1],
+                        "gender":item[2],
+                        "minimum_age":item[3],
+                        "maximum_age":item[4],
+                        "country":item[5],
+                        "attributes":item[6]
+                    }
+                    for item in audience_db
+                ]
+    return output_list1
+def audience_values_output():
+    try:
+        attribute_values=db.query(value_label).all()
+    finally:
+        db.close_all()
+    output_list = [
+                    {
+                        "country_code":item[0],
+                        "attribute_name":item[1],
+                        "attribute_value":item[2],
+                        "Label":item[3]
+                    }
+                    for item in attribute_values
+                ]
+    return output_list
+@display_audience_route.get('/audience',tags=["DisplayAudience"])
+def get_audience_response(country:str):
+    output_list1=audience_data_ouput()
+    matching_audiences=[audience for audience in output_list1 if audience["country"] == country]
+    if not matching_audiences:
+        raise HTTPException(status_code=404, detail="Country Not Found")
+    def get_attribute_label(attribute_name,attribute_value):
+        output_list=audience_values_output()
+        for attr in output_list:
+            if attr["country_code"] == country and attr["attribute_name"] == attribute_name and attr["attribute_value"] == attribute_value:
+                return {"name":attr["attribute_name"],"value":attr["attribute_value"],"Label":attr["Label"]}
+        return None 
+    result = []
+    for template in matching_audiences:
+        attributes_list=[]
+        for attr_name,attr_value in template["attributes"].items():
+            attribute_label=get_attribute_label(attr_name,attr_value)
+            if attribute_label:
+                attributes_list.append(
+                    {
+                        "attribute_name":attr_name,
+                        "attribute_label":attr_name.capitalize(),
+                        "attribute_value":{"value":attr_value,"label":attribute_label["Label"]}
+                    }
+                )
+        gender_label=None
+        output_list=audience_values_output()
+        for attr in output_list:
+            if attr["country_code"] == country and attr["attribute_name"] == "gender":
+                gender_label=attr["Label"]
+                gender_value=attr["attribute_value"]
+                break
+        audience_data = {
+            "name": template["name"],
+            "description": template["description"],
+            "gender": {"label":gender_label,"value":gender_value},
+            "minimum_age":template["minimum_age"],
+            "maximum_age":template["maximum_age"],
+            "country":template["country"],
+            "attributes":attributes_list
+        }
+        result.append(audience_data)
+    return {"audiences":result}
+
+
+
+Country_Code	attribute_name	attribute_label	attribute_value	Label
+US	gender	Gender	Female	Female
+US	gender	Gender	Male	Male
+CA	gender	Gender	f	Female
+CA	gender	Gender	m	Male
+US	age	Age	18+	18+
+US	age	Age	36-42	36-42
+US	age	Age	50-60	50-60
+CA	age	Age	18+	18+
+CA	age	Age	36-42	36-42
+CA	age	Age	50-60	50-60
+CA	age	Age	36-42	36-42
+CA	age	Age	50-60	50-60
+CA	race	Race	3	Black
+CA	race	Race	4	Asian/Pacific
+US	race	Race	3	Black
+US	race	Race	4	Asian/Pacific
+
+
+{
+  "name": "W3489",
+  "description": "Women's Age Between 18 to 25",
+  "gender": "Female",
+  "minimum_age": 18,
+  "maximum_age": 20,
+  "country": "US",
+  "attributes": {
+   "race":"3",
+   "age":"18+"
+}
+}
+
+
+audiences": [
+    {
+      "name": "W2125",
+      "description": "Women's Age Between 18 to 25",
+      "gender": {
+        "label": "Male",
+        "value": "Male"
+      },
+      "minimum_age": 18,
+      "maximum_age": 20,
+      "country": "US",
+      "attributes": [
+        {
+          "attribute_name": "age",
+          "attribute_label": "Age",
+          "attribute_value": {
+            "value": "18+",
+            "label": "18+"
+          }
+        },
+        {
+          "attribute_name": "race",
+          "attribute_label": "Race",
+          "attribute_value": {
+            "value": "3",
+            "label": "Black"
+          }
+        }
+      ]
+    }
