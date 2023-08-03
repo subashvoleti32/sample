@@ -216,3 +216,139 @@ Implementation:
     
     
     return { 'sample_size': sample-size, 'total_population': total_population}
+
+
+
+
+
+
+
+from fastapi import APIRouter
+from ..controller.application import *
+from ..controller.template_demo import get_audiences_template 
+
+audience_template_route=APIRouter(prefix='/ltvo-audience/v1',tags=["Audience_Template"])
+
+from fastapi import FastAPI, HTTPException
+from typing import List, Dict
+
+TEMPLATES = [
+    {
+        "min_age": 18,
+        "max_age": 99,
+        "country": "US",
+        "audience_attributes": ["gender", "race", "origin"]
+    },
+    {
+        "min_age": 16,
+        "max_age": 120,
+        "country": "CA",
+        "audience_attributes": ["gender", "region"]
+    }
+]
+
+ATTRIBUTE_VALUES = [
+    {
+        "Country": "US",
+        "Parent Attribute Name": "gender",
+        "Audience Attribute Value": "Male",
+        "Audience Attribute Label": "Male",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "US",
+        "Parent Attribute Name": "gender",
+        "Audience Attribute Value": "Female",
+        "Audience Attribute Label": "Female",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "US",
+        "Parent Attribute Name": "race",
+        "Audience Attribute Value": "AA",
+        "Audience Attribute Label": "African American",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "US",
+        "Parent Attribute Name": "race",
+        "Audience Attribute Value": "HA",
+        "Audience Attribute Label": "Hispanic American",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "US",
+        "Parent Attribute Name": "origin",
+        "Audience Attribute Value": "unknown",
+        "Audience Attribute Label": "Origin",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "CA",
+        "Parent Attribute Name": "gender",
+        "Audience Attribute Value": "m",
+        "Audience Attribute Label": "Male",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "CA",
+        "Parent Attribute Name": "gender",
+        "Audience Attribute Value": "f",
+        "Audience Attribute Label": "Female",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "CA",
+        "Parent Attribute Name": "region",
+        "Audience Attribute Value": "national",
+        "Audience Attribute Label": "English Speaking Regions",
+        "Audience Attribute Description": None
+    },
+    {
+        "Country": "CA",
+        "Parent Attribute Name": "region",
+        "Audience Attribute Value": "quebec",
+        "Audience Attribute Label": "French Speaking Regions",
+        "Audience Attribute Description": None
+    }
+]
+app = FastAPI()
+
+def get_audience_attributes(country):
+    attributes = {}
+    for attr in ATTRIBUTE_VALUES:
+        if attr["Country"] == country:
+            parent_attr_name = attr["Parent Attribute Name"]
+            if parent_attr_name not in attributes:
+                attributes[parent_attr_name] = []
+            attributes[parent_attr_name].append(
+                {
+                    "value": attr["Audience Attribute Value"],
+                    "label": attr["Audience Attribute Label"],
+                }
+            )
+    return attributes
+@audience_template_route.get("/audience_template/")
+async def get_template(country: str):
+    existing_countries = {}
+    for template in TEMPLATES:
+        existing_countries[template['country']] = existing_countries.get(template['country'], 0) + 1 
+
+    if existing_countries.get(country, 0) > 1:
+        raise HTTPException(status_code=404,detail=f"Country template {country} is already present.It cannot be duplicated")
+    template = next((t for t in TEMPLATES if t["country"] == country), None)
+    if template is None:
+        raise HTTPException(status_code=404, detail="Country Not Found")
+
+    response = {
+        "min_age": template["min_age"],
+        "max_age": template["max_age"],
+        "country": template["country"],
+        "gender": get_audience_attributes(country).get("gender", []),
+        "audience_attributes": [
+            {"attribute_name": attr, "attribute_value": values}
+            for attr, values in get_audience_attributes(country).items()
+            if attr != "gender"
+        ],
+    }
+    return response
