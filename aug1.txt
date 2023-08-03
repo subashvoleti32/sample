@@ -352,3 +352,8 @@ async def get_template(country: str):
         ],
     }
     return response
+
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value_label (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250),attribute_label STRING(100),label STRING(306),description STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
