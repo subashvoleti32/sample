@@ -357,3 +357,125 @@ async def get_template(country: str):
 gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
 
 gcloud spanner databases ddl update test-database --instance=test2-instance --ddl "CREATE TABLE attributes_value_label (country_code STRING(36),attribute_name STRING(400), attribute_value STRING(250),attribute_label STRING(100),label STRING(306),description STRING(250)) PRIMARY KEY (country_code,attribute_name,attribute_value)"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import APIRouter
+from fastapi import FastAPI, HTTPException
+from typing import List, Dict
+from google.cloud import spanner
+
+audience_template_route = APIRouter(prefix='/ltvo-audience/v1', tags=["Audience_Template"])
+app = FastAPI()
+
+# ... (previous code remains unchanged)
+
+# Google Cloud Spanner configurations
+project_id = "your_project_id"
+instance_id = "test2-instance"
+database_id = "test-database"
+
+# Initialize the Google Cloud Spanner client
+spanner_client = spanner.Client(project=project_id)
+instance = spanner_client.instance(instance_id)
+database = instance.database(database_id)
+
+# Function to create the tables if they don't exist
+def create_tables_if_not_exist():
+    ddl_statements = [
+        """
+        CREATE TABLE IF NOT EXISTS template_audience (
+            min_age INT64,
+            max_age INT64,
+            country STRING(36),
+            audience_attributes ARRAY<STRING>
+        ) PRIMARY KEY (country)
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS template_attribute_values (
+            country STRING(36),
+            parent_attribute_name STRING(400),
+            audience_attribute_value STRING(250),
+            audience_attribute_label STRING(100),
+            description STRING(250)
+        ) PRIMARY KEY (country, parent_attribute_name, audience_attribute_value)
+        """
+    ]
+    operation = database.update_ddl(ddl_statements)
+    operation.result()
+
+# Function to store data in the template_audience table
+def store_templates_data():
+    with database.batch() as batch:
+        for template in TEMPLATES:
+            batch.insert(
+                table="template_audience",
+                columns=("min_age", "max_age", "country", "audience_attributes"),
+                values=[(template["min_age"], template["max_age"], template["country"], template["audience_attributes"])]
+            )
+
+# Function to store data in the template_attribute_values table
+def store_attribute_values_data():
+    with database.batch() as batch:
+        for attr in ATTRIBUTE_VALUES:
+            batch.insert(
+                table="template_attribute_values",
+                columns=("country", "parent_attribute_name", "audience_attribute_value", "audience_attribute_label", "description"),
+                values=[(attr["Country"], attr["Parent Attribute Name"], attr["Audience Attribute Value"], attr["Audience Attribute Label"], attr["Audience Attribute Description"])]
+            )
+
+# Function to retrieve data from the template_audience table
+def get_templates_data():
+    with database.snapshot() as snapshot:
+        templates = []
+        for row in snapshot.execute_sql("SELECT * FROM template_audience"):
+            template = {
+                "min_age": row["min_age"],
+                "max_age": row["max_age"],
+                "country": row["country"],
+                "audience_attributes": row["audience_attributes"],
+            }
+            templates.append(template)
+    return templates
+
+# Function to retrieve data from the template_attribute_values table
+def get_attribute_values_data():
+    with database.snapshot() as snapshot:
+        attributes = []
+        for row in snapshot.execute_sql("SELECT * FROM template_attribute_values"):
+            attribute = {
+                "Country": row["country"],
+                "Parent Attribute Name": row["parent_attribute_name"],
+                "Audience Attribute Value": row["audience_attribute_value"],
+                "Audience Attribute Label": row["audience_attribute_label"],
+                "Audience Attribute Description": row["description"],
+            }
+            attributes.append(attribute)
+    return attributes
+
+# Create tables and store data in the Cloud Spanner tables on application startup
+create_tables_if_not_exist()
+store_templates_data()
+store_attribute_values_data()
+
+@audience_template_route.get("/audience_template/")
+async def get_template(country: str):
+    # Existing code remains unchanged
+
+# ... (other routes and code remains unchanged)
+
+# Retrieve data from the Cloud Spanner tables whenever needed
+TEMPLATES = get_templates_data()
+ATTRIBUTE_VALUES = get_attribute_values_data()
+
