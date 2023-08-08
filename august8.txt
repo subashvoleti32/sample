@@ -147,3 +147,94 @@ def display_audience_by_name(name:str):
     # """
     
     #return output
+
+
+
+
+
+
+from fastapi import APIRouter
+from ..controller.application import *
+db=sessionLocal()
+estimate_audience_size_route=APIRouter(prefix='/ltvo-audience/v1',tags=["EstimateAudienceSize"])
+
+from google.cloud import bigquery
+from google.oauth2 import service_account
+project_id = 'ltvo-dswb-prod-c423'
+client = bigquery.Client(project=project_id)
+
+@estimate_audience_size_route.get("/audience/{name}")
+def display_audience_by_name(name:str):
+    query_results=[]
+    res=AudienceAttributeService().get_audience_by_name(name)
+    if not res:
+        return HTTPException(status_code=404,detail="Audience name {name} does not exist")
+    output = {
+        "name":res[0],
+        "minimum_age":res[3],
+        "maximum_age":res[4],
+        "attributes":res[6]
+    }
+    attributes_values_dict =output["attributes"]
+    print(attributes_values_dict.items())
+    for attr,value in attributes_values_dict.items():
+        print(attr,value)
+    
+    def build_sample_size_query(output,min_age,max_age):
+        attributes=output["attributes"]
+        min_age=output["minimum_age"]
+        max_age=output["maximum_age"]
+        # where_clause
+        base_query = 'SELECT Count(DISTINCT a.member_id)FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a join `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m on a.member_id = m.member_id AND a.record_date = m.record_date WHERE a.record_date Between "2023-05-01" AND "2023-05-31"'
+        where_clause_str=""
+        AND_QUERY=' AND  m.age_qty BETWEEN ' + str(min_age) + ' AND ' + str(max_age)+';'
+        abc=[]
+        for attr_name, attr_value in attributes.items():
+            # where_clause = f'{attr_name} = "{attr_value}"'
+            # where_clauses.append(where_clause)
+            where_clause_str1 = ' AND member_attribute_name = '+"'" +attr_name+ "'" +' AND '  + 'member_attribute_val = ' + "'"+attr_value+"'" + ' '
+            where_clause_str += where_clause_str1
+            abc.append(where_clause_str1)
+            
+        where_clause_str+=AND_QUERY
+        print(base_query + where_clause_str)
+        queries=[]
+        print(abc)
+        for k in abc:
+            queries.append(base_query+k+AND_QUERY)
+            print(base_query+k+AND_QUERY)
+        return base_query+where_clause_str,queries
+        
+    TOTAL_POPULATION_QUERY = basequery = (
+    'SELECT Count(DISTINCT a.member_id)FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a join `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m on a.member_id = m.member_id AND a.record_date = m.record_date WHERE a.record_date Between "2023-05-01" AND "2023-05-31";')
+    query_job = client.query(TOTAL_POPULATION_QUERY)  # API request
+    rows = query_job.result()  # Waits for query to finish
+
+
+    for row in rows:
+        query_results.append(row)
+        print(f'total population size is {row[0]}')
+    min_age=output["minimum_age"]
+    max_age=output["maximum_age"]
+    sample_size_query,queries= build_sample_size_query(output,min_age,max_age)
+
+query_job = client.query(sample_size_query)
+    results = query_job.result()
+    for row in results:
+        query_results.append(row)
+        print(f'sample size is {row[0]}')
+    # multiple_queries_result=[]
+    # for re in queries:
+    #     query_job=client.query(re)
+    #     results = query_job.result()
+    #     multiple_queries_result.append(results)
+    # for row in multiple_queries_result:
+    #     for k in row:
+    #         print(f"sample_size is {k[0]}")
+    sample_size_query_output = query_results[0][0]
+    total_size_query_output = query_results[1][0]
+    #print(f"sample_size:{query_results[0][0]}, total_size:{query_results[1][0]}")
+    return { 'sample_size': sample_size_query_output, 'total_population': total_size_query_output}
+    # """
+    
+    #return output
