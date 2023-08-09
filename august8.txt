@@ -295,3 +295,97 @@ def test_display_audience_by_name(mock_query):
 # Run the tests
 if __name__ == '__main__':
     pytest.main()
+
+
+
+from fastapi import APIRouter
+from ..controller.application import *
+db=sessionLocal()
+create_and_estimate_audience_size_route=APIRouter(prefix='/ltvo-audience/v1',tags=["CreateAndEstimateAudienceSize"])
+from google.cloud import bigquery
+from google.oauth2 import service_account
+project_id = 'ltvo-dswb-prod-c423'
+client = bigquery.Client(project=project_id)
+@create_and_estimate_audience_size_route.post("/audience_size")
+def display_audience_by_name(audience:AudienceSchema):
+    query_results=[]
+    output = audience.dict()
+    attributes_values_dict = output["attributes"]
+    def build_sample_size_query(output,min_age,max_age):
+        attributes=output["attributes"]
+        min_age=output["minimum_age"]
+        max_age=output["maximum_age"]
+        def ltvo_database_name_based_on_country(country):
+            if country == 'US':
+                member_attribute_table = "ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim"
+                member_dim_table = "ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim"
+            elif country == "CA":
+                member_attribute_table = "ltvo-datalake-prod-dfd5.f_ltvo_ca.member_attribute_dim"
+                member_dim_table = "ltvo-datalake-prod-dfd5.f_ltvo_ca.member_dim"
+        
+            return member_attribute_table,member_dim_table
+        member_attribute_table,member_dim_table=ltvo_database_name_based_on_country(output["country"])
+        base_query = 'SELECT Count(DISTINCT a.member_id) FROM' + '`'+ member_attribute_table+'`'+ 'a join '+ '`'+ member_dim_table+'`'+' m on a.member_id = m.member_id AND a.record_date = m.record_date WHERE a.record_date Between "2023-05-01" AND "2023-05-31"'
+        where_clause_str=""
+        AND_QUERY=' AND  m.age_qty BETWEEN ' + str(min_age) + ' AND ' + str(max_age)+';'
+        abc=[]
+        for attr_name, attr_value in attributes.items():
+            where_clause_str1 = ' AND member_attribute_name = '+"'" +attr_name+ "'" +' AND '  + 'member_attribute_val = ' + "'"+attr_value+"'" + ' '
+            where_clause_str += where_clause_str1
+            abc.append(where_clause_str1)
+            
+        where_clause_str+=AND_QUERY
+        queries=[]
+        for k in abc:
+            queries.append(base_query+k+AND_QUERY)
+        return base_query+where_clause_str,queries
+        
+    TOTAL_POPULATION_QUERY = basequery = (
+    'SELECT Count(DISTINCT a.member_id)FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` a join `ltvo-datalake-prod-dfd5.f_ltvo_us.member_dim` m on a.member_id = m.member_id AND a.record_date = m.record_date WHERE a.record_date Between "2023-05-01" AND "2023-05-31";')
+    query_job = client.query(TOTAL_POPULATION_QUERY)  # API request
+    rows = query_job.result()  # Waits for query to finish
+    for row in rows:
+        query_results.append(row)
+        #print(f'total population size is {row[0]}')
+    min_age=output["minimum_age"]
+    max_age=output["maximum_age"]
+    sample_size_query,queries= build_sample_size_query(output,min_age,max_age)    
+    query_job = client.query(sample_size_query)
+    results = query_job.result()
+    for row in results:
+        query_results.append(row)
+    sample_size_query_output = query_results[0][0]
+    total_size_query_output = query_results[1][0]
+    response = {
+        "name":output["name"],
+        "description":output["description"],
+        "gender":output["gender"],
+        "minimum_age":output["minimum_age"],
+        "maximum_age":output["maximum_age"],
+        "country":output["country"],
+        "sample_size":sample_size_query_output,
+        "total_size":total_size_query_output,
+        "attributes":output["attributes"]
+    }
+    sample_size=response["sample_size"]
+    total_size=response["total_size"]
+    try:
+        with database.batch() as batch:
+                    batch.insert(
+                        table='audience_create',
+                        columns=('name','description','gender','minimum_age','maximum_age','country','sample_size','total_size','attributes'),
+                        values=[(
+                            audience.name,
+                            audience.description,
+                            audience.gender,
+                            audience.minimum_age,
+                            audience.maximum_age,
+                            audience.country,
+                            sample_size,
+                            total_size,
+                            json.dumps(audience.attributes)
+                        )]
+                    )
+    except Exception as e:
+        raise HTTPException(status_code=400,detail=f'Audience Name {output["name"]} already exists')
+    return response
