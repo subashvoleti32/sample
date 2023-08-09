@@ -389,3 +389,54 @@ def display_audience_by_name(audience:AudienceSchema):
     except Exception as e:
         raise HTTPException(status_code=400,detail=f'Audience Name {output["name"]} already exists')
     return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def test_create_audience_success():
+    mock_response = Mock()
+    mock_response.result.return_value = [(100,)]
+    
+    with patch("your_module.bigquery.Client") as mock_client:
+        mock_client_instance = mock_client.return_value
+        mock_client_instance.query.return_value = mock_response
+        
+        data = {
+            "name": "Test Audience",
+            "description": "Test description",
+            "gender": "male",
+            "minimum_age": 18,
+            "maximum_age": 65,
+            "country": "US",
+            "attributes": {
+                "interests": "sports"
+            }
+        }
+        
+        response = client.post("/ltvo-audience/v1/audience_size", json=data)
+        
+        assert response.status_code == 200
+        assert response.json()["name"] == "Test Audience"
+        # Add more assertions as needed
+
