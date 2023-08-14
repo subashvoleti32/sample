@@ -1,0 +1,39 @@
+from enum import Enum
+from typing import Any, Dict
+import logging
+
+from pydantic import BaseSettings, Field
+
+
+class APIMode(str, Enum):
+    testing = "testing"
+    stub = "stub"
+    local = "local"
+    dev = "dev"
+    stg = "stg"
+    prod = "prod"
+
+
+class APIConfig(BaseSettings):
+    mode: APIMode = Field(APIMode.local, env="API_MODE")
+    project_id: str = Field(..., env="PROJECT_ID")
+    instance_id:str=Field(...,env="INSTANCE_ID")
+    database_id:str=Field(...,env="DATABASE_ID")
+    
+
+    @property
+    def is_testing(self):
+        return self.mode == APIMode.testing
+
+    @property
+    def is_stub(self):
+        return self.mode == APIMode.stub
+
+    @property
+    def is_local(self):
+        return self.mode == APIMode.local
+
+    @property
+    def is_non_local(self):
+        logging.info(f"Mode is {self.mode}")
+        return self.mode not in (APIMode.stub, APIMode.local, APIMode.testing)
