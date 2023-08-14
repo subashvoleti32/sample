@@ -37,3 +37,16 @@ class APIConfig(BaseSettings):
     def is_non_local(self):
         logging.info(f"Mode is {self.mode}")
         return self.mode not in (APIMode.stub, APIMode.local, APIMode.testing)
+
+
+  instance_id = APIConfig().instance_id
+                  ^^^^^^^^^^^
+  File "pydantic\env_settings.py", line 39, in pydantic.env_settings.BaseSettings.__init__
+  File "pydantic\main.py", line 341, in pydantic.main.BaseModel.__init__
+pydantic.error_wrappers.ValidationError: 3 validation errors for APIConfig
+project_id
+  field required (type=value_error.missing)
+instance_id
+  field required (type=value_error.missing)
+database_id
+  field required (type=value_error.missing)
