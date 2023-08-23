@@ -65,3 +65,177 @@ def test_get_attribute_by_country_us():
     response = client.get("/ltvo-audience/v1/audience_template?country=US")
     assert response.status_code == 200
     assert response.json() == us_audience_template_response
+
+from fastapi import APIRouter
+from google.cloud import spanner
+
+from ..model.attribute_model import sessionLocal
+from ..model.attribute_model import tracks
+
+audience_template_route = APIRouter(
+    prefix="/ltvo-audience/v1", tags=["Audience_Template"]
+)
+
+from fastapi import FastAPI, HTTPException
+
+from ..config.env_var import settings
+
+# Instantiate a client.
+spanner_client = spanner.Client()
+
+# Get a Cloud Spanner instance by ID.
+instance_id = settings.instance_id
+instance = spanner_client.instance(instance_id)
+
+db = sessionLocal()
+database_id = settings.database_id
+database = instance.database(database_id)
+
+
+def audience_template_output():
+    templates_output = []
+    with database.snapshot() as snapshot:
+        results = snapshot.execute_sql("SELECT *from template_audience")
+
+        for row in results:
+            templates_output.append(row)
+    output_list1 = [
+        {
+            "min_age": item[0],
+            "max_age": item[1],
+            "country": item[2],
+            "audience_attributes": item[3],
+        }
+        for item in templates_output
+    ]
+    return output_list1
+
+
+def attribute_values_output():
+    attribute_values_output = []
+    with database.snapshot() as snapshot:
+        results = snapshot.execute_sql("SELECT *from template_attribute_values")
+
+        for row in results:
+            attribute_values_output.append(row)
+    output_list1 = [
+        {
+            "Country": item[0],
+            "Parent Attribute Name": item[1],
+            "Audience Attribute Value": item[2],
+            "Audience Attribute Label": item[3],
+            "Audience Attribute Description": item[4],
+        }
+        for item in attribute_values_output
+    ]
+    return output_list1
+def default_attributes_values_output():
+    attribute_values_output=[]
+    with database.snapshot() as snapshot:
+        results = snapshot.execute_sql("SELECT *from attributes_value_label")
+
+        for row in results:
+            attribute_values_output.append(row)
+    output_list1 = [
+        {
+            "Country": item[0],
+            "Parent Attribute Name": item[1],
+            "Audience Attribute Value": item[2],
+            "Audience Attribute Label": item[4],
+            "Audience Attribute Description": item[5],
+        }
+        for item in attribute_values_output
+    ]
+    return output_list1
+    
+
+TEMPLATES = audience_template_output()
+
+ATTRIBUTE_VALUES = attribute_values_output()
+DEFAULT_ATTRIBUTE_VALUES=default_attributes_values_output()
+# def default_attribute_values_output(country):
+#     try:
+#             db_res2 = (
+#                 db.query(tracks)
+#                 .filter(tracks.c.country_code == country)
+#                 .all()
+#             )
+#     except Exception as e:
+#         print(f'Exception as {e}')
+#     default_attribute_output=[
+#         {
+#             "attribute":item[1]
+#         }
+#         for item in db_res2
+#     ]
+#     return default_attribute_output
+    
+    
+app = FastAPI()
+
+
+def get_audience_attributes(country):
+    attributes = {}
+    for attr in ATTRIBUTE_VALUES:
+        if attr["Country"] == country:
+            parent_attr_name = attr["Parent Attribute Name"]
+            if parent_attr_name not in attributes:
+                attributes[parent_attr_name] = []
+            attributes[parent_attr_name].append(
+                {
+                    "value": attr["Audience Attribute Value"],
+                    "label": attr["Audience Attribute Label"],
+                }
+            )
+    return attributes
+
+def get_default_audience_attributes(country):
+    attributes={}
+    for attr in DEFAULT_ATTRIBUTE_VALUES:
+        if attr["Country"] == country:
+            parent_attr_name = attr["Parent Attribute Name"]
+            if parent_attr_name not in attributes:
+                attributes[parent_attr_name] = []
+            attributes[parent_attr_name].append(
+                {
+                    "value":attr["Audience Attribute Value"],
+                    "label":attr["Audience Attribute Label"]
+                }
+            )
+    return attributes
+
+@audience_template_route.get("/audience_template")
+async def get_template(country: str):
+    
+    existing_countries = {}  # type: ignore
+    for template in TEMPLATES:
+        existing_countries[template["country"]] = (
+            existing_countries.get(template["country"], 0) + 1
+        )
+
+    if existing_countries.get(country, 0) > 1:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Country template {country} is already present.It cannot be duplicated",
+        )
+    template = next((t for t in TEMPLATES if t["country"] == country), None)
+    if template is None:
+        raise HTTPException(status_code=400, detail="Country Not Found")
+    response = {
+        "min_age": template["min_age"],
+        "max_age": template["max_age"],
+        "country": template["country"],
+        "gender": get_audience_attributes(country).get("gender", []),
+        "default_attributes": [
+            {"attribute_name": attr, "attribute_value": values}
+            for attr, values in get_audience_attributes(country).items()
+            if attr != "gender"
+        ],
+        "audience_attributes":[
+            {"attribute_name":attr,"attribute_value":values}
+            for attr,values in get_default_audience_attributes(country).items()
+            if attr!="gender"
+        ]
+    }
+    return response
+
