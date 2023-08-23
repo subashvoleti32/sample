@@ -1,2 +1,67 @@
 ERROR api/test/unittests/test_audience_template/test_audience_template.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
 ERROR api/test/unittests/test_get_audience/test_get_audience_api.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+import pytest
+from fastapi.testclient import TestClient
+
+from api.src.controller.application import app
+
+
+@pytest.fixture
+def test_client():
+    return TestClient(app)
+
+
+ca_audience_template_response = {
+    "min_age": 16,
+    "max_age": 120,
+    "country": "CA",
+    "gender": [{"value": "f", "label": "Female"}, {"value": "m", "label": "Male"}],
+    "audience_attributes": [
+        {
+            "attribute_name": "region",
+            "attribute_value": [
+                {"value": "quebec", "label": "French Speaking Regions"},
+                {"value": "national", "label": "English Speaking Regions"},
+            ],
+        }
+    ],
+}
+us_audience_template_response = {
+    "min_age": 18,
+    "max_age": 99,
+    "country": "US",
+    "gender": [
+        {"value": "Female", "label": "Female"},
+        {"value": "Male", "label": "Male"},
+    ],
+    "audience_attributes": [
+        {
+            "attribute_name": "race",
+            "attribute_value": [
+                {"value": "HA", "label": "Hispanic American"},
+                {"value": "AA", "label": "African American"},
+            ],
+        },
+        {
+            "attribute_name": "origin",
+            "attribute_value": [{"value": "unknown", "label": "Origin"}],
+        },
+    ],
+}
+
+
+################TEST CASE - CHECK CA AUDIENCE TEMPLATE STATUS AND RESPONSE CODE #########
+def test_get_attribute_by_country_ca():
+    client = TestClient(app)
+    response = client.get("/ltvo-audience/v1/audience_template?country=CA")
+    assert response.status_code == 200
+    print(response.json())
+    assert response.json() == ca_audience_template_response
+
+
+################TEST CASE - CHECK US AUDIENCE TEMPLATE STATUS AND RESPONSE CODE #########
+def test_get_attribute_by_country_us():
+    client = TestClient(app)
+    response = client.get("/ltvo-audience/v1/audience_template?country=US")
+    assert response.status_code == 200
+    assert response.json() == us_audience_template_response
