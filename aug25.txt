@@ -1,0 +1,402 @@
+from api.src.config.env_var import settings
+from api.src.controller.application import app
+from sqlalchemy import create_engine,MetaData
+from sqlalchemy.orm import Session,sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm.session import close_all_sessions
+import pytest
+
+from api.src.model.base import get_db
+project_id=settings.project_id
+instance_id=settings.instance_id
+database_id=settings.database_id
+print(project_id,instance_id,database_id)
+engine = create_engine(
+        "spanner+spanner:///projects/"
+        + project_id
+        + "/instances/"
+        + instance_id
+        + "/databases/"
+        + database_id
+    )
+class TestingSession(Session):
+    def commit(self):
+        # remove all data for next test
+        self.flush()
+        self.expire_all()
+
+@pytest.fixture(scope="function")
+def test_db():
+    # 1. SetUp
+    
+    print(project_id,instance_id,database_id)
+    engine = create_engine(
+        "spanner+spanner:///projects/"
+        + project_id
+        + "/instances/"
+        + instance_id
+        + "/databases/"
+        + database_id
+    )
+    metadata = MetaData(bind=engine)
+    
+    # Base.metadata.create_all(bind=engine)
+    # metadata.drop_all(engine)
+    # metadata.create_all(engine)
+
+    TestSessionLocal = sessionmaker(class_=TestingSession,autocommit=False, autoflush=False, bind=engine)
+
+    db = TestSessionLocal()
+
+    # Replace get_db() at app.main with the following func
+    # https://fastapi.tiangolo.com/advanced/testing-dependencies/
+    def get_db_for_testing():
+        try:
+            yield db
+            # db.commit()
+        except SQLAlchemyError as e:
+            assert e is not None
+            db.rollback()
+
+    app.dependency_overrides[get_db] = get_db_for_testing
+
+    # 2. Execute test cases
+    yield db
+
+    # 3. TearDown
+    db.rollback()
+    close_all_sessions()
+    engine.dispose()
+
+    import pytest 
+from fastapi.testclient import TestClient
+from api.test.conftest import test_db
+from api.src.model.templates_model import AudienceTemplate
+from api.src.model.attributes_model import Attribute
+from api.src.controller.application import app
+client=TestClient(app)
+from sqlalchemy.orm.session import close_all_sessions
+attributes = [
+        {
+            "country": "MS",
+            "name": "subash",
+            "name_label": "Subash",
+            "values": {
+                "role": {"label": "BackendDev"},
+                "Level": {"label": "P2"}
+            }
+        },
+        {
+            "country": "MS",
+            "name": "enam",
+            "name_label": "Enam",
+            "values": {
+                "role": {"label": "TeamLead"},
+                "Level": {"label": "P7"}
+            }
+        },
+        {
+            "country": "MS",
+            "name": "tariq",
+            "name_label": "Tariq",
+            "values": {
+                "role": {"label": "SeniorBackendDev"},
+                "Level":{"label":"P3"}
+            }
+        }
+    ]
+
+expected_response= {'country': 'MS', 'min_age': 19, 'max_age': 99, 'gender': [], 'default_attributes': [{'attribute_name': 'enam', 'attribute_label': 'Enam', 'attribute_value': [{'value': 'Level', 'label': 'P7'}, {'value': 
+'role', 'label': 'TeamLead'}]}, {'attribute_name': 'subash', 'attribute_label': 'Subash', 'attribute_value': [{'value': 'Level', 'label': 'P2'}, {'value': 'role', 'label': 'BackendDev'}]}, {'attribute_name': 'tariq', 'attribute_label': 'Tariq', 'attribute_value': [{'value': 'Level', 'label': 'P3'}, {'value': 'role', 'label': 'SeniorBackendDev'}]}], 'audience_attributes': [{'attribute_name': 'enam', 'attribute_label': 'Enam', 'attribute_value': [{'value': 'Level', 'label': 'P7'}, {'value': 'role', 'label': 'TeamLead'}]}, {'attribute_name': 'subash', 'attribute_label': 'Subash', 'attribute_value': [{'value': 'Level', 'label': 'P2'}, {'value': 'role', 'label': 'BackendDev'}]}, {'attribute_name': 'tariq', 'attribute_label': 'Tariq', 'attribute_value': [{'value': 'Level', 'label': 'P3'}, {'value': 'role', 'label': 'SeniorBackendDev'}]}]}
+def test_audience_template(test_db):
+    template=AudienceTemplate()
+    template.country = 'MS'
+    template.country_name = 'United States'
+    template.min_age = 19
+    template.max_age = 99
+    template.default_attributes = ["subash", "enam", "tariq"]
+    test_db.add(template)
+    test_db.commit()
+    test_db.flush()
+    for attribute in attributes:
+        attr = Attribute(**attribute)
+        test_db.add(attr)
+    test_db.commit()
+    test_db.flush()
+    response=client.get('/ltvo-audience/v1/audience_template?country=MS')
+    assert response.status_code==200
+    print(response.json())
+    assert response.json() == expected_response 
+    close_all_sessions() 
+    
+def test_invalid_audience_template():
+    response = client.get('/ltvo-audience/v1/audience_template?country=BC')
+    assert response.status_code==400
+    print(response.json())
+    assert response.json() == {'detail': 'Invalid Country Code provided'}
+
+
+#########################TESTCASE CHECKING MISSING COUNTRY###########################
+def test_get_attribute_by_missing_country():
+    response = client.get("/ltvo-audience/v1/audience_template")
+    assert response.status_code == 422
+    print(response.json())
+    assert response.json() == {
+        "detail": [
+            {
+                "loc": ["query", "country"],
+                "msg": "field required",
+                "type": "value_error.missing",
+            }
+        ]
+    }
+close_all_sessions()
+
+
+##################
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..model.attributes_model import Attribute
+from ..model.base import get_db
+from ..schema.response.attributes_response import GetAttributesResponse, GetAttributeResponse
+
+attributes_router = APIRouter(
+    prefix="/ltvo-audience/v1",
+)
+
+
+@attributes_router.get(
+    "/attribute_values",
+    response_model=GetAttributesResponse
+)
+def estimate_audience_size(country_code: str, attribute_name:str, db: Session = Depends(get_db)):
+
+    attribute = db.query(Attribute).filter(
+        Attribute.country == country_code
+    ).filter(
+        Attribute.name == attribute_name
+    ).first()
+
+    if not attribute:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Attribute '{attribute_name}' does not exist for country: {country_code}"
+        )
+
+    attributes: List[GetAttributeResponse] = []
+    for value, value_info in attribute.values.items():
+        attr = GetAttributeResponse(
+            country_code=attribute.country,
+            attribute_name=attribute_name,
+            attribute_value=value,
+            label=value_info['label']
+        )
+        attributes.append(attr)
+
+    return GetAttributesResponse(attributes=attributes)
+
+###############
+from typing import List, Dict
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..model.attributes_model import Attribute
+from ..model.audiences_model import Audience
+from ..model.base import get_db
+from ..schema.request.audiences_request import CreateAudienceRequest, EstimateAudienceSizeRequest
+from ..schema.response.audiences_response import ValueResponse, \
+    CreateAudienceResponse, EstimateAudienceSizeResponse, AudienceAttribute, GetAudienceResponse, GetAudiencesResponse
+from ..util.big_query import AudiencePopulationEstimator
+
+audiences_router = APIRouter(
+    prefix="/ltvo-audience/v1"
+)
+
+
+@audiences_router.get("/audience", tags=["DisplayAudience"])
+def get_audiences(country: str, db: Session = Depends(get_db)):
+
+    attributes: List[Attribute] = db.query(Attribute).filter(
+        Attribute.country == country
+    ).all()
+    attr_dict: Dict[Attribute] = {
+        attribute.name: attribute
+        for attribute in attributes
+    }
+
+    if not attributes:
+        raise HTTPException(
+            status_code=400, detail=f"No attributes found for country: {country}"
+        )
+
+    audiences: List[Audience] = db.query(Audience).filter(
+        Audience.country == country
+    ).all()
+
+    if not audiences:
+        return {"audiences": []}
+
+    response: List[GetAudienceResponse] = []
+    for audience in audiences:
+
+        attributes: List[AudienceAttribute] = []
+        for name, value in audience.attributes.items():
+            attr = AudienceAttribute(
+                attribute_name=name,
+                attribute_label=attr_dict[name].name_label,
+                attribute_value=ValueResponse(
+                    value=value,
+                    label=attr_dict[name].values[value]['label']
+                )
+            )
+            attributes.append(attr)
+
+        gender = ValueResponse(
+            value=audience.gender,
+            label=attr_dict['gender'].values[audience.gender]['label']
+        )
+        aud_resp = GetAudienceResponse(
+            name=audience.name,
+            description=audience.description,
+            minimum_age=audience.min_age,
+            maximum_age=audience.max_age,
+            country=audience.country,
+            total_size=audience.total_size,
+            sample_size=audience.sample_size,
+            gender=gender,
+            attributes=attributes
+        )
+
+        response.append(aud_resp)
+
+    return GetAudiencesResponse(audiences=response)
+
+
+@audiences_router.post(
+    "/audience", response_model=CreateAudienceResponse,
+    tags=['Create Audience']
+)
+def create_audience(request: CreateAudienceRequest, db: Session = Depends(get_db)):
+
+    audience = db.query(Audience).filter(Audience.name == request.name).first()
+    if audience:
+        raise HTTPException(
+            status_code=400,
+            detail=f'Audience Name {request.name} already exists'
+        )
+
+    estimator = AudiencePopulationEstimator(
+        request.country
+    )
+    sample_size = estimator.get_estimated_population_size(
+        request.minimum_age, request.maximum_age, request.attributes
+    )
+
+    total_size = estimator.get_total_population()
+
+    audience = Audience()
+    audience.name = request.name
+    audience.description = request.description
+    audience.gender = request.gender
+    audience.min_age = request.minimum_age
+    audience.max_age = request.maximum_age
+    audience.country = request.country
+    audience.sample_size = sample_size
+    audience.total_size = total_size
+    audience.attributes = request.attributes
+
+    db.add(audience)
+    db.commit()
+    db.refresh(audience)
+
+    response_dict = request.dict()
+    response_dict['sample_size'] = sample_size
+    response_dict['total_size'] = total_size
+    return CreateAudienceResponse(**response_dict)
+
+
+@audiences_router.post(
+    "/estimate_audience_size",
+    response_model=EstimateAudienceSizeResponse,
+    tags=['Estimate Audience Size']
+)
+def estimate_audience_size(request: EstimateAudienceSizeRequest):
+
+    estimator = AudiencePopulationEstimator(
+        request.country
+    )
+    sample_size = estimator.get_estimated_population_size(
+        request.minimum_age, request.maximum_age, request.attributes
+    )
+
+    total_size = estimator.get_total_population()
+
+    return EstimateAudienceSizeResponse(sample_size=sample_size, total_size=total_size)
+###############
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..model.base import get_db
+from ..model.templates_model import AudienceTemplate
+from ..model.attributes_model import Attribute
+from ..schema.response.templates_response import AudienceTemplateResponse, AttributeResponse, ValueResponse
+
+
+templates_router = APIRouter(
+    prefix="/ltvo-audience/v1"
+)
+
+
+@templates_router.get(
+    "/audience_template",
+    response_model=AudienceTemplateResponse,
+    tags=["Templates By Country"]
+)
+async def get_template(country: str, db: Session = Depends(get_db)):
+
+    template: AudienceTemplate = db.query(AudienceTemplate).filter(
+        AudienceTemplate.country == country
+    ).first()
+
+    if not template:
+        raise HTTPException(status_code=400,detail="Invalid Country Code provided")
+
+    gender: List[ValueResponse] = []
+    default_attributes: List[AttributeResponse] = []
+    audience_attributes: List[AttributeResponse] = []
+
+    attributes: List[Attribute] = db.query(Attribute).filter(
+        Attribute.country == country
+    ).all()
+
+    for attribute in attributes:
+        if attribute.name == 'gender':
+            gender = ValueResponse.from_values_json(attribute)
+
+        value = ValueResponse.from_values_json(attribute)
+        attr_resp = AttributeResponse(
+                attribute_name=attribute.name,
+                attribute_label=attribute.name_label,
+                attribute_value=value
+            )
+        audience_attributes.append(attr_resp)
+
+        if attribute.name in template.default_attributes:
+            default_attributes.append(attr_resp)
+
+    response = AudienceTemplateResponse(
+        country=template.country,
+        max_age=template.max_age,
+        min_age=template.min_age,
+        gender=gender,
+        default_attributes=default_attributes,
+        audience_attributes=audience_attributes
+    )
+    return response
+
