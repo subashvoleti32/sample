@@ -400,3 +400,12 @@ async def get_template(country: str, db: Session = Depends(get_db)):
     )
     return response
 
+
+FAILED test_aud.py::test_audience_template - sqlalchemy.exc.ProgrammingError: (google.cloud.spanner_dbapi.exceptions.ProgrammingError) []
+FAILED test_aud.py::test_invalid_audience_template - sqlalchemy.exc.ProgrammingError: (google.cloud.spanner_dbapi.exceptions.ProgrammingError) []
+
+
+raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.FailedPrecondition: 400 Schema change operation rejected because a concurrent schema change operation or read-write transaction is already in progress
+
+
