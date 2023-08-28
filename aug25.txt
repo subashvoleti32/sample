@@ -499,3 +499,152 @@ def get_audiences(country: str, db: Session = Depends(get_db)):
 
     return GetAudiencesResponse(audiences=response)
 
+
+
+import pytest
+from fastapi.testclient import TestClient
+
+from api.src.controller.application import app
+from api.src.model.audiences_model import Audience
+from api.src.util.big_query import AudiencePopulationEstimator
+from api.test.conftest import test_db
+
+client = TestClient(app)
+import time
+
+from sqlalchemy.orm.session import close_all_sessions
+
+
+class SchemaManger:
+    allow_schema_changes = True
+
+
+def enable_schema_changes():
+    SchemaManger.allow_schema_changes = True
+
+
+def disable_schema_changes():
+    SchemaManger.allow_schema_changes = False
+
+
+template = {
+    "name": "W1465",
+    "description": "Women's Age between 19 to 65",
+    "gender": "m",
+    "minimum_age": 18,
+    "maximum_age": 65,
+    "country": "US",
+    "attributes": {"race": "3"},
+}
+estimator = AudiencePopulationEstimator(template["country"])
+sample_size = estimator.get_estimated_population_size(
+    template["minimum_age"], template["maximum_age"], template["attributes"]
+)
+
+total_size = estimator.get_total_population()
+
+
+def test_get_audience(test_db):
+    # audience = Audience()
+    # audience.name = template["name"]
+    # audience.description = template["description"]
+    # audience.gender = template["gender"]
+    # audience.min_age = template["minimum_age"]
+    # audience.max_age = template["maximum_age"]
+    # audience.country = template["country"]
+    # audience.sample_size = sample_size
+    # audience.total_size=total_size
+    # audience.attributes = template["attributes"]
+    # test_db.add(audience)
+    # test_db.commit()
+    aud1 = Audience(
+        name="W1865",
+        description="Hi",
+        gender="m",
+        min_age=18,
+        max_age=65,
+        country="US",
+        sample_size=sample_size,
+        total_size=total_size,
+        attributes=template["attributes"],
+    )
+    test_db.add(aud1)
+    test_db.flush()
+    test_db.commit()
+    response = client.get("/ltvo-audience/v1/audience?country=US")
+    print(response)
+    assert response.status_code == 200
+    print(response.json())
+    assert response.json() == {
+        "name": "W18",
+        "description": "string",
+        "gender": "m",
+        "minimum_age": 18,
+        "maximum_age": 65,
+        "country": "US",
+        "attributes": {"race": "3"},
+        "total_size": 112011,
+        "sample_size": 10723,
+    }
+    # finally:
+    #     enable_schema_changes()
+
+
+# def perform_schema_changes():
+#     if SchemaManger.allow_schema_changes:
+#         audience = Audience()
+#         audience.name = template["name"]
+#         audience.description = template["description"]
+#         audience.gender = template["gender"]
+#         audience.min_age = template["minimum_age"]
+#         audience.max_age = template["maximum_age"]
+#         audience.country = template["country"]
+#         audience.sample_size = sample_size
+#         audience.total_size=total_size
+#         audience.attributes = template["attributes"]
+#         test_db.add(audience)
+
+#         test_db.commit()
+#     else:
+#         raise Exception("Schema changes are currently disabled")
+
+# audiences = {
+#   "name": "W1",
+#   "description": "string",
+#   "gender": "m",
+#   "min_age": 18,
+#   "max_age": 65,
+#   "country": "US",
+#   "attributes": {
+#       "race":"3"
+#   }
+# }
+
+# estimator = AudiencePopulationEstimator(
+#         audiences["country"]
+#     )
+# sample_size = estimator.get_estimated_population_size(
+#         audiences["min_age"], audiences["max_age"], audiences["attributes"]
+#     )
+
+# total_size = estimator.get_total_population()
+# def test_audience_create(test_db):
+
+#     response=client.post("/ltvo-audience/v1/audience",json = {
+#   "name": "W18",
+#   "description": "string",
+#   "gender": "m",
+#   "minimum_age": 18,
+#   "maximum_age": 65,
+#   "country": "US",
+#   "attributes": {
+#       "race":"3"
+#   }
+# })
+#     print(response)
+#     print(response.json())
+#     assert response.status_code == 200
+#     print(response.json())
+#     assert response.json() == {'name': 'W18', 'description': 'string', 'gender': 'm', 'minimum_age': 18, 'maximum_age': 65, 'country': 'US', 'attributes': {'race': '3'}, 'total_size': 112011, 'sample_size': 10723}
+close_all_sessions()
+
