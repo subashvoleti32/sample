@@ -422,4 +422,80 @@ E               details = "Schema change operation rejected because a concurrent
 E               debug_error_string = "UNKNOWN:Error received from peer  {created_time:"2023-08-28T08:02:10.213241484+00:00", grpc_status:9, grpc_message:"Schema change operation rejected because 
 a concurrent schema change operation or read-write transaction is already in progress."}"
 
+from typing import Dict, List
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..model.attributes_model import Attribute
+from ..model.audiences_model import Audience
+from ..model.base import get_db
+from ..schema.request.audiences_request import (
+    CreateAudienceRequest,
+    EstimateAudienceSizeRequest,
+)
+from ..schema.response.audiences_response import (
+    AudienceAttribute,
+    CreateAudienceResponse,
+    EstimateAudienceSizeResponse,
+    GetAudienceResponse,
+    GetAudiencesResponse,
+    ValueResponse,
+)
+from ..util.big_query import AudiencePopulationEstimator
+
+audiences_router = APIRouter(prefix="/ltvo-audience/v1")
+
+
+@audiences_router.get("/audience", tags=["DisplayAudience"])
+def get_audiences(country: str, db: Session = Depends(get_db)):
+    attributes: List[Attribute] = (
+        db.query(Attribute).filter(Attribute.country == country).all()
+    )
+    attr_dict: Dict[Attribute] = {attribute.name: attribute for attribute in attributes}
+
+    if not attributes:
+        raise HTTPException(
+            status_code=400, detail=f"No attributes found for country: {country}"
+        )
+
+    audiences: List[Audience] = (
+        db.query(Audience).filter(Audience.country == country).all()
+    )
+
+    if not audiences:
+        return {"audiences": []}
+
+    response: List[GetAudienceResponse] = []
+    for audience in audiences:
+        attributes: List[AudienceAttribute] = []
+        for name, value in audience.attributes.items():
+            attr = AudienceAttribute(
+                attribute_name=name,
+                attribute_label=attr_dict[name].name_label,
+                attribute_value=ValueResponse(
+                    value=value, label=attr_dict[name].values[value]["label"]
+                ),
+            )
+            attributes.append(attr)
+
+        gender = ValueResponse(
+            value=audience.gender,
+            label=attr_dict["gender"].values[audience.gender]["label"],
+        )
+        aud_resp = GetAudienceResponse(
+            name=audience.name,
+            description=audience.description,
+            minimum_age=audience.min_age,
+            maximum_age=audience.max_age,
+            country=audience.country,
+            total_size=audience.total_size,
+            sample_size=audience.sample_size,
+            gender=gender,
+            attributes=attributes,
+        )
+
+        response.append(aud_resp)
+
+    return GetAudiencesResponse(audiences=response)
 
