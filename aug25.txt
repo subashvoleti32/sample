@@ -409,3 +409,9 @@ raise exceptions.from_grpc_error(exc) from exc
 google.api_core.exceptions.FailedPrecondition: 400 Schema change operation rejected because a concurrent schema change operation or read-write transaction is already in progress
 
 
+
+
+
+google.api_core.exceptions.FailedPrecondition: 400 Schema change operation rejected because a concurrent schema change operation or read-write transaction is already in progress.
+
+
