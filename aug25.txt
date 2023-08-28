@@ -415,3 +415,11 @@ google.api_core.exceptions.FailedPrecondition: 400 Schema change operation rejec
 google.api_core.exceptions.FailedPrecondition: 400 Schema change operation rejected because a concurrent schema change operation or read-write transaction is already in progress.
 
 
+
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+E               status = StatusCode.FAILED_PRECONDITION
+E               details = "Schema change operation rejected because a concurrent schema change operation or read-write transaction is already in progress."
+E               debug_error_string = "UNKNOWN:Error received from peer  {created_time:"2023-08-28T08:02:10.213241484+00:00", grpc_status:9, grpc_message:"Schema change operation rejected because 
+a concurrent schema change operation or read-write transaction is already in progress."}"
+
+
