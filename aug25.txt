@@ -691,3 +691,64 @@ def test_get_audience(test_db):
         "total_size": 112011,
         "sample_size": 10723,
     } 
+
+
+@audiences_router.get("/audience", tags=["DisplayAudience"])
+def get_audiences(country: str, db: Session = Depends(get_db)):
+
+    attributes: List[Attribute] = db.query(Attribute).filter(
+        Attribute.country == country
+    ).all()
+    attr_dict: Dict[Attribute] = {
+        attribute.name: attribute
+        for attribute in attributes
+    }
+
+    if not attributes:
+        raise HTTPException(
+            status_code=400, detail=f"No attributes found for country: {country}"
+        )
+
+    audiences: List[Audience] = db.query(Audience).filter(
+        Audience.country == country
+    ).all()
+
+    if not audiences:
+        return {"audiences": []}
+
+    response: List[GetAudienceResponse] = []
+    for audience in audiences:
+
+        attributes: List[AudienceAttribute] = []
+        for name, value in audience.attributes.items():
+            attr = AudienceAttribute(
+                attribute_name=name,
+                attribute_label=attr_dict[name].name_label,
+                attribute_value=ValueResponse(
+                    value=value,
+                    label=attr_dict[name].values[value]['label']
+                )
+            )
+            attributes.append(attr)
+
+        gender = ValueResponse(
+            value=audience.gender,
+            label=attr_dict['gender'].values[audience.gender]['label']
+        )
+        aud_resp = GetAudienceResponse(
+            name=audience.name,
+            description=audience.description,
+            minimum_age=audience.min_age,
+            maximum_age=audience.max_age,
+            country=audience.country,
+            total_size=audience.total_size,
+            sample_size=audience.sample_size,
+            gender=gender,
+            attributes=attributes
+        )
+
+        response.append(aud_resp)
+
+    return GetAudiencesResponse(audiences=response)
+
+
