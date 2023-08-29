@@ -648,3 +648,46 @@ def test_get_audience(test_db):
 #     assert response.json() == {'name': 'W18', 'description': 'string', 'gender': 'm', 'minimum_age': 18, 'maximum_age': 65, 'country': 'US', 'attributes': {'race': '3'}, 'total_size': 112011, 'sample_size': 10723}
 close_all_sessions()
 
+
+def test_get_audience(test_db):
+    # audience = Audience()
+    # audience.name = template["name"]
+    # audience.description = template["description"]
+    # audience.gender = template["gender"]
+    # audience.min_age = template["minimum_age"]
+    # audience.max_age = template["maximum_age"]
+    # audience.country = template["country"]
+    # audience.sample_size = sample_size[0],
+    # audience.total_size=total_size
+    # audience.attributes = template["attributes"]
+    # test_db.add(audience)
+    # test_db.commit()
+    aud1 = Audience(
+        name="W1865",
+        description="Hi",
+        gender="m",
+        min_age=18,
+        max_age=65,
+        country="US",
+        sample_size=samplesize,
+        total_size=totalsize,
+        attributes=audiences["attributes"],
+    )
+    test_db.add(aud1)
+    test_db.commit()
+    response = client.get("/ltvo-audience/v1/audience?country=US")
+    print(response)
+    assert response.status_code == 200
+    
+    print(response.json())
+    assert response.json() == {
+        "name": "W18",
+        "description": "string",
+        "gender": "m",
+        "minimum_age": 18,
+        "maximum_age": 65,
+        "country": "US",
+        "attributes": {"race": "3"},
+        "total_size": 112011,
+        "sample_size": 10723,
+    } 
