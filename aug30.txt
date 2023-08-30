@@ -1,0 +1,182 @@
+import dataclasses
+from datetime import date
+from typing import Any
+
+from dateutil.relativedelta import relativedelta
+from sqlalchemy.sql import text
+
+from ..config.env_var import settings
+
+
+def get_three_months_prior_date() -> str:
+    three_months_before = date.today() + relativedelta(months=-3)
+    return three_months_before.strftime("%Y-%m-%d")
+
+
+def get_today() -> str:
+    return date.today().strftime("%Y-%m-%d")
+
+
+@dataclasses.dataclass
+class Query:
+    named_query: str
+    values: dict[str:Any]  # type: ignore
+
+
+class AudiencePopulationEstimator(object):
+    _member_attribute_tbl: str = "member_attribute_dim"
+    _member_dim_tbl: str = "member_dim"
+    bq_lake: str = settings.bq_lake
+
+    def __init__(
+        self,
+        bq_engine,
+        country,
+        record_start_date: str = None,  # type: ignore
+        record_end_date: str = None,  # type: ignore
+    ):
+        self.bq_engine = bq_engine
+        self.country = country.lower()
+        self.record_start_date = record_start_date or get_three_months_prior_date()
+        self.record_end_date = record_end_date or get_today()
+
+    @property
+    def member_attribute_table(self):
+        return f"{self.bq_lake}.f_ltvo_{self.country}.{self._member_attribute_tbl}"
+
+    @property
+    def member_dim_table(self):
+        return f"{self.bq_lake}.f_ltvo_{self.country}.{self._member_dim_tbl}"
+
+    @property
+    def base_query(self):
+        query = [
+            "SELECT Count(DISTINCT a.member_id) FROM",
+            f"`{self.member_attribute_table}` a",
+            f"JOIN `{self.member_dim_table}` m",
+            f"ON a.member_id = m.member_id AND a.record_date = m.record_date",
+            f"WHERE a.record_date Between :start_date AND :end_date",
+        ]
+        return " ".join(query)
+
+    def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Query:
+        values = {
+            "min_age": min_age,
+            "max_age": max_age,
+            "start_date": self.record_start_date,
+            "end_date": self.record_end_date,
+        }
+        where_conditions = [" AND m.age_qty BETWEEN :min_age AND :max_age"]
+
+        i = 0
+        attr_name = "attr_name"
+        attr_val = "attr_val"
+        for name, value in attributes.items():
+            c_name = f"{attr_name}_{i}"
+            c_value = f"{attr_val}_{i}"
+            where_conditions.append(
+                f" AND member_attribute_name = :{c_name}"
+                f" AND member_attribute_val = :{c_value}"
+            )
+            i += 1
+            values[c_name] = name
+            values[c_value] = value
+
+        final_query = self.base_query + "".join(where_conditions)
+
+        return Query(final_query, values)
+
+    def get_total_population_query(self) -> Query:
+        query = self.base_query
+        values = {
+            "start_date": self.record_start_date,
+            "end_date": self.record_end_date,
+        }
+        return Query(query, values)
+
+    def get_total_population(self) -> int:
+        total_size_query = self.get_total_population_query()
+        results = self.bq_engine.execute(
+            text(total_size_query.named_query), total_size_query.values
+        ).fetchall()
+        return results[0][0] if results else 0
+
+    def get_estimated_population_size(self, min_age, max_age, attributes) -> int:
+        estimate_query = self.get_estimate_population_size_query(
+            min_age=min_age, max_age=max_age, attributes=attributes
+        )
+
+        results = self.bq_engine.execute(
+            text(estimate_query.named_query), estimate_query.values
+        ).fetchall()
+
+        return results[0][0] if results else 0
+
+# from api.src.config.env_var import settings
+from api.src.controller.application import app
+# from sqlalchemy import create_engine,MetaData
+from sqlalchemy.orm import Session,sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm.session import close_all_sessions
+import pytest
+
+from api.src.model.base import get_db, metadata, engine
+# project_id=settings.project_id
+# instance_id=settings.instance_id
+# database_id=settings.database_id
+# engine = create_engine(
+#         "spanner+spanner:///projects/"
+#         + project_id
+#         + "/instances/"
+#         + instance_id
+#         + "/databases/"
+#         + "testdb"
+#     )
+class TestingSession(Session):
+    def commit(self):
+        # remove all data for next test
+        self.flush()
+        self.expire_all()
+
+@pytest.fixture(scope="function")
+def test_db():
+    # # 1. SetUp
+    # engine = create_engine(
+    #     "spanner+spanner:///projects/"
+    #     + project_id
+    #     + "/instances/"
+    #     + instance_id
+    #     + "/databases/"
+    #     + database_id
+    # )
+    # metadata = MetaData(bind=engine)
+    #
+    # Base.metadata.create_all(bind=engine)
+    # metadata.drop_all(engine)
+    # print("Creating tables....")
+    metadata.create_all(engine)
+
+    TestSessionLocal = sessionmaker(class_=TestingSession,autocommit=False, autoflush=False, bind=engine)
+
+    db = TestSessionLocal()
+
+    # Replace get_db() at app.main with the following func
+    # https://fastapi.tiangolo.com/advanced/testing-dependencies/
+    def get_db_for_testing():
+        try:
+            yield db
+            db.commit()
+        except SQLAlchemyError as e:
+            assert e is not None
+            db.rollback()
+
+    app.dependency_overrides[get_db] = get_db_for_testing
+
+    # 2. Execute test cases
+    yield db
+    # metadata.drop_all(engine)
+
+    # 3. TearDown
+    db.rollback()
+    close_all_sessions()
+    engine.dispose()
