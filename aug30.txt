@@ -180,3 +180,18 @@ def test_db():
     db.rollback()
     close_all_sessions()
     engine.dispose()
+
+from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from ..config.env_var import settings
+
+bq_url = f"bigquery://{settings.bq_project_id}"
+
+bq_engine = create_engine(bq_url)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=bq_engine)
+
+
+def get_bq_db():
+    return SessionLocal()
