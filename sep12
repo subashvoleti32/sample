@@ -1,0 +1,78 @@
+{
+	"grouping_description": {
+		"type": "string",
+		"default": null
+	},
+
+	"element_name": {
+		"type": "string",
+		"default": null
+	},
+
+	"channel_name": {
+		"type": "string",
+		"default": null
+	},
+
+	"start_day": {
+		"type": "date",
+		"default": "date.now - 1 year"
+	},
+
+	"end_day": {
+		"type": "date",
+		"default": "20230813000"
+	},
+
+	"start_time": {
+		"type": "timestamp",
+		"default": "00:00:00 AM"
+	},
+
+	"end_time": {
+		"type": "timestamp",
+		"default": "11:59:59 PM"
+	},
+
+	"include_program_type_name": {
+		"type": "bool",
+		"default": "False"
+	},
+
+	"program_type_name": {
+		"type": "list",
+		"default": null,
+		"value": [
+			"SPORTS",
+			"News"
+		]
+	},
+
+	"include_program_event_name": "TRUE",
+	"program_event_name": "SOCCER SOCCER-MEXICAN LG PLAYOFFS;SOCCER-MEXICAN LG REG SEASON",
+	"include_program_name": "TRUE",
+	"program_name": "Comedy.tv  COMICS UNLEASHED WORLDS FUNNIEST WEATHER"
+
+}
+
+{
+	country_code:"US",
+	"element_name":"Aspire",
+	"group_description":"AA",
+	"definition_attributes": 
+		{
+			"channelname":"BET",
+			"Type":"BroadCast"
+			"start_day":0,
+			"end_day":6,
+			"start_time":"",
+			"end_time":"end_time",
+			"include_program_type_name":True,
+			"program_type_name":"Sports_event",
+			"include_program_event_name":"True",
+			"program_event_name":"SOCCER SOCCER-MEXICAN LG PLAYOFFS;SOCCER-MEXICAN LG REG SEASON",
+			"include_program_name":"True",
+			"program_name":"Comedy.tv  COMICS UNLEASHED WORLDS FUNNIEST WEATHER"
+		}
+}
+
