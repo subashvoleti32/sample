@@ -76,3 +76,65 @@
 		}
 }
 
+
+
+from fastapi import FastAPI, Query
+
+app = FastAPI()
+
+# Sample JSON data
+sample_data = {
+    "country_code": "US",
+    "element_name": "Aspire",
+    "group_description": "AA",
+    "definition_attributes": {
+        "channelname": "BET",
+        "Type": "BroadCast",
+        "start_day": 0,
+        "end_day": 6,
+        "start_time": "",
+        "end_time": "end_time",
+        "include_program_type_name": True,
+        "program_type_name": "Sports_event",
+        "include_program_event_name": True,
+        "program_event_name": "SOCCER SOCCER-MEXICAN LG PLAYOFFS;SOCCER-MEXICAN LG REG SEASON",
+        "include_program_name": True,
+        "program_name": "Comedy.tv  COMICS UNLEASHED WORLDS FUNNIEST WEATHER",
+    },
+}
+
+# Function to transform the data
+def transform_data(data):
+    transformed_data = []
+
+    for key, value in data.items():
+        if isinstance(value, dict):
+            for sub_key, sub_value in value.items():
+                if sub_key == "Type":
+                    deal_values = ["BroadCast", "Cable", "Sports"]
+                elif sub_key in ["include_program_type_name", "include_program_event_name", "include_program_name"]:
+                    deal_values = ["True", "False"]
+                elif sub_key == "program_type_name":
+                    deal_values = ["sports", "chess", "hockey", "football", "cricket", "rubi"]
+                elif sub_key == "program_event_name":
+                    deal_values = ["BroadCast", "Cable", "Sports"]
+                else:
+                    deal_values = [str(sub_value)]
+
+                transformed_data.append({"deal_name": sub_key, "deal_values": deal_values})
+
+    return transformed_data
+
+# FastAPI endpoint
+@app.get("/get_data/")
+async def get_data(country_code: str = Query(None, title="Country Code")):
+    if country_code == sample_data.get("country_code"):
+        transformed_data = transform_data(sample_data)
+        return transformed_data
+    else:
+        return {"message": "Country not found"}
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
