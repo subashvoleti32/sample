@@ -224,3 +224,114 @@ google.api_core.exceptions.InvalidArgument: 400 Syntax error: Expected ")" or ",
 ...attributes,created_at,updated_at) VALUES ('US', '{'grouping_description': ...
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+{
+	country_code:"US",
+	"element_name":"Aspire",
+	"group_description":"AA",
+	"definition_attributes": [
+		{
+		"deal_name":"channel_name",
+		"deal_values":[
+			{"value":"ABC"},
+			{"value":"ADSM"},
+			{"value":"AMC"}
+		]
+		},
+		{
+		"deal_name":"Type",
+		"deal_values":[
+			{"value":"BroadCast"},
+			{"value":"Cable"},
+			{"value":"Sports"}
+		]
+		},
+		{
+		"deal_name":"start_day",
+		"deal_values":[
+			"value":"0",
+			"value":"1",
+			"value":"2",
+			"value":"3",
+			"value":"4",
+			"value":"5",
+		]
+		},
+		{
+		"deal_name":"end_day",
+		"deal_values":[
+			{"value":"0"},
+			{"value":"1"},
+			{"value":"2"},
+			{"value":"3"},
+			{"value":"4"},
+			{"value":"5"},
+		]
+		},
+		{
+		"deal_name":"start_time",
+		"deal_values":current time-1year below
+		},
+		{
+		"deal_name":"end_time",
+		"deal_values":current time
+		},
+		{
+		"deal_name":"include_program_type_name",
+		"deal_values":[
+			{"value":"True"},
+			{"value":"False"},
+			
+		]
+		},
+		{
+		"deal_name":"program_type_name",
+		"deal_values":[
+			{"value":"sports"},
+			{"value":"chess"},
+			{"value":"hockey"},
+			{"value":"football"},
+			{"value":"cricket"},
+			{"value":"rubi"},
+		]
+		},
+		{
+		"deal_name":"include_program_event_name",
+		"deal_values":[
+			"value":"True",
+			"value":"False",
+			
+		]
+		},
+		{
+		"deal_name":"program_event_name",
+		"deal_values":[
+			{"value":"a"},
+			{"value":"b"},
+			{"value":"c"},
+			{"value":"d"},
+			{"value":"e"},
+			{"value":"f"},
+		]
+		},
+		"deal_name":"include_program_name",
+		"deal_values":[
+			{"value":"True"},
+			{"value":"False"},
+			
+		]
+		},
+		{
+		"deal_name":"program_event_name",
+		"deal_values":[
+			{"value":"a"},
+			{"value":"b"},
+			{"value":"c"},
+			{"value":"d"},
+			{"value":"e"},
+			{"value":"f"},
+		]
+		}
+	]
+}
