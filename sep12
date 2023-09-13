@@ -137,4 +137,90 @@ async def get_data(country_code: str = Query(None, title="Country Code")):
 if __name__ == "__main__":
     import uvicorn
 
+
+
+
+
+
+from google.cloud import spanner
+import uuid,datetime
+
+client = spanner.Client()
+instanceid="deals-instance"
+databaseid="deals-db"
+database = client.instance(instanceid).database(databaseid)
+
+def insert_deal_attribute_values(transaction,country_attribute):
+    created_time=datetime.datetime.now()
+    updated_time=datetime.datetime.now()
+    row_ct = transaction.execute_update(
+        "INSERT INTO deal_attributes (country_code,attributes,created_at,updated_at) VALUES "
+        f"('{country_attribute['country_code']}', '{country_attribute['attributes']}','{created_time}','{updated_time}')"
+    )
+sample_data={
+    
+	"grouping_description": {
+		"type": "string",
+		"default": "null"
+	},
+
+	"element_name": {
+		"type": "string",
+		"default": "null"
+	},
+
+	"channel_name": {
+		"type": "string",
+		"default": "null"
+	},
+
+	"start_day": {
+		"type": "date",
+		"default": "date.now - 1 year"
+	},
+
+	"end_day": {
+		"type": "date",
+		"default": "20230813000"
+	},
+
+	"start_time": {
+		"type": "timestamp",
+		"default": "00:00:00 AM"
+	},
+
+	"end_time": {
+		"type": "timestamp",
+		"default": "11:59:59 PM"
+	},
+
+	"include_program_type_name": {
+		"type": "bool",
+		"default": "False"
+	},
+
+	"program_type_name": {
+		"type": "list",
+		"default": "null",
+		"value": [
+			"SPORTS",
+			"News"
+		]
+	},
+
+	"include_program_event_name": "TRUE",
+	"program_event_name": "SOCCER SOCCER-MEXICAN LG PLAYOFFS;SOCCER-MEXICAN LG REG SEASON",
+	"include_program_name": "TRUE",
+	"program_name": "Comedy.tv  COMICS UNLEASHED WORLDS FUNNIEST WEATHER"
+
+}
+country_attribute = {"country_code":'US',"attributes":sample_data}
+
+database.run_in_transaction(insert_deal_attribute_values,country_attribute)
+
+le "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\api_core\grpc_helpers.py", line 74, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 Syntax error: Expected ")" or "," but got identifier "grouping_description" [at 1:94]
+...attributes,created_at,updated_at) VALUES ('US', '{'grouping_description': ...
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
