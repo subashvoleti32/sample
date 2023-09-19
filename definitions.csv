@@ -1,0 +1,64 @@
+grouping_description,element_name,channel_name,start_day,end_day,start_time,end_time,include_program_type_name,program_type_name,include_program_event_name,program_event_name,include_program_name,program_name
+AA,BADAMI,BDM,0,6,06:00:00,02:00:00,,,,,,
+AA,BET,BET,0,6,06:00:00,02:00:00,,,,,,
+AA,BET_HER,BHER,0,6,06:00:00,02:00:00,,,,,,
+AA,BOUNCE,BOU,0,6,06:00:00,02:00:00,,,,,,
+AA,CLEO_TV,CLEO,0,6,06:00:00,02:00:00,,,,,,
+AA,COMEDY_TV,CDTV,0,6,06:00:00,03:00:00,,,,,1.0,COMEDY.TV;COMICS UNLEASHED;WORLDS FUNNIEST WEATHER
+AA,COURT_COMBO,CFE,0,6,06:00:00,03:00:00,,,,,1.0,ES COURT COMBO
+AA,ES_SPECIALS,CFE,0,6,06:00:00,03:00:00,,,,,1.0,WE HAVE A DREAM;FEEL THE BEAT;HAPPY HOLIDAYS AMERICA
+AA,FUNNY_YOU_SHOULD_ASK,CFE,0,6,06:00:00,03:00:00,,,,,1.0,FUNNY YOU SHOULD ASK (AT)
+AA,OWN,OWN,0,6,06:00:00,02:00:00,,,,,,
+AA,TVONE,TV1,0,6,06:00:00,02:00:00,,,,,,
+AA,WEATHER_COMBO,CFE,0,6,06:00:00,03:00:00,,,,,1.0,WEATHER COMBO
+BROADCAST_NEWS,ABC_EARLY_MORNING,ABC,0,4,06:00:00,08:00:00,,,,,,
+BROADCAST_NEWS,ABC_EVENING,ABC,0,6,18:30:00,19:00:00,1.0,NEWS,,,,
+BROADCAST_NEWS,ABC_NIGHTLINE,ABC,0,4,00:35:00,01:35:00,,,,,,
+BROADCAST_NEWS,CBS_EARLY_MORNING,CBS,0,4,06:00:00,08:00:00,,,,,,
+BROADCAST_NEWS,CBS_EVENING,CBS,0,6,18:00:00,19:00:00,1.0,NEWS,,,,
+BROADCAST_NEWS,CBS_SUNDAY_MORNING,CBS,6,6,09:00:00,09:30:00,,,,,,
+BROADCAST_NEWS,ITN_EARLY_MORNING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EARLY MORN A;ITN EARLY MORN B;ITN EARLY MORN C;ITN EARLY MORN D;ITN EARLY MORN E;ITN EARLY MORN F;ITN EARLY MORN G;ITN EARLY MORN H;ITN EARLY MORN I;ITN EARLY MORN J;ITN EARLY MORN K;ITN EARLY MORN L;ITN EARLY MORN M;ITN EARLY MORN N;ITN EARLY MORN O
+BROADCAST_NEWS,ITN_EVENING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EVENING NEWS A;ITN EVENING NEWS B;ITN EVENING NEWS C;ITN EVENING NEWS D;ITN EVENING NEWS E;ITN EVENING NEWS F;ITN EVENING NEWS G;ITN EVENING NEWS H;ITN EVENING NEWS I;ITN EVENING NEWS J;ITN EVENING NEWS K;ITN EVENING NEWS L
+BROADCAST_NEWS,NBC_EARLY_TODAY,NBC,0,4,04:00:00,07:00:00,,,,,,
+BROADCAST_NEWS,NBC_EM_TODAY_1_W_WE,NBC,0,5,07:00:00,08:00:00,,,,,,
+BROADCAST_NEWS,NBC_EM_TODAY_2,NBC,0,4,08:00:00,09:00:00,,,,,,
+BROADCAST_NEWS,NBC_EM_TODAY_3,NBC,0,4,09:00:00,10:00:00,,,,,,
+BROADCAST_NEWS,NBC_NIGHTLY,NBC,0,6,18:30:00,19:00:00,1.0,NEWS,,,,
+
+
+
+  gcloud spanner databases ddl update deals-db --instance=deals-instance --ddl "CREATE TABLE deals_attribute (country_code STRING(2),attributes JSON) PRIMARY KEY (country_code)"
+
+  def read_csv_file(csv_file_path):
+    data = []
+    with open(csv_file_path, newline="", encoding="utf-8-sig") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data.append(row)
+    return data
+
+  attributes = {  # type: ignore
+        "US": {},
+    }
+    for attr in data:
+        country = attr["country_code"]
+        if country not in attributes:
+            attributes[country] = {}
+
+        name = attr["attribute_name"]
+        value = attr["attribute_value"]
+        label = attr["value_label"]
+        if len(label) == 0:
+            label = value
+        if name not in attributes[country]:
+            attributes[country][name] = {
+                "country": country,
+                "name": name,
+                "name_label": name.replace("_", " ").title(),
+                "values": {value: {"label": label, "description": label}},
+            }
+        else:
+            attributes[country][name]["values"][value] = {
+                "label": label,
+                "description": label,
+            }
