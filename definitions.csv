@@ -155,3 +155,48 @@ sample_data = {
             ]
         }
 }
+
+
+import csv
+
+# Read the CSV file and store data in a list of dictionaries
+def read_csv_file(csv_file_path):
+    data = []
+    with open(csv_file_path, newline="", encoding="utf-8-sig") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data.append(row)
+    return data
+
+# Initialize the sample_data dictionary
+sample_data = {}
+
+# Define the columns that need special handling
+special_handling_columns = ["channel_name", "Type", "include_program_type_name", "program_type_name",
+                            "include_program_event_name", "program_event_name", "include_program_name"]
+
+# Iterate through each row in the CSV data
+for row in read_csv_file("data.csv"):
+    for column, value in row.items():
+        # If the column needs special handling
+        if column in special_handling_columns:
+            if column not in sample_data:
+                sample_data[column] = {"deal_values": []}
+            # Handle start_time and end_time specially
+            if column == "start_time":
+                # You can implement the logic to calculate "current time - 1 year below" here
+                # For now, let's assume a placeholder value
+                value = "current time - 1 year below"
+            elif column == "end_time":
+                # You can implement the logic to get the current time here
+                # For now, let's assume a placeholder value
+                value = "current time"
+            sample_data[column]["deal_values"].append({"value": value})
+        else:
+            # For other columns, create a separate "deal_name" entry
+            if column not in sample_data:
+                sample_data[column] = {"deal_name": column, "deal_values": []}
+            sample_data[column]["deal_values"].append({"value": value})
+
+# Print the resulting sample_data
+print(sample_data)
