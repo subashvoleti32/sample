@@ -62,3 +62,96 @@ BROADCAST_NEWS,NBC_NIGHTLY,NBC,0,6,18:30:00,19:00:00,1.0,NEWS,,,,
                 "label": label,
                 "description": label,
             }
+
+
+sample_data = {
+        "channel_name":{
+            "deal_name": "channel_name",
+            "deal_values": [
+                {"value": "ABC"},
+                {"value": "ADSM"},
+                {"value": "AMC"}
+            ]
+        },
+        "Type":{
+            "deal_values": [
+                {"value": "BroadCast"},
+                {"value": "Cable"},
+                {"value": "Sports"}
+            ]
+        },
+        "start_day":{
+            "deal_values": [
+                {"value": "0"},
+                {"value": "1"},
+                {"value": "2"},
+                {"value": "3"},
+                {"value": "4"},
+                {"value": "5"},
+            ]
+        },
+        "end_day":{
+            "deal_values": [
+                {"value": "0"},
+                {"value": "1"},
+                {"value": "2"},
+                {"value": "3"},
+                {"value": "4"},
+                {"value": "5"},
+            ]
+        },
+        "start_time":{
+            "deal_values": "current time-1year below"
+        },
+        "end_time":{
+            "deal_values": "current time"
+        },
+        "include_program_type_name":{
+            "deal_values": [
+                {"value": "True"},
+                {"value": "False"}
+            ]
+        },
+        "program_type_name":{
+            "deal_values": [
+                {"value": "sports"},
+                {"value": "chess"},
+                {"value": "hockey"},
+                {"value": "football"},
+                {"value": "cricket"},
+                {"value": "rubi"}
+            ]
+        },
+        "include_program_event_name":{
+            "deal_values": [
+                {"value": "True"},
+                {"value": "False"}
+            ]
+        },
+        "program_event_name":{
+            "deal_values": [
+                {"value": "a"},
+                {"value": "b"},
+                {"value": "c"},
+                {"value": "d"},
+                {"value": "e"},
+                {"value": "f"}
+            ]
+        },
+        "include_program_name":{
+            "deal_values": [
+                {"value": "True"},
+                {"value": "False"}
+            ]
+        },
+       "program_event_name": {
+            "deal_values": [
+                {"value": "a"},
+                {"value": "b"},
+                {"value": "c"},
+                {"value": "d"},
+                {"value": "e"},
+                {"value": "f"}
+            ]
+        }
+}
