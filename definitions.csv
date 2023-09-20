@@ -327,3 +327,4 @@ async def process_csv_data(csv_content: str):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+"POST /convert-csv/?csv_content=grouping_description%2Celement_name%2Cchannel_name%2Cstart_day%2Cend_day%2Cstart_time%2Cend_time%2Cinclude_program_type_name%2Cprogram_type_name%2Cinclude_program_event_name%2Cprogram_event_name%2Cinclude_program_name%2Cprogram_name%20AA%2CBADAMI%2CBDM%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBET%2CBET%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBET_HER%2CBHER%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBOUNCE%2CBOU%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CCLEO_TV%2CCLEO%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C HTTP/1.1" 500 Internal Server Error
