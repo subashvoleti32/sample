@@ -328,3 +328,52 @@ async def process_csv_data(csv_content: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 "POST /convert-csv/?csv_content=grouping_description%2Celement_name%2Cchannel_name%2Cstart_day%2Cend_day%2Cstart_time%2Cend_time%2Cinclude_program_type_name%2Cprogram_type_name%2Cinclude_program_event_name%2Cprogram_event_name%2Cinclude_program_name%2Cprogram_name%20AA%2CBADAMI%2CBDM%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBET%2CBET%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBET_HER%2CBHER%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CBOUNCE%2CBOU%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C%20AA%2CCLEO_TV%2CCLEO%2C0%2C6%2C06%3A00%3A00%2C02%3A00%3A00%2C%2C%2C%2C%2C%2C HTTP/1.1" 500 Internal Server Error
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import csv
+
+app = FastAPI()
+
+class CSVInput(BaseModel):
+    csv_content: str
+
+def parse_program_names(program_name):
+    if program_name:
+        return [name.strip() for name in program_name.split(';')]
+    return []
+
+def convert_csv_to_sample_data(csv_content):
+    sample_data = {}
+    csv_lines = csv_content.splitlines()
+    csv_reader = csv.DictReader(csv_lines)
+    
+    for row in csv_reader:
+        for column, value in row.items():
+            if column not in sample_data:
+                sample_data[column] = {"deal_name": column, "deal_values": []}
+            
+            if column == "program_name":
+                program_names = parse_program_names(value)
+                sample_data[column]["deal_values"].extend(program_names)
+            else:
+                sample_data[column]["deal_values"].append(value)
+    
+    sample_data["start_time"]["deal_values"] = "current time-1 year below"
+    sample_data["end_time"]["deal_values"] = "current time"
+    
+    return sample_data
+
+@app.post("/convert-csv/")
+async def process_csv_data(csv_input: CSVInput):
+    try:
+        sample_data = convert_csv_to_sample_data(csv_input.csv_content)
+        return sample_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
