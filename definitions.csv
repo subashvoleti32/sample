@@ -12728,3 +12728,68 @@ async def convert_csv(csv_content: str):
   "created_at": "2023-09-20T15:00:09.297726+00:00",
   "country": "US"
 }
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException
+from typing import List, Optional
+import csv
+
+app = FastAPI()
+
+@app.post("/convert-csv/")
+async def convert_csv(csv_content: str):
+    try:
+        data = []
+        lines = csv_content.strip().split("\n")
+        headers = lines[0].split(",")
+        for line in lines[1:]:
+            values = line.split(",")
+            row = {headers[i]: values[i] for i in range(len(headers))}
+            data.append(row)
+
+        attributes = {}
+        sample_data = {}
+
+        special_handling_columns = [
+            "channel_name", "start_day", "end_day", "start_time", "end_time",
+            "include_program_type_name", "program_type_name",
+            "include_program_event_name", "program_event_name",
+            "include_program_name", "program_name"
+        ]
+
+        for column in headers:
+            if column in special_handling_columns:
+                if column not in attributes:
+                    attributes[column] = {"deal_values": []}
+
+                if column == "start_time":
+                    # Placeholder logic, replace with actual logic
+                    value = "current time - 1 year below"
+                elif column == "end_time":
+                    # Placeholder logic, replace with actual logic
+                    value = "current time"
+                else:
+                    value = ""
+
+                attributes[column]["deal_values"].append({"value": value})
+            else:
+                if column not in attributes:
+                    attributes[column] = {"deal_values": []}
+                for item in data:
+                    value = item.get(column, "")
+                    attributes[column]["deal_values"].append({"value": value})
+
+        sample_data["updated_at"] = "1970-01-01T05:30:00+00:00"
+        sample_data["attributes"] = attributes
+
+        return sample_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
