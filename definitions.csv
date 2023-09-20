@@ -233,3 +233,9 @@ async def convert_csv_to_sample_data(csv_content: str = Form(...)):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\encoders.py", line 152, in jsonable_encoder
+    data = dict(obj)
+           ^^^^^^^^^
+TypeError: 'coroutine' object is not iterable
