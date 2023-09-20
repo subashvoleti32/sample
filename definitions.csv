@@ -239,3 +239,47 @@ File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-package
     data = dict(obj)
            ^^^^^^^^^
 TypeError: 'coroutine' object is not iterable
+
+
+from fastapi import FastAPI, HTTPException, Form
+import csv
+
+app = FastAPI()
+
+def parse_program_names(program_name):
+    # Split program_name into a list of values separated by semicolons
+    if program_name:
+        return [name.strip() for name in program_name.split(';')]
+    return []
+
+async def convert_csv_to_sample_data(csv_content: str):
+    # Parse the CSV content and convert it to the desired format
+    sample_data = {}
+    lines = csv_content.strip().split('\n')
+    header = lines[0].split(',')
+    for column in header:
+        sample_data[column] = {"deal_name": column, "deal_values": []}
+    
+    for line in lines[1:]:
+        values = line.split(',')
+        for i, column in enumerate(header):
+            if column == "program_name":
+                # Handle program_name by splitting it into a list
+                program_names = parse_program_names(values[i])
+                sample_data[column]["deal_values"].extend(program_names)
+            else:
+                sample_data[column]["deal_values"].append(values[i])
+    
+    # Define static values for start_time and end_time
+    sample_data["start_time"]["deal_values"] = "current time-1 year below"
+    sample_data["end_time"]["deal_values"] = "current time"
+    
+    return sample_data
+
+@app.post("/convert-csv/")
+async def convert_csv_to_sample_data(csv_content: str = Form(...)):
+    try:
+        sample_data = await convert_csv_to_sample_data(csv_content)
+        return sample_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
