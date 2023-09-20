@@ -468,3 +468,55 @@ async def process_csv_data(csv_input: CSVInput):
     }
   ]
 }
+
+
+
+from fastapi import FastAPI, HTTPException
+from typing import List, Optional
+import csv
+
+app = FastAPI()
+
+@app.post("/convert-csv/")
+async def convert_csv(csv_content: str):
+    try:
+        data = []
+        lines = csv_content.strip().split("\n")
+        headers = lines[0].split(",")
+        for line in lines[1:]:
+            values = line.split(",")
+            row = {headers[i]: values[i] for i in range(len(headers))}
+            data.append(row)
+        
+        sample_data = {}
+
+        special_handling_columns = [
+            "channel_name", "start_day", "end_day", "start_time", "end_time",
+            "include_program_type_name", "program_type_name",
+            "include_program_event_name", "program_event_name",
+            "include_program_name", "program_name"
+        ]
+
+        for column in headers:
+            if column in special_handling_columns:
+                if column not in sample_data:
+                    sample_data[column] = {"deal_values": []}
+
+                if column == "start_time":
+                    # Placeholder logic, replace with actual logic
+                    value = "current time - 1 year below"
+                elif column == "end_time":
+                    # Placeholder logic, replace with actual logic
+                    value = "current time"
+                else:
+                    value = ""
+
+                sample_data[column]["deal_values"].append({"value": value})
+            else:
+                if column not in sample_data:
+                    sample_data[column] = {"deal_name": column, "deal_values": []}
+                sample_data[column]["deal_values"].append({"value": ""})
+
+        return {"sample_data": sample_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
