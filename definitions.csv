@@ -449,4 +449,22 @@ async def process_csv_data(csv_input: CSVInput):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+{
+  "detail": [
+    {
+      "loc": [
+        "body",
+        228
+      ],
+      "msg": "Invalid control character at: line 2 column 227 (char 228)",
+      "type": "value_error.jsondecode",
+      "ctx": {
+        "msg": "Invalid control character at",
+        "doc": "{\n  \"csv_content\": \"grouping_description,element_name,channel_name,start_day,end_day,start_time,end_time,include_program_type_name,program_type_name,include_program_event_name,program_event_name,include_program_name,program_name\nAA,BADAMI,BDM,0,6,06:00:00,02:00:00,,,,,,\nAA,BET,BET,0,6,06:00:00,02:00:00,,,,,,\nAA,BET_HER,BHER,0,6,06:00:00,02:00:00,,,,,,\nAA,BOUNCE,BOU,0,6,06:00:00,02:00:00,,,,,,\nAA,CLEO_TV,CLEO,0,6,06:00:00,02:00:00,,,,,,\"\n}",
+        "pos": 228,
+        "lineno": 2,
+        "colno": 227
+      }
+    }
+  ]
+}
