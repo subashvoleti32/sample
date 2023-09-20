@@ -200,3 +200,36 @@ for row in read_csv_file("data.csv"):
 
 # Print the resulting sample_data
 print(sample_data)
+
+
+
+from fastapi import FastAPI, HTTPException, Form
+
+app = FastAPI()
+
+def convert_csv_to_sample_data(csv_content: str):
+    # Parse the CSV content and convert it to the desired format
+    sample_data = {}
+    lines = csv_content.strip().split('\n')
+    header = lines[0].split(',')
+    for column in header:
+        sample_data[column] = {"deal_name": column, "deal_values": []}
+    
+    for line in lines[1:]:
+        values = line.split(',')
+        for i, column in enumerate(header):
+            sample_data[column]["deal_values"].append(values[i])
+    
+    # Define static values for start_time and end_time
+    sample_data["start_time"]["deal_values"] = "current time-1year below"
+    sample_data["end_time"]["deal_values"] = "current time"
+    
+    return sample_data
+
+@app.post("/convert-csv/")
+async def convert_csv_to_sample_data(csv_content: str = Form(...)):
+    try:
+        sample_data = convert_csv_to_sample_data(csv_content)
+        return sample_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
