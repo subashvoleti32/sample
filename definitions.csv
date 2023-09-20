@@ -283,3 +283,47 @@ async def convert_csv_to_sample_data(csv_content: str = Form(...)):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+from fastapi import FastAPI, HTTPException
+import csv
+
+app = FastAPI()
+
+def parse_program_names(program_name):
+    # Split program_name into a list of values separated by semicolons
+    if program_name:
+        return [name.strip() for name in program_name.split(';')]
+    return []
+
+def convert_csv_to_sample_data(csv_content):
+    sample_data = {}
+    csv_lines = csv_content.splitlines()
+    csv_reader = csv.DictReader(csv_lines)
+    
+    for row in csv_reader:
+        for column, value in row.items():
+            if column not in sample_data:
+                sample_data[column] = {"deal_name": column, "deal_values": []}
+            
+            if column == "program_name":
+                # Handle program_name by splitting it into a list
+                program_names = parse_program_names(value)
+                sample_data[column]["deal_values"].extend(program_names)
+            else:
+                sample_data[column]["deal_values"].append(value)
+    
+    # Define static values for start_time and end_time
+    sample_data["start_time"]["deal_values"] = "current time-1 year below"
+    sample_data["end_time"]["deal_values"] = "current time"
+    
+    return sample_data
+
+@app.post("/convert-csv/")
+async def process_csv_data(csv_content: str):
+    try:
+        sample_data = convert_csv_to_sample_data(csv_content)
+        return sample_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
