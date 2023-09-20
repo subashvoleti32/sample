@@ -12854,3 +12854,592 @@ async def convert_csv(csv_content: str):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+{
+  "updated_at": "1970-01-01T05:30:00+00:00",
+  "attributes": {
+    "0": {
+      "deal_values": []
+    },
+    "3": {
+      "deal_values": []
+    },
+    "4": {
+      "deal_values": []
+    },
+    "5": {
+      "deal_values": []
+    },
+    "6": {
+      "deal_values": []
+    },
+    "grouping_description": {
+      "deal_values": []
+    },
+    "element_name": {
+      "deal_values": []
+    },
+    "channel_name": {
+      "deal_values": [
+        {
+          "value": ""
+        }
+      ]
+    },
+    "start_day": {
+      "deal_values": [
+        {
+          "value": ""
+        }
+      ]
+    },
+    "end_day": {
+      "deal_values": [
+        {
+          "value": ""
+        }
+      ]
+    },
+    "start_time": {
+      "deal_values": [
+        {
+          "value": "current time - 1 year below"
+        }
+      ]
+    },
+    "end_time": {
+      "deal_values": [
+        {
+          "value": "current time"
+        }
+      ]
+    },
+    "include_program_type_name": {
+
+
+
+
+
+
+
+{
+  "updated_at": "1970-01-01T05:30:00+00:00",
+  "attributes": {
+    "channel_name": {
+      "deal_values": [
+        {
+          "value": "BDM"
+        },
+        {
+          "value": "BET"
+        },
+        {
+          "value": "BHER"
+        },
+        {
+          "value": "BOU"
+        },
+        {
+          "value": "CLEO"
+        },
+        {
+          "value": "CDTV"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "OWN"
+        },
+        {
+          "value": "TV1"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "ABC"
+        },
+        {
+          "value": "ABC"
+        },
+        {
+          "value": "ABC"
+        },
+        {
+          "value": "CBS"
+        },
+        {
+          "value": "CBS"
+        },
+        {
+          "value": "CBS"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "ACCU"
+        },
+        {
+          "value": "ADSM"
+        },
+        {
+          "value": "AEN"
+        },
+        {
+          "value": "AMC"
+        },
+        {
+          "value": "AMTV"
+        },
+        {
+          "value": "APL"
+        },
+        {
+          "value": "BBCA"
+        },
+        {
+          "value": "BET"
+        },
+        {
+          "value": "BHER"
+        },
+        {
+          "value": "BOOM"
+        },
+        {
+          "value": "BRVO"
+        },
+        {
+          "value": "TOON"
+        },
+        {
+          "value": "CMT"
+        },
+        {
+          "value": "CMDY"
+        },
+        {
+          "value": "CEC"
+        },
+        {
+          "value": "CC"
+        },
+        {
+          "value": "COZ"
+        },
+        {
+          "value": "DISC"
+        },
+        {
+          "value": "DFC"
+        },
+        {
+          "value": "ENT"
+        },
+        {
+          "value": "ESPN"
+        },
+        {
+          "value": "ESPN2"
+        },
+        {
+          "value": "ESPNU"
+        },
+        {
+          "value": "FOOD"
+        },
+        {
+          "value": "FRFM"
+        },
+        {
+          "value": "FUSE"
+        },
+        {
+          "value": "FX"
+        },
+        {
+          "value": "FXX"
+        },
+        {
+          "value": "FYI"
+        },
+        {
+          "value": "GSN"
+        },
+        {
+          "value": "HALL"
+        },
+        {
+          "value": "HALL"
+        },
+        {
+          "value": "HALL"
+        },
+        {
+          "value": "HGTV"
+        },
+        {
+          "value": "HIST"
+        },
+        {
+          "value": "HMM"
+        },
+        {
+          "value": "HMM"
+        },
+        {
+          "value": "ID"
+        },
+        {
+          "value": "IFC"
+        },
+        {
+          "value": "ION"
+        },
+        {
+          "value": "MYS"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "LAF"
+        },
+        {
+          "value": "LIF"
+        },
+        {
+          "value": "LOGO"
+        },
+        {
+          "value": "MAG"
+        },
+        {
+          "value": "DIY"
+        },
+        {
+          "value": "MET"
+        },
+        {
+          "value": "MTV"
+        },
+        {
+          "value": "MTV"
+        },
+        {
+          "value": "MTV2"
+        },
+        {
+          "value": "NAN"
+        },
+        {
+          "value": "NGC"
+        },
+        {
+          "value": "NGWD"
+        },
+        {
+          "value": "NICK"
+        },
+        {
+          "value": "NKJR"
+        },
+        {
+          "value": "OWN"
+        },
+        {
+          "value": "OXYG"
+        },
+        {
+          "value": "PAR"
+        },
+        {
+          "value": "POP"
+        },
+        {
+          "value": "RLZC"
+        },
+        {
+          "value": "SMTH"
+        },
+        {
+          "value": "SUND"
+        },
+        {
+          "value": "SYFY"
+        },
+        {
+          "value": "TBSC"
+        },
+        {
+          "value": "TLC"
+        },
+        {
+          "value": "TNT"
+        },
+        {
+          "value": "TRAV"
+        },
+        {
+          "value": "TRU"
+        },
+        {
+          "value": "TVL"
+        },
+        {
+          "value": "UKID"
+        },
+        {
+          "value": "UP"
+        },
+        {
+          "value": "USA"
+        },
+        {
+          "value": "VH1"
+        },
+        {
+          "value": "WETV"
+        },
+        {
+          "value": "AMTV"
+        },
+        {
+          "value": "BRVO"
+        },
+        {
+          "value": "ENT"
+        },
+        {
+          "value": "FRFM"
+        },
+        {
+          "value": "MTV"
+        },
+        {
+          "value": "MTV"
+        },
+        {
+          "value": "NAN"
+        },
+        {
+          "value": "UNVSO"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "ABC"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "DAD"
+        },
+        {
+          "value": "CBS"
+        },
+        {
+          "value": "CBS"
+        },
+        {
+          "value": "CCP"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "CW"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "NBC"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "SPT"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "WB"
+        },
+        {
+          "value": "CDTV"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "CFE"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "ITN"
+        },
+        {
+          "value": "WB"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "WB"
+        },
+        {
+          "value": "PPI"
+        },
+        {
+          "value": "DAD"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "PPI"
+        },
+        {
+          "value": "DAD"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "WB"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "NBU"
+        },
+        {
+          "value": "WB"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "DAD"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
+          "value": "CBV"
+        },
+        {
+          "value": "CTD"
+        },
+        {
