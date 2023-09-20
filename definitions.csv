@@ -20,6 +20,27 @@ BROADCAST_NEWS,CBS_SUNDAY_MORNING,CBS,6,6,09:00:00,09:30:00,,,,,,
 BROADCAST_NEWS,ITN_EARLY_MORNING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EARLY MORN A;ITN EARLY MORN B;ITN EARLY MORN C;ITN EARLY MORN D;ITN EARLY MORN E;ITN EARLY MORN F;ITN EARLY MORN G;ITN EARLY MORN H;ITN EARLY MORN I;ITN EARLY MORN J;ITN EARLY MORN K;ITN EARLY MORN L;ITN EARLY MORN M;ITN EARLY MORN N;ITN EARLY MORN O
 BROADCAST_NEWS,ITN_EVENING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EVENING NEWS A;ITN EVENING NEWS B;ITN EVENING NEWS C;ITN EVENING NEWS D;ITN EVENING NEWS E;ITN EVENING NEWS F;ITN EVENING NEWS G;ITN EVENING NEWS H;ITN EVENING NEWS I;ITN EVENING NEWS J;ITN EVENING NEWS K;ITN EVENING NEWS L
 BROADCAST_NEWS,NBC_EARLY_TODAY,NBC,0,4,04:00:00,07:00:00,,,,,,
+
+
+{
+  "detail": [
+    {
+      "loc": [
+        "body",
+        228
+      ],
+      "msg": "Invalid control character at: line 2 column 227 (char 228)",
+      "type": "value_error.jsondecode",
+      "ctx": {
+        "msg": "Invalid control character at",
+        "doc": "{\n  \"csv_content\": \"grouping_description,element_name,channel_name,start_day,end_day,start_time,end_time,include_program_type_name,program_type_name,include_program_event_name,program_event_name,include_program_name,program_name\nAA,BADAMI,BDM,0,6,06:00:00,02:00:00,,,,,,\nAA,BET,BET,0,6,06:00:00,02:00:00,,,,,,\nAA,BET_HER,BHER,0,6,06:00:00,02:00:00,,,,,,\nAA,BOUNCE,BOU,0,6,06:00:00,02:00:00,,,,,,\nAA,CLEO_TV,CLEO,0,6,06:00:00,02:00:00,,,,,,\"\n}",
+        "pos": 228,
+        "lineno": 2,
+        "colno": 227
+      }
+    }
+  ]
+}
 BROADCAST_NEWS,NBC_EM_TODAY_1_W_WE,NBC,0,5,07:00:00,08:00:00,,,,,,
 BROADCAST_NEWS,NBC_EM_TODAY_2,NBC,0,4,08:00:00,09:00:00,,,,,,
 BROADCAST_NEWS,NBC_EM_TODAY_3,NBC,0,4,09:00:00,10:00:00,,,,,,
