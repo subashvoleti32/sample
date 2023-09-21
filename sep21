@@ -498,3 +498,50 @@ async def process_csv(csv_data: CSVData):
 
     return json_response
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+  "detail": [
+    {
+      "loc": [
+        "body",
+        224
+      ],
+      "msg": "Invalid control character at: line 2 column 223 (char 224)",
+      "type": "value_error.jsondecode",
+      "ctx": {
+        "msg": "Invalid control character at",
+        "doc": "{\n  \"content\": \"grouping_description,element_name,channel_name,start_day,end_day,start_time,end_time,include_program_type_name,program_type_name,include_program_event_name,program_event_name,include_program_name,program_name\nAA,BADAMI,BDM,0,6,06:00:00,02:00:00,,,,,,\nAA,BET,BET,0,6,06:00:00,02:00:00,,,,,,\nAA,BET_HER,BHER,0,6,06:00:00,02:00:00,,,,,,\nAA,BOUNCE,BOU,0,6,06:00:00,02:00:00,,,,,,\nAA,CLEO_TV,CLEO,0,6,06:00:00,02:00:00,,,,,,\nAA,COMEDY_TV,CDTV,0,6,06:00:00,03:00:00,,,,,1.0,COMEDY.TV;COMICS UNLEASHED;WORLDS FUNNIEST WEATHER\nAA,COURT_COMBO,CFE,0,6,06:00:00,03:00:00,,,,,1.0,ES COURT COMBO\nAA,ES_SPECIALS,CFE,0,6,06:00:00,03:00:00,,,,,1.0,WE HAVE A DREAM;FEEL THE BEAT;HAPPY HOLIDAYS AMERICA\nAA,FUNNY_YOU_SHOULD_ASK,CFE,0,6,06:00:00,03:00:00,,,,,1.0,FUNNY YOU SHOULD ASK (AT)\nAA,OWN,OWN,0,6,06:00:00,02:00:00,,,,,,\nAA,TVONE,TV1,0,6,06:00:00,02:00:00,,,,,,\nAA,WEATHER_COMBO,CFE,0,6,06:00:00,03:00:00,,,,,1.0,WEATHER COMBO\nBROADCAST_NEWS,ABC_EARLY_MORNING,ABC,0,4,06:00:00,08:00:00,,,,,,\nBROADCAST_NEWS,ABC_EVENING,ABC,0,6,18:30:00,19:00:00,1.0,NEWS,,,,\nBROADCAST_NEWS,ABC_NIGHTLINE,ABC,0,4,00:35:00,01:35:00,,,,,,\nBROADCAST_NEWS,CBS_EARLY_MORNING,CBS,0,4,06:00:00,08:00:00,,,,,,\nBROADCAST_NEWS,CBS_EVENING,CBS,0,6,18:00:00,19:00:00,1.0,NEWS,,,,\nBROADCAST_NEWS,CBS_SUNDAY_MORNING,CBS,6,6,09:00:00,09:30:00,,,,,,\nBROADCAST_NEWS,ITN_EARLY_MORNING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EARLY MORN A;ITN EARLY MORN B;ITN EARLY MORN C;ITN EARLY MORN D;ITN EARLY MORN E;ITN EARLY MORN F;ITN EARLY MORN G;ITN EARLY MORN H;ITN EARLY MORN I;ITN EARLY MORN J;ITN EARLY MORN K;ITN EARLY MORN L;ITN EARLY MORN M;ITN EARLY MORN N;ITN EARLY MORN O\nBROADCAST_NEWS,ITN_EVENING,ITN,0,6,06:00:00,03:00:00,,,,,1.0,ITN EVENING NEWS A;ITN EVENING NEWS B;ITN EVENING NEWS C;ITN EVENING NEWS D;ITN EVENING NEWS E;ITN EVENING NEWS F;ITN EVENING NEWS G;ITN EVENING NEWS H;ITN EVENING NEWS I;ITN EVENING NEWS J;ITN EVENING NEWS K;ITN EVENING NEWS L\nBROADCAST_NEWS,NBC_EARLY_TODAY,NBC,0,4,04:00:00,07:00:00,,,,,,\n\"\n}",
+        "pos": 224,
+        "lineno": 2,
+        "colno": 223
+      }
+    }
+  ]
+}
+Response headers
+ content-length: 2243 
+ content-type: application/json 
+ date: Thu,21 Sep 2023 06:29:54 GMT 
+ server: uvicorn 
+Responses
+Code	Descr
+
