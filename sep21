@@ -604,6 +604,99 @@ async def process_csv(content: str):
                     "include_program_name": row.get("include_program_name"),
                     "program_name": row.get("program_name")
                 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import csv
+from io import StringIO
+
+app = FastAPI()
+
+class CSVRow(BaseModel):
+    grouping_description: str
+    element_name: str
+    channel_name: str
+    start_day: int
+    end_day: int
+    start_time: str
+    end_time: str
+    include_program_type_name: str = ""
+    program_type_name: str = ""
+    include_program_event_name: str = ""
+    program_event_name: str = ""
+    include_program_name: str = ""
+    program_name: str = ""
+
+@app.post("/process-csv")
+async def process_csv(csv_content: str):
+    try:
+        # Create a CSV file-like object from the string
+        csv_file = StringIO(csv_content)
+        result = {}
+
+        # Parse the CSV content
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            grouping_description = row.get("grouping_description", "")
+            element_name = row.get("element_name", "")
+
+            if grouping_description and element_name:
+                if grouping_description not in result:
+                    result[grouping_description] = {}
+
+                if element_name not in result[grouping_description]:
+                    result[grouping_description][element_name] = {
+                        "channel_name": row.get("channel_name", ""),
+                        "start_day": int(row.get("start_day", 0)),
+                        "end_day": int(row.get("end_day", 0)),
+                        "start_time": row.get("start_time", ""),
+                        "end_time": row.get("end_time", ""),
+                        "include_program_type_name": row.get("include_program_type_name", ""),
+                        "program_type_name": row.get("program_type_name", ""),
+                        "include_program_event_name": row.get("include_program_event_name", ""),
+                        "program_event_name": row.get("program_event_name", ""),
+                        "include_program_name": row.get("include_program_name", ""),
+                        "program_name": row.get("program_name", ""),
+                    }
+
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
         
         return result
     except Exception as e:
