@@ -206,3 +206,45 @@ async def convert_csv(csv_content: str):
         return sample_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+
+
+{
+  "updated_at": "1970-01-01T05:30:00+00:00",
+  "attributes": {
+    "channel_name": {
+      "deal_values": []
+    },
+    "start_day": {
+      "deal_values": []
+    },
+    "end_day": {
+      "deal_values": []
+    },
+    "start_time": {
+      "deal_values": []
+    },
+    "end_time": {
+      "deal_values": []
+    },
+    "include_program_type_name": {
+      "deal_values": []
+    },
+    "program_type_name": {
+      "deal_values": []
+    },
+    "include_program_event_name": {
+      "deal_values": []
+    },
+    "program_event_name": {
+      "deal_values": []
+    },
+    "include_program_name": {
+      "deal_values": []
+    }
+  }
+}
