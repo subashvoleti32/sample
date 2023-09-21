@@ -545,3 +545,66 @@ Response headers
 Responses
 Code	Descr
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException
+from typing import List, Optional
+import csv
+from io import StringIO
+
+app = FastAPI()
+
+@app.post("/process-csv")
+async def process_csv(content: str):
+    try:
+        # Read the CSV data from the request content
+        csv_data = StringIO(content)
+        csv_reader = csv.DictReader(csv_data)
+        result = {}
+        
+        for row in csv_reader:
+            grouping_description = row.get("grouping_description")
+            element_name = row.get("element_name")
+            
+            if grouping_description not in result:
+                result[grouping_description] = {}
+            
+            if element_name not in result[grouping_description]:
+                result[grouping_description][element_name] = {
+                    "channel_name": row.get("channel_name"),
+                    "start_day": row.get("start_day"),
+                    "end_day": row.get("end_day"),
+                    "start_time": row.get("start_time"),
+                    "end_time": row.get("end_time"),
+                    "include_program_type_name": row.get("include_program_type_name"),
+                    "program_type_name": row.get("program_type_name"),
+                    "include_program_event_name": row.get("include_program_event_name"),
+                    "program_event_name": row.get("program_event_name"),
+                    "include_program_name": row.get("include_program_name"),
+                    "program_name": row.get("program_name")
+                }
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
