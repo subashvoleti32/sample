@@ -421,3 +421,80 @@ json_response = {
 # Print or return the JSON response
 print(json_response)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import csv
+import io
+from collections import defaultdict
+
+app = FastAPI()
+
+class CSVData(BaseModel):
+    content: str  # Define a Pydantic model to accept CSV content
+
+@app.post("/process-csv")
+async def process_csv(csv_data: CSVData):
+    # Create a defaultdict to store the attributes
+    attributes = defaultdict(lambda: {"deal_values": []})
+
+    # Read the CSV data from the request body
+    csv_content = csv_data.content
+    csv_data = io.StringIO(csv_content)
+    csv_reader = csv.reader(csv_data)
+    next(csv_reader)  # Skip the header row
+    for row in csv_reader:
+        grouping_description, element_name, channel_name, start_day, end_day, start_time, end_time, include_program_type_name, program_type_name, include_program_event_name, program_event_name, include_program_name, program_name = row
+
+        # Populate the attributes based on non-empty values
+        if channel_name:
+            attributes["channel_name"]["deal_values"].append({"value": channel_name})
+        if start_day:
+            attributes["start_day"]["deal_values"].append({"value": int(start_day)})
+        if end_day:
+            attributes["end_day"]["deal_values"].append({"value": int(end_day)})
+        if start_time:
+            attributes["start_time"]["deal_values"].append({"value": start_time})
+        if end_time:
+            attributes["end_time"]["deal_values"].append({"value": end_time})
+        if include_program_type_name:
+            attributes["include_program_type_name"]["deal_values"].append({"value": include_program_type_name})
+        if program_type_name:
+            attributes["program_type_name"]["deal_values"].append({"value": program_type_name})
+        if include_program_event_name:
+            attributes["include_program_event_name"]["deal_values"].append({"value": include_program_event_name})
+        if program_event_name:
+            attributes["program_event_name"]["deal_values"].append({"value": program_event_name})
+        if include_program_name:
+            attributes["include_program_name"]["deal_values"].append({"value": include_program_name})
+
+    # Convert defaultdict to a regular dictionary
+    attributes_dict = dict(attributes)
+
+    # Create the final JSON response
+    json_response = {
+        "updated_at": "1970-01-01T05:30:00+00:00",
+        "attributes": attributes_dict
+    }
+
+    return json_response
+
