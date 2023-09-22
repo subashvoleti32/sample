@@ -120,3 +120,41 @@ File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-package
 sqlalchemy.exc.IntegrityError: (google.cloud.spanner_dbapi.exceptions.IntegrityError) []
 [SQL: INSERT INTO attribute (name, name_label, values, description, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)]
 [parameters: ['education_ranges', 'education ranges', {'3': {'label': '', 'description': ''}, '5': {'label': '', 'description': ''}, '1': {'label': '', 'description': ''}, '4': {'label': '', 'description': ''}, '2': {'label': '', 'description': ''}}, None, datetime.datetime(2023, 9, 22, 14, 55, 54, 744523), datetime.datetime(1970, 1, 1, 5, 30)]]
+
+
+
+from datetime import datetime
+from typing import List
+
+from sqlalchemy import JSON, Column, DateTime, String
+
+from .base import Base
+
+
+class Attribute(Base):
+    __tablename__ = "attribute"
+
+    country = Column("country_code", String(2), primary_key=True, nullable=False)
+    # from the member_attribute_dim
+    # attribute_name
+    name = Column("name", String(400), primary_key=True, nullable=False)
+    name_label = Column("name_label", String(400))
+    # attribute_values
+    values = Column("values", JSON) 
+    description = Column("description", String(250))
+
+    created_at = Column("created_at", DateTime, default=datetime.now(), nullable=False)
+    # Because Cloud Spanner emulator does not infer null of Datatime, needs to set dummy value even if just creation
+    updated_at = Column(
+        "updated_at",
+        DateTime,
+        default=datetime.fromtimestamp(0),
+        onupdate=datetime.now(),
+        nullable=False,
+    )
+
+    @property
+    def values_list(self) -> List[dict]:
+        return [
+            {"value": key, "label": item["label"]} for key, item in self.values.items()
+        ]
