@@ -104,3 +104,11 @@ class GetMemberAttributeDimBq(object):
 class ExportMemberAttributeDimModel(BaseModel):
     country_code: str = Field(..., title="Country Code")
     record_date: Optional[date] = Field(..., title="Date till which Record to be Fetched")
+
+
+
+
+grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
+        status = StatusCode.FAILED_PRECONDITION
+        details = "Cannot specify a null value for column: attribute.country_code in table: attribute"
+        debug_error_string = "UNKNOWN:Error received from peer  {created_time:"2023-09-22T09:18:48.423779824+00:00", grpc_status:9, grpc_message:"Cannot specify a null value for column: attribute.country_code in table: attribute"}"
