@@ -1,0 +1,36 @@
+###########
+1) we have two columns in bigquery which have multiple values for every attribute,name.
+2) in spanner database we have 4columns name,country_code,attribute_values,value_label
+class Attribute(Base):
+    __tablename__ = "attribute"
+
+    country = Column("country_code", String(2), primary_key=True, nullable=False)
+    # from the member_attribute_dim
+    # attribute_name
+    name = Column("name", String(400), primary_key=True, nullable=False)
+    name_label = Column("name_label", String(400))
+    # attribute_values
+    values = Column("values", JSON) 
+    description = Column("description", String(250))
+
+here in the bigquery we have only name,values data in bigquery database
+2) we need to store name_label and description values manually we need to insert into spanner database.
+3) write an fastapi that will manually insert name_label,description manually into spanner database 
+
+let me give a example 
+
+in bigquery 
+
+{'member_attribute_name': 'race', 'member_attr_val': '2,4,5,1,3,99'}
+
+here member_attribute_name mapping to name in spanner database.
+
+and member_attr_val mapping to values in spanner database
+
+now let's give a example
+
+for every member_attr_val it need to split and for each value there is a descriptoin and label
+
+name:-race;name_label:-03,description:-black
+
+write a fastapi that will insert data into spanner for those remaining columns
