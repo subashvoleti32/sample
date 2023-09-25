@@ -37,6 +37,196 @@ write a fastapi that will insert data into spanner for those remaining columns
 
 
 
+[
+  {
+    "name_label": "education ranges",
+    "description": null,
+    "updated_at": "1970-01-01T05:30:00+00:00",
+    "name": "education_ranges",
+    "country": "US",
+    "values": {
+      "1": {
+        "description": "01 HOH",
+        "label": "01 HOH"
+      },
+      "2": {
+        "description": "02 LOH",
+        "label": "02 LOH"
+      },
+      "3": {
+        "description": "03 Wife Not Designated As HOH",
+        "label": "03 Wife Not Designated As HOH"
+      },
+      "4": {
+        "description": "04 Spouse Not Designated As HOH",
+        "label": "04 Spouse Not Designated As HOH"
+      },
+      "5": {
+        "description": "05 Son",
+        "label": "05 Son"
+      }
+    },
+    "created_at": "2023-09-25T14:58:22.403887+00:00"
+  },
+  {
+    "name_label": "head of household flag",
+    "description": null,
+    "updated_at": "1970-01-01T05:30:00+00:00",
+    "name": "head_of_household_flag",
+    "country": "US",
+    "values": {
+      "N": {
+        "description": "N = The person does not work outside of the home",
+        "label": "N = The person does not work outside of the home"
+      },
+      "Y": {
+        "description": "Y = The person works outside of the home",
+        "label": "Y = The person works outside of the home"
+      }
+    },
+    "created_at": "2023-09-25T14:58:22.403887+00:00"
+  },
+  {
+    "name_label": "internet usage work",
+    "description": null,
+    "updated_at": "1970-01-01T05:30:00+00:00",
+    "name": "internet_usage_work",
+    "country": "US",
+    "values": {
+      "0": {
+        "description": "The number of hours a week the person works (00-99)",
+        "label": "The number of hours a week the person works (00-99)"
+      },
+      "1": {
+        "description": "01 HOH",
+        "label": "01 HOH"
+      },
+      "2": {
+        "description": "02 LOH",
+        "label": "02 LOH"
+      },
+      "3": {
+        "description": "03 Wife Not Designated As HOH",
+        "label": "03 Wife Not Designated As HOH"
+      },
+      "4": {
+        "description": "04 Spouse Not Designated As HOH",
+        "label": "04 Spouse Not Designated As HOH"
+      },
+      "5": {
+        "description": "05 Son",
+        "label": "05 Son"
+      },
+      "6": {
+        "description": "06 Daughter",
+        "label": "06 Daughter"
+      },
+      "7": {
+        "description": "07 Other Relative",
+        "label": "07 Other Relative"
+      },
+      "8": {
+        "description": "08 Non-Relative Household Member",
+        "label": "08 Non-Relative Household Member"
+      },
+      "9": {
+        "description": "09 Partner Living With But Not Married To",
+        "label": "09 Partner Living With But Not Married To"
+      },
+      "10": {
+        "description": "10 Long Term Visitor",
+        "label": "10 Long Term Visitor"
+      },
+      "11": {
+        "description": "11 LOH as HOH",
+        "label": "11 LOH as HOH"
+      },
+      "12": {
+        "description": "",
+        "label": ""
+      },
+      "13": {
+        "description": "",
+        "label": ""
+      },
+      "14": {
+        "description": "Unmarried Partner - Female",
+        "label": "Unmarried Partner - Female"
+      },
+      "15": {
+        "description": "Unmarried Partner - Male",
+        "label": "Unmarried Partner - Male"
+      },
+      "16": {
+        "description": "",
+        "label": ""
+      },
+      "17": {
+        "description": "",
+        "label": ""
+      },
+      "18": {
+        "description": "",
+        "label": ""
+      },
+      "19": {
+        "description": "",
+        "label": ""
+      },
+      "20": {
+        "description": "",
+        "label": ""
+      },
+      "21": {
+        "description": "",
+        "label": ""
+      },
+      "22": {
+        "description": "",
+        "label": ""
+      },
+      "23": {
+        "description": "",
+        "label": ""
+      },
+      "24": {
+        "description": "",
+        "label": ""
+      },
+      "25": {
+        "description": "",
+        "label": ""
+      },
+      "26": {
+        "description": "",
+        "label": ""
+      },
+      "27": {
+        "description": "",
+        "label": ""
+      },
+      "28": {
+        "description": "",
+        "label": ""
+      },
+      "29": {
+        "description": "",
+        "label": ""
+      },
+      "30": {
+        "description": "",
+        "label": ""
+      },
+      "31": {
+        "description": "",
+        "label": ""
+      },
+      "32": {
+        "description": "",
+        "label": ""
+      },
+      "33": {
+
 
 
 
