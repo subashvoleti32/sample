@@ -34,3 +34,38 @@ for every member_attr_val it need to split and for each value there is a descrip
 name:-race;name_label:-03,description:-black
 
 write a fastapi that will insert data into spanner for those remaining columns
+
+
+
+
+
+
+
+
+
+
+{'member_attribute_name': 'working_women_part_time_flag', 'member_attr_val': 'Y,N'}
+{'member_attribute_name': 'avid_moviegoer_code', 'member_attr_val': 'N,Y'}
+{'member_attribute_name': 'internet_usage_home', 'member_attr_val': '3,31,162,0,109,24,23,7,18,53,119,59,96,82,65,35,133,57,106,54,89,78,2,124,144,117,32,81,116,83,98,108,159,123,37,74,69,9,161,68,79,157,114,27,156,16,165,94,127,145,105,166,155,70,1,92,151,62,64,163,111,107,168,52,39,60,97,118,103,131,28,4,102,128,8,25,99,139,100,91,148,66,101,126,113,87,164,125,34,45,160,26,14,150,58,147,73,38,46,112,104,40,77,72,15,49,33,6,63,93,85,143,132,84,10,129,115,153,135,86,51,136,20,122,30,80,47,11,61,130,158,71,17,152,5,121,90,110,95,22,44,43,55,29,88,13,76,56,48,50,75,42,120,67,21,140,41,154,19,36,12,138'}
+{'member_attribute_name': 'works_outside_of_home_flag', 'member_attr_val': 'Y,,N'}
+{'member_attribute_name': 'number_of_years_spent_in_the_united_states', 'member_attr_val': '2,9,4,1,5,6,3'}
+{'member_attribute_name': 'visitor_status_code', 'member_attr_val': ',L'}
+{'member_attribute_name': 'frequent_moviegoer_code', 'member_attr_val': 'N,Y'}
+{'member_attribute_name': 'number_of_working_hours', 'member_attr_val': '15,38,68,77,92,62,85,21,12,73,13,44,54,65,48,71,2,47,95,51,94,32,11,29,42,66,41,45,80,97,98,35,24,64,6,36,59,20,22,53,63,87,4,86,39,8,76,74,46,83,93,81,37,72,19,57,26,55,96,25,60,16,90,61,79,33,91,78,75,34,7,1,10,84,89,56,0,9,30,52,14,17,18,31,67,27,70,99,23,43,5,28,88,40,82,69,49,50,58,3'}
+{'member_attribute_name': 'lady_of_household_flag', 'member_attr_val': 'N,Y'}
+{'member_attribute_name': 'nielsen_occupation_code', 'member_attr_val': '0,8,7,1,3,2,4,6,5'}
+{'member_attribute_name': 'internet_usage_work', 'member_attr_val': '119,71,140,73,45,0,46,117,112,62,168,12,70,104,28,2,48,14,134,42,81,51,74,85,9,63,110,57,150,1,157,86,43,126,4,65,94,7,25,56,144,125,76,101,8,78,79,102,66,67,91,23,120,107,10,16,145,72,123,52,59,15,58,34,165,116,64,29,82,113,84,108,68,38,44,98,90,115,32,6,160,61,40,30,75,99,95,39,128,105,100,22,11,54,5,55,13,17,31,36,50,41,24,33,142,18,20,47,60,37,26,3,93,53,92,49,96,35,77,19,21,27,80'}
+{'member_attribute_name': 'race', 'member_attr_val': '2,4,5,1,3,99'}
+{'member_attribute_name': 'principal_shopper', 'member_attr_val': 'N,Y'}
+{'member_attribute_name': 'origin', 'member_attr_val': '9,2,1'}
+{'member_attribute_name': 'principal_moviegoer_code', 'member_attr_val': 'Y,N'}
+{'member_attribute_name': 'education_ranges', 'member_attr_val': '3,5,4,2,1'}
+{'member_attribute_name': 'working_women_full_time_flag', 'member_attr_val': 'Y,N'}
+{'member_attribute_name': 'relationship_to_head_of_household_code', 'member_attr_val': '10,7,13,1,3,6,4,2,5,14,8,9,15,11'}
+{'member_attribute_name': 'language_class_code', 'member_attr_val': '3,2,6,5,1,4'}
+{'member_attribute_name': 'head_of_household_flag', 'member_attr_val': 'N,Y'}
+
+
+
+
+
