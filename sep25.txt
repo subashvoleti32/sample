@@ -898,3 +898,47 @@ WHERE record_date = "2023-09-06"
 on table_1.member_id = table_3.member_id
 
   AND table_2.member_id = table_3.member_id
+
+
+
+def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Query:
+    values = {
+        "min_age": min_age,
+        "max_age": max_age,
+        "start_date": self.record_start_date,
+        "end_date": self.record_end_date,
+    }
+    where_conditions = [" AND m.age_qty BETWEEN :min_age AND :max_age"]
+
+    join_tables = []
+    i = 0
+    attr_name = "attr_name"
+    attr_val = "attr_val"
+    for name, value in attributes.items():
+        c_name = f"{attr_name}_{i}"
+        c_value = f"{attr_val}_{i}"
+        join_tables.append(
+            f"INNER JOIN (SELECT member_id FROM `{self.member_attribute_table}` WHERE "
+            f"record_date BETWEEN :start_date AND :end_date "
+            f"AND member_attribute_name = :{c_name} "
+            f"AND member_attribute_val = :{c_value}) table_{i} ON m.member_id = table_{i}.member_id"
+        )
+        i += 1
+        values[c_name] = name
+        values[c_value] = value
+
+    final_query = self.base_query() + " " + " ".join(join_tables)
+    print("#####################")
+    print(f"estimate_population_sizequery: {final_query}")
+    print("####################################")
+    return Query(final_query, values)
+
+def base_query(self):
+    query = [
+        "SELECT COUNT(DISTINCT a.member_id) FROM",
+        f"`{self.member_attribute_table}` a",
+        f"JOIN `{self.member_dim_table}` m",
+        f"ON a.member_id = m.member_id AND a.record_date = m.record_date",
+        f"WHERE a.record_date BETWEEN :start_date AND :end_date",
+    ]
+    return " ".join(query)
