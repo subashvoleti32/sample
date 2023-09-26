@@ -1005,3 +1005,36 @@ def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Qu
     print(f"estimate_population_sizequery: {final_query}")
     print("####################################")
     return Query(final_query, values)
+=============================================================================
+def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Query:
+    values = {
+        "min_age": min_age,
+        "max_age": max_age,
+        "start_date": self.record_start_date,
+        "end_date": self.record_end_date,
+    }
+    where_conditions = [" AND m.age_qty BETWEEN :min_age AND :max_age"]
+
+    i = 1
+    subqueries = []
+    for name, value in attributes.items():
+        subquery = (
+            f"(SELECT member_id "
+            f"FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` "
+            f"WHERE record_date = :start_date "
+            f"AND member_attribute_name = :attr_name_{i} "
+            f"AND member_attribute_val = :attr_val_{i})"
+        )
+        subqueries.append(subquery)
+        values[f"attr_name_{i}"] = name
+        values[f"attr_val_{i}"] = value
+        i += 1
+
+    final_query = f"SELECT Count(DISTINCT table_1.member_id)\n"
+    final_query += f"FROM {subqueries[0]} table_1\n"
+    for i in range(2, len(subqueries) + 1):
+        final_query += f"inner join {subqueries[i-1]} table_{i}\n"
+        for j in range(1, i):
+            final_query += f"on table_1.member_id = table_{j}.member_id\n"
+
+    return Query(final_query, values)
