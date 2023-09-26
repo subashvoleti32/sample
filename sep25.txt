@@ -942,3 +942,66 @@ def base_query(self):
         f"WHERE a.record_date BETWEEN :start_date AND :end_date",
     ]
     return " ".join(query)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def base_query(self):
+    subquery = (
+        f"SELECT member_id FROM `{self.member_attribute_table}` "
+        f"WHERE record_date BETWEEN :start_date AND :end_date "
+        f"AND member_attribute_name = :attr_name "
+        f"AND member_attribute_val = :attr_val"
+    )
+
+    query = [
+        f"SELECT COUNT(DISTINCT table_1.member_id) FROM",
+        "(",
+        f"SELECT member_id FROM `{self.member_attribute_table}` a",
+        f"WHERE a.record_date BETWEEN :start_date AND :end_date",
+        f"AND a.member_attribute_name = :attr_name",
+        f"AND a.member_attribute_val = :attr_val",
+        ") table_1",
+    ]
+
+    return " ".join(query), subquery
+
+
+def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Query:
+    values = {
+        "min_age": min_age,
+        "max_age": max_age,
+        "start_date": self.record_start_date,
+        "end_date": self.record_end_date,
+    }
+    where_conditions = [" AND m.age_qty BETWEEN :min_age AND :max_age"]
+
+    join_tables = []
+    i = 0
+    for name, value in attributes.items():
+        c_name = f"attr_name_{i}"
+        c_value = f"attr_val_{i}"
+        base_query, subquery = self.base_query()
+        join_tables.append(
+            f"INNER JOIN ({subquery}) table_{i} ON m.member_id = table_{i}.member_id"
+        )
+        values[c_name] = name
+        values[c_value] = value
+        i += 1
+
+    final_query = base_query + " " + " ".join(join_tables)
+    print("#####################")
+    print(f"estimate_population_sizequery: {final_query}")
+    print("####################################")
+    return Query(final_query, values)
