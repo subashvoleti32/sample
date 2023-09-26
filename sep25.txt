@@ -1040,3 +1040,45 @@ def get_estimate_population_size_query(self, min_age, max_age, attributes) -> Qu
     return Query(final_query, values)
 
 SELECT Count(DISTINCT table_1.member_id)\nFROM (SELECT member_id FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` WHERE record_date = :start_date AND member_attribute_name = :attr_name_1 AND member_attribute_val = :attr_val_1) table_1\ninner join (SELECT member_id FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` WHERE record_date = :start_date AND member_attribute_name = :attr_name_2 AND member_attribute_val = :attr_val_2) table_2\non table_1.member_id = table_1.member_id\n', values={'min_age': 19, 'max_age': 64, 'start_date': '2023-06-26', 'end_date': '2023-09-26', 'attr_name_1': 'race', 'attr_val_1': '3', 'attr_name_2': 'origin', 'attr_val_2': '1'}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT Count(DISTINCT table_1.member_id)\n
+  FROM
+  (SELECT member_id
+  FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` 
+  WHERE record_date = "2023-09-06"
+  
+  AND member_attribute_name = "race"
+  
+  AND member_attribute_val = "3"
+  )  table_1
+  inner join(
+  
+  SELECT member_id
+  FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim`
+  
+  WHERE record_date = "2023-09-06"
+  
+  AND member_attribute_name = "origin" 
+  AND member_attribute_val = "1"
+  
+  ) table_2
+  on table_1.member_id = table_1.member_id'
