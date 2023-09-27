@@ -131,3 +131,132 @@ def export_member_attribute_dim_to_spanner(request:ExportMemberAttributeDimModel
 
     return {"message": "All data is exported from Big Query to Cloud Spanner till {}".format(request.record_date)}
 
+
+
+
+
+
+
+
+
+"audience_attributes": [
+    {
+      "attribute_name": "Frequent Moviegoer Code",
+      "attribute_label": "Frequent Moviegoer Code",
+      "attribute_value": [
+        {
+          "value": "N",
+          "label": "N= The person is not a frequent moviegoer."
+        },
+        {
+          "value": "Y",
+          "label": "Y= The person is a frequent moviegoer."
+        }
+      ]
+    },
+    {
+      "attribute_name": "Lady Of Household Flag",
+      "attribute_label": "Lady Of Household Flag",
+      "attribute_value": [
+        {
+          "value": "N",
+          "label": ""
+        },
+        {
+          "value": "Y",
+          "label": ""
+        }
+      ]
+    },
+    {
+      "attribute_name": "Number Of Years Spent In The United States",
+      "attribute_label": "Number Of Years Spent In The United States",
+      "attribute_value": [
+        {
+          "value": "1",
+          "label": "1 = Less than 5 Years"
+        },
+        {
+          "value": "2",
+          "label": "2 = 5 to 10 Years"
+        },
+        {
+          "value": "3",
+          "label": "3 = 10 to 15 Years"
+        },
+        {
+          "value": "4",
+          "label": "4 = 15 to 20 Years"
+        },
+        {
+          "value": "5",
+          "label": "5 = Over 20 Years"
+        },
+        {
+          "value": "6",
+          "label": "6 = Born in the USA"
+        },
+        {
+          "value": "9",
+          "label": "9 = Unknown"
+        }
+      ]
+    },
+    {
+      "attribute_name": "Race",
+      "attribute_label": "Race",
+      "attribute_value": [
+        {
+          "value": "1",
+          "label": "01 = Other Race"
+        },
+        {
+          "value": "2",
+          "label": "02 = White"
+        },
+        {
+          "value": "3",
+          "label": "03 = Black"
+        },
+        {
+          "value": "4",
+          "label": "04 = Asian or Pacific Islander"
+        },
+        {
+          "value": "5",
+          "label": "05 = American Indian/Alaska Native"
+        },
+        {
+          "value": "99",
+          "label": "99 = Unknown"
+        }
+      ]
+    },
+    {
+      "attribute_name": "Working Women Part Time Flag",
+      "attribute_label": "Working Women Part Time Flag",
+      "attribute_value": [
+        {
+          "value": "N",
+          "label": "N = This person is not a part time working woman"
+        },
+        {
+          "value": "Y",
+          "label": "Y = This person is a part time working woman"
+        }
+      ]
+    },
+    {
+      "attribute_name": "frequent_moviegoer_code",
+      "attribute_label": "Frequent Moviegoer Code",
+      "attribute_value": [
+        {
+          "value": "N",
+          "label": "N= The person is not a frequent moviegoer."
+        },
+        {
+          "value": "Y",
+          "label": "Y= The person is a frequent moviegoer."
+        }
+      ]
+    }
