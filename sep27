@@ -1,0 +1,133 @@
+country_code,attribute_name,attribute_value,value_label
+US,education_ranges,,Blank for persons < 18.
+US,education_ranges,1,"1 = grade school (i.e., 0-8 years)"
+US,education_ranges,2,"2 = Some High School (i.e., 9-11 years)"
+US,education_ranges,3,"3 = High School graduate (i.e., 12 years)"
+US,education_ranges,4,"4 = Some college (i.e., 1-3 years of college)"
+US,education_ranges,5,"5 = College Graduate (i.e., 4+ years of college)"
+---------------------------------------------------------------------------
+{
+  "country": "US",
+  "name": "education_ranges",
+  "name_label": "Education Ranges",
+  "values": {
+    "1": {
+      "label": "1 = grade school (i.e., 0-8 years)",
+      "description": "1 = grade school (i.e., 0-8 years)"
+    },
+    "2": {
+      "label": "2 = Some High School (i.e., 9-11 years)",
+      "description": "2 = Some High School (i.e., 9-11 years)"
+    },
+    "3": {
+      "label": "3 = High School graduate (i.e., 12 years)",
+      "description": "3 = High School graduate (i.e., 12 years)"
+    },
+    "4": {
+      "label": "4 = Some college (i.e., 1-3 years of college)",
+      "description": "4 = Some college (i.e., 1-3 years of college)"
+    },
+    "5": {
+      "label": "5 = College Graduate (i.e., 4+ years of college)",
+      "description": "5 = College Graduate (i.e., 4+ years of college)"
+    },
+    "": {
+      "label": "Blank for persons < 18.",
+      "description": "Blank for persons < 18."
+    }
+  }
+}
+
+{
+  "description": null,
+  "name_label": "education ranges",
+  "updated_at": "1970-01-01T05:30:00+00:00",
+  "values": {
+    "1": {
+      "description": "",
+      "label": ""
+    },
+    "2": {
+      "description": "",
+      "label": ""
+    },
+    "3": {
+      "description": "",
+      "label": ""
+    },
+    "4": {
+      "description": "",
+      "label": ""
+    },
+    "5": {
+      "description": "",
+      "label": ""
+    }
+  },
+  "name": "education_ranges",
+  "country": "US",
+  "created_at": "2023-09-27T10:44:31.207748+00:00"
+}
+
+
+
+import csv
+attribute_info={}
+with open('api/data/attributes.csv',newline='') as csvfile:
+    csv_reader=csv.DictReader(csvfile)
+    for row in csv_reader:
+        attribute_info["attribute_name"]=row["attribute_name"]
+        attribute_value=row['attribute_value']
+        value_label=row['value_label']
+        description=row["value_label"]
+        attribute_info[attribute_value]={'value_label':value_label,'description':description}
+@attributes_router.post("/data_sync", status_code=200)
+def export_member_attribute_dim_to_spanner(request:ExportMemberAttributeDimModel, db: Session = Depends(get_db), bq_db: Session = Depends(get_bq_db)):
+    if request.country_code is None:
+        return {"error":"country code is required"},400
+    bq_data = GetMemberAttributeDimBq(bq_engine=bq_db, country=request.country_code, record_date=request.record_date)
+    print(bq_data.__dict__)
+    print(type(bq_data))
+    spanner_data=[]
+    for row in bq_data:
+        model_obj = Attribute()
+        model_obj.country=request.country_code
+        data = row._asdict()
+        print(data)
+        model_obj.name = data['member_attribute_name'].replace('_', " ").title()
+        model_obj.name_label = model_obj.name.replace('_', " ").title()
+        member_attr_val = data['member_attr_val']
+        values_json = {}
+        attributes_labels=[]
+        description=[]
+        for value in member_attr_val.split(','):
+            if value :
+                values_json[value] = {"label":"" , "description":""}
+        model_obj.values = values_json
+        # for val in member_attr_val.split(','):
+        #     if val in attribute_info:
+        #         values_json[val] = {"label":attribute_info[val]['value_label'] , "description":attribute_info[val]['value_label']}
+        #         attributes_labels.append(attribute_info[val]['value_label'])
+        #         description.append(attribute_info[val]['value_label'])
+        #     else:
+        #         attributes_labels.append('Unknown')
+        #         description.append('No information available')
+        # spanner_data.append(
+        #     {"member_attribute_name":model_obj.name,
+        #     "attribute_labels":','.join(attributes_labels),
+        #     'description':','.join(description)
+        #      })
+        
+        #print(spanner_data)
+        #print(attributes_labels)
+        #print(description)
+        #member_att_name=spanner_data["member_attribute_name"]
+        #model_obj.values ={"values":res for val in spanner_data for res in val if res[val].keys()["member_attribute_name"] == model_obj.name}
+        #model_obj.values=values_json
+        db.add(model_obj)
+        db.commit()
+        db.refresh(model_obj)
+        #return model_obj.values()
+
+    return {"message": "All data is exported from Big Query to Cloud Spanner till {}".format(request.record_date)}
+
