@@ -260,3 +260,28 @@ def export_member_attribute_dim_to_spanner(request:ExportMemberAttributeDimModel
         }
       ]
     }
+gender: List[ValueResponse] = []
+    default_attributes: List[AttributeResponse] = []
+    audience_attributes: List[AttributeResponse] = []
+
+    attributes: List[Attribute] = (
+        db.query(Attribute).filter(Attribute.country == country).all()
+    )
+
+    for attribute in attributes:
+        if attribute.name == "gender":
+            gender = ValueResponse.from_values_json(attribute)
+        if attribute.name == "race":
+            continue
+        value = ValueResponse.from_values_json(attribute)
+        attr_resp = AttributeResponse(
+            attribute_name=attribute.name,  # type: ignore
+            attribute_label=attribute.name_label,  # type: ignore
+            attribute_value=value,
+        )
+        audience_attributes.append(attr_resp)
+        updated_attributes=[attr for attr in audience_attributes if attr["attribute_name"]!="Race"]
+        print(updated_attributes)
+
+        if attribute.name in template.default_attributes and attribute.name != "gender":
+            default_attributes.append(attr_resp)
