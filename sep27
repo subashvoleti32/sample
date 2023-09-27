@@ -283,5 +283,27 @@ gender: List[ValueResponse] = []
         updated_attributes=[attr for attr in audience_attributes if attr["attribute_name"]!="Race"]
         print(updated_attributes)
 
+
+
+
+
+
+class ValueResponse(BaseModel):
+    value: str
+    label: str
+
+    @classmethod
+    def from_values_json(cls, attribute: "Attribute") -> List["ValueResponse"]:  # type: ignore
+        return [
+            cls(value=k, label=val["label"])
+            for k, val in attribute.values.items()
+            if attribute.values
+        ]
+
+
+class AttributeResponse(BaseModel):
+    attribute_name: str
+    attribute_label: str
+    attribute_value: List[ValueResponse]
         if attribute.name in template.default_attributes and attribute.name != "gender":
             default_attributes.append(attr_resp)
