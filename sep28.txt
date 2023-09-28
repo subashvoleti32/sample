@@ -206,3 +206,202 @@ class GetMemberAttributeDimBq(object):
 
 
         return data_obj.fetchall()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import functions_framework
+from cloudevents.http.event import CloudEvent
+from google.cloud import spanner_v1
+from google.cloud import bigquery
+import json
+
+@functions_framework.http
+def bq_to_spanner(cloud_event: CloudEvent):
+    # Google Cloud Spanner configuration
+    spanner_instance_id = 'your-spanner-instance-id'
+    spanner_database_id = 'your-spanner-database-id'
+    spanner_client = spanner_v1.Client()
+    spanner_instance = spanner_client.instance(spanner_instance_id, spanner_database_id)
+
+    # Google Cloud BigQuery configuration
+    bq_project_id = 'your-bigquery-project-id'
+    bq_dataset_id = 'your-bigquery-dataset-id'
+    bq_table_id = 'your-bigquery-table-id'
+    bq_client = bigquery.Client(project=bq_project_id)
+    bq_table_ref = bq_client.dataset(bq_dataset_id).table(bq_table_id)
+
+    # Extract data from BigQuery
+    query = f"SELECT * FROM {bq_dataset_id}.{bq_table_id}"
+    query_job = bq_client.query(query)
+    results = query_job.result()
+
+    # Process and insert data into Cloud Spanner
+    with spanner_instance.database() as database:
+        for row in results:
+            data = dict(row.items())  # Adjust this mapping based on your schema
+            insert_data_into_spanner(database, data)  # Implement this function
+
+    return {"status": 200, "message": "Data Synced Successfully"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import functions_framework
+from cloudevents.http.event import CloudEvent
+from fastapi import FastAPI
+import json
+from sqlalchemy import exc
+from datetime import date, datetime
+from sqlalchemy.sql import text
+
+app = FastAPI()
+
+class GetMemberAttributeDimBq(object):
+    _member_attribute_tbl = "member_attribute_dim"
+
+    def __init__(self, bq_engine, country, record_date=None):
+        self.bq_engine = bq_engine
+        self.country = country.lower()
+        self.record_date = get_today()
+        if record_date and datetime.strptime(str(record_date), "%Y-%m-%d") < get_today():
+            self.record_date = datetime.strptime(str(record_date), "%Y-%m-%d")
+        self.record_date = self.record_date.strftime("%Y-%m-%d")
+
+    def __iter__(self):
+        self.results = self.get_results()
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index < len(self.results):
+            result = self.results[self.index]
+            self.index += 1
+            return result
+        else:
+            raise StopIteration
+
+    @property
+    def get_member_attribute_dim_bq_table(self):
+        return f"{self.bq_lake}.f_ltvo_{self.country}.{self._member_attribute_tbl}"
+
+    @property
+    def base_query(self):
+        excluded_fields = {
+            "us": ' AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")',
+            "it": ' AND member_attribute_name NOT IN ("weight")',
+            "fr": ' AND member_attribute_name NOT IN ("household_id")'
+        }
+        query = [
+            "SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val FROM",
+            f"`{self.get_member_attribute_dim_bq_table}`",
+            f'WHERE record_date < "{self.record_date}"',
+        ]
+
+        if self.country in excluded_fields:
+            query.append(excluded_fields.get(self.country))
+
+        query.append(f' GROUP BY member_attribute_name')
+
+        return " ".join(query)
+
+    def get_results(self):
+        results = self.bq_engine.execute(text(self.base_query)).fetchall()
+        return results if results else []
+
+    def paginate_big_query_data(self, page_num, data_per_page):
+        offset = (page_num - 1) * data_per_page
+        query = [
+            "SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val FROM",
+            f"`{self.member_attribute_table}`",
+            f'WHERE record_date < "{self.record_date}"',
+            f' GROUP BY member_attribute_name',
+            f'LIMIT {data_per_page}',
+            f'OFFSET {offset}'
+        ]
+        data_obj = self.bq_engine.execute(' '.join(query))
+        return data_obj.fetchall()
+
+def check_attribute_exist(value):
+    try:
+        session = get_db()
+        data = session.query(Attribute).filter_by(name=value).one()
+        return data
+    except exc.NoResultFound:
+        return False
+
+@functions_framework.http
+def ltvo_etl_process(cloud_event: CloudEvent):
+    bq_db = get_bq_db()
+    data = cloud_event.data.decode('utf-8')
+    data = json.loads(data)
+    country = data.get('country')
+    bq_data = GetMemberAttributeDimBq(bq_engine=bq_db, country=country, record_date=data.get('record_date'))
+    db = get_db()
+    for row in bq_data.get_results():
+        model_obj = Attribute()
+        data = row._asdict()
+        model_obj.country = country
+        model_obj.name = data['member_attribute_name']
+        model_obj.name_label = model_obj.name.replace('_', " ")
+        model_obj.description = ''
+        member_attr_val = data['member_attr_val']
+        values_json = {}
+        for value in member_attr_val.split(','):
+            if value:
+                values_json[value] = {"label": "", "description": ""}
+        model_obj.values = values_json
+        exist = check_attribute_exist(str(data['member_attribute_name']))
+        if exist:
+            if exist.values == model_obj.values:
+                continue
+            else:
+                db.query(Attribute).filter(Attribute.name == value).update({"values": values_json})
+        else:
+            db.add(model_obj)
+
+    db.commit()
+
+    return {"status": 200, "message": "Data Synced Successfully"}
+
