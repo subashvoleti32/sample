@@ -918,3 +918,25 @@ Row(('race', '5'), {'member_attribute_name': 0, 'member_attribute_val': 1})
 
 
 {'member_attribute_name': 'internet_usage_home', 'member_attr_val': '143,3,51,109,18,127,20,122,110,139,74,123,65,81,23,33,82,148,120,160,67,42,97,96,163,101,94,91,16,126,21,44,22,7,4,102,71,145,0,13,76,38,144,15,36,68,73,84,162,95,115,56,72,93,37,129,164,106,140,111,12,59,24,35,78,17,118,32,119,53,8,41,154,79,88,10,100,5,121,89,25,54,49,39,31,28,14,133,9,75,105,92,166,66,112,131,124,46,153,125,47,138,159,150,108,168,48,34,104,135,117,70,62,1,132,11,130,61,158,99,60,116,86,57,156,2,83,64,147,87,98,29,6,63,151,27,90,26,85,128,19,58,107,161,152,165,30,80,77,52,45,40,114,50,69,155,43,55,113,136,103,157'}
+
+
+
+from google.cloud import bigquery
+from google.oauth2 import service_account
+project_id = 'ltvo-dswb-prod-c423'
+client = bigquery.Client(project=project_id)
+
+query="""
+SELECT DISTINCT member_attribute_name, member_attribute_val
+ FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` 
+ WHERE record_date < "2023-07-25"
+ AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")
+"""
+
+query_job=client.query(query)
+
+results=query_job.result()
+
+for row in results:
+    print(row)
+    
