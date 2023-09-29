@@ -1,0 +1,155 @@
+from fastapi import HTTPException
+from google.cloud import bigquery
+from google.oauth2 import service_account
+project_id = 'ltvo-dswb-prod-c423'
+client = bigquery.Client(project=project_id)
+import re
+query =
+"""
+SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val 
+ FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` 
+ WHERE record_date < "2023-07-25"
+ AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")
+GROUP BY member_attribute_name
+"""
+
+query_job=client.query(query)
+
+results=query_job.result()
+output=[]
+for row in results:
+    # member_attribute_val=row.member_attribute_val
+    #print(row[0],row[1])
+    #output["member_attribute_name"]=row[0]
+    #output["member_attribute_val"]=row[1]
+    output.append({
+        "member_attribute_name":row[0],
+        "member_attribute_value":row[1]
+    })
+
+#     if member_attribute_val:
+#         output[row.member_attribute_name]=','.join(list(row.member_attribute_val))
+#     else:
+#         output[row.member_attribute_name]=''
+
+#print(output)    
+import csv
+attribute_info={}
+with open('api/data/attributes.csv',newline='') as csvfile:
+    csv_reader=csv.DictReader(csvfile)
+    for row in csv_reader:
+        country_code=row['country_code']
+        attribute_name= row['attribute_name']
+        attribute_value=row['attribute_value']
+        value_label=row['value_label']
+        if country_code and attribute_name:
+            if attribute_value:
+                attribute_info.setdefault(country_code,{})
+                attribute_info[country_code].setdefault(attribute_name,{})
+                attribute_info[country_code][attribute_name][attribute_value]={
+                    "label":value_label,
+                    "description":value_label
+                }
+            else:
+                attribute_info.setdefault(country_code,{})
+                attribute_info[country_code].setdefault(attribute_name,{})
+                attribute_info[country_code][attribute_name][""]={
+                    "label":value_label,
+                    'description':value_label
+                }
+        else:
+            raise HTTPException(status_code=400,detail=f"Country{country_code} doesnot exist")
+final_attributes={}
+final_output=[]
+for res in output:
+    attribute_name=res["member_attribute_name"]
+    
+    #print(attribute_name)
+    mem_val=res["member_attribute_value"]
+    values={}
+    for value in mem_val.split(","):
+        if value in attribute_info.get("US",{}).get(attribute_name,{}):
+            info=attribute_info["US"][attribute_name][value]
+            #print(info)
+            label=info.get('label','Unknown')
+            match = re.search(r"=\s*(.*)", label)
+            if match:
+                extracted_label = match.group(1)
+            else:
+                extracted_label=info.get('label',"Unknown")
+            description=info.get('description','Unknown')
+        else:
+                extracted_label='Unknown'
+                description='No information available'
+        values[value]={'label':extracted_label,'description':description}
+    #     if value:
+    #         values[value]={"label":"","description":""}
+        #print(values)
+        final_attributes["country"]="US"
+        final_attributes["attribute_name"]=attribute_name
+        final_attributes["name_label"]=attribute_name.replace("_", " ").title()
+        final_attributes["values"]=values
+        final_output.append(final_attributes)
+    #print(final_attributes)
+print(final_output)
+
+
+
+class GetMemberAttributeDimBq(object):
+    _member_attribute_tbl: str = "member_attribute_dim"
+    bq_lake: str = settings.bq_lake
+    def __init__(
+        self,
+        bq_engine,
+        country,
+        record_date: str = None,  # type: ignore
+    ):
+        self.bq_engine = bq_engine
+        self.country = country.lower()
+        self.record_date = get_today()
+        if record_date and datetime.strptime(str(record_date), "%Y-%m-%d" ) < get_today():
+            self.record_date = datetime.strptime(str(record_date), "%Y-%m-%d" )
+        self.record_date = self.record_date.strftime("%Y-%m-%d")
+    def __iter__(self):
+        self.results=self.get_results()
+        self.index=0
+        return self   
+    def __next__(self):
+        if self.index<len(self.results):
+            result=self.results[self.index]
+            self.index+=1
+            return result 
+        else:
+            raise StopIteration
+
+    @property
+    def get_member_attribute_dim_bq_table(self):
+        return f"{self.bq_lake}.f_ltvo_{self.country}.{self._member_attribute_tbl}"
+
+    @property
+    def base_query(self):
+        excluded_fields = {
+            "us" : ' AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")',
+            "it" : ' AND member_attribute_name NOT IN ("weight")',
+            "fr" : ' AND member_attribute_name NOT IN ("household_id")'
+        }
+        query = [
+            "SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val FROM",
+            f"`{self.get_member_attribute_dim_bq_table}`",
+            f'WHERE record_date < "{self.record_date}"',
+        ]
+        
+        if self.country in excluded_fields:
+            query.append(excluded_fields.get(self.country))
+
+        query.append(f' GROUP BY member_attribute_name')
+        
+        return " ".join(query)
+    
+    def get_results(self):
+
+        results = self.bq_engine.execute(
+            text(self.base_query)
+        ).fetchall()
+
+        return results if results else []
