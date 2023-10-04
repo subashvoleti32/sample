@@ -1,0 +1,19 @@
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+        status = StatusCode.INVALID_ARGUMENT
+        details = "Error parsing Spanner DDL statement: CREATE TABLE price (
+        deal STRING(50) NOT NULL,
+        day_part STRING(100) NOT NULL,
+        `group` STRING(50) NOT NULL,
+        quarter STRING(10) NOT NULL,
+        year STRING(8) NOT NULL,
+        market STRING(8) NOT NULL,
+        pricing_attributes JSON,
+        version INT64 NOT NULL,
+        upload_time TIMESTAMP NOT NULL,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL
+) PRIMARY KEY (deal, day_part, group, quarter, year, market, version) : Syntax error on line 13, column 32: Encountered 'group' while parsing: identifier"
+        debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"Error parsing Spanner DDL statement: CREATE TABLE price (\n\tdeal STRING(50) NOT NULL, \n\tday_part STRING(100) NOT NULL, \n\t`group` STRING(50) NOT NULL, \n\tquarter STRING(10) NOT NULL, \n\tyear STRING(8) NOT NULL, \n\tmarket STRING(8) NOT NULL, \n\tpricing_attributes JSON, \n\tversion INT64 NOT NULL, \n\tupload_time 
+TIMESTAMP NOT NULL, \n\tcreated_at TIMESTAMP NOT NULL, \n\tupdated_at TIMESTAMP NOT NULL\n) PRIMARY 
+KEY (deal, day_part, group, quarter, year, market, version) : Syntax error on line 13, column 32: Encountered \'group\' while parsing: identifier", grpc_status:3, created_time:"2023-10-04T07:09:20.142358+00:00"}"
