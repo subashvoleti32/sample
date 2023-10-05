@@ -784,3 +784,9 @@ File "/home/subash_vo/final_us.py", line 123, in <module>
     json.dumps(final_output["values"]),
 TypeError: list indices must be integers or slices, not str
 
+    return target()
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/timeout.py", line 120, in func_with_timeout
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/grpc_helpers.py", line 77, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.AlreadyExists: 409 Row [US,avid_moviegoer_code] in table attribute_name already exists
