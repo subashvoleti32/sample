@@ -106,3 +106,140 @@ for res in output:
 #         json.dump(line,f)
 #         # Optionally, print the data as it is written to the file
 #         #print(line)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from google.cloud import bigquery
+project_id = 'ltvo-dswb-prod-c423'
+client = bigquery.Client(project=project_id)
+import re
+
+query = """
+SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val 
+ FROM `ltvo-datalake-prod-dfd5.f_ltvo_us.member_attribute_dim` 
+ WHERE record_date < "2023-10-4"
+ AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")
+GROUP BY member_attribute_name
+"""
+
+query_job=client.query(query)
+
+results=query_job.result()
+output=[]
+for row in results:
+    output.append({
+        "member_attribute_name":row[0],
+        "member_attribute_value":row[1]
+    })   
+import csv
+attribute_info={}
+with open('attributes.csv',newline='') as csvfile:
+    csv_reader=csv.DictReader(csvfile)
+    for row in csv_reader:
+        country_code=row['country_code']
+        attribute_name= row['attribute_name']
+        attribute_value=row['attribute_value']
+        value_label=row['value_label']
+        if country_code and attribute_name:
+            if attribute_value:
+                attribute_info.setdefault(country_code,{})
+                attribute_info[country_code].setdefault(attribute_name,{})
+                attribute_info[country_code][attribute_name][attribute_value]={
+                    "label":value_label,
+                    "description":value_label
+                }
+            else:
+                attribute_info.setdefault(country_code,{})
+                attribute_info[country_code].setdefault(attribute_name,{})
+                attribute_info[country_code][attribute_name][""]={
+                    "label":value_label,
+                    'description':value_label
+                }
+        else:
+            print(f"Country{country_code} doesnot exist")
+final_output=[]
+seen_attributes=set()
+for res in output:
+    attribute_name=res["member_attribute_name"]
+    #print(attribute_name)
+    mem_val=res["member_attribute_value"]
+    #print(mem_val)
+    values={}
+    final_attributes={}
+    for value in mem_val.split(","):
+        if value in attribute_info.get("US",{}).get(attribute_name,{}):
+            info=attribute_info["US"][attribute_name][value]
+            #print(info)
+            label=info.get('label','Unknown')
+            match = re.search(r"=\s*(.*)", label)
+            if match:
+                extracted_label = match.group(1)
+            else:
+                extracted_label=info.get('label',"Unknown")
+            description=info.get('description','Unknown')
+        else:
+                extracted_label='Unknown'
+                description='No information available'
+        values[value]={'label':extracted_label,'description':description}
+        final_attributes["country"]="US"
+        final_attributes["attribute_name"]=attribute_name
+        final_attributes["name_label"]=attribute_name.replace("_", " ").title()
+        final_attributes["values"]=values
+        attributes_key=(final_attributes["country"],final_attributes["attribute_name"])
+        if attributes_key not in seen_attributes:
+            seen_attributes.add(attributes_key)
+            final_output.append(final_attributes)
+print(final_output)
+
+# import json
+# with open('file1.json', 'w') as f:
+#     # Define the data to be written
+#     data = final_output
+#     # Use a for loop to write each line of data to the file
+#     for line in data:
+#         json.dump(line,f)
+#         # Optionally, print the data as it is written to the file
+#         #print(line)
