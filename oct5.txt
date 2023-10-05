@@ -487,3 +487,134 @@ if __name__ == '__main__':
         attributes = member_attribute_fetcher.fetch_member_attributes(country)
         print(attributes)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from google.cloud import bigquery
+import re
+from datetime import datetime
+import csv
+
+class MemberAttributeFetcher:
+    def __init__(self, project_id, country_codes):
+        self.project_id = project_id
+        self.country_codes = country_codes
+        self.bq_client = bigquery.Client(project=project_id)
+        self.attribute_info = self.load_attribute_info()
+
+    def load_attribute_info(self):
+        attribute_info = {}
+        with open('api/data/attributes.csv', newline='') as csvfile:
+            csv_reader = csv.DictReader(csvfile)
+            for row in csv_reader:
+                country_code = row['country_code']
+                attribute_name = row['attribute_name']
+                attribute_value = row['attribute_value']
+                value_label = row['value_label']
+                if country_code and attribute_name:
+                    attribute_info.setdefault(country_code, {})
+                    attribute_info[country_code].setdefault(attribute_name, {})
+                    attribute_info[country_code][attribute_name][attribute_value] = {
+                        "label": value_label,
+                        "description": value_label
+                    }
+                else:
+                    print(f"Country {country_code} does not exist")
+        return attribute_info
+
+    def fetch_member_attributes(self, country):
+        query = self.build_query(country)
+        query_job = self.bq_client.query(query)
+        results = query_job.result()
+        output = self.process_query_results(results, country)
+        return output
+
+    def build_query(self, country):
+        print(country)
+        excluded_fields = {
+            "us": ' AND member_attribute_name NOT IN ("monthly_unified_weight","hh_quarterly_unified_weight","quarterly_unified_weight","hh_monthly_unified_weight","hh_weight_qty","age_gender_building_block_code","hh_weekly_unified_weight","weekly_unified_weight")',
+            "it": ' AND member_attribute_name NOT IN ("weight")',
+            "fr": ' AND member_attribute_name NOT IN ("household_id")'
+        }
+        query = f"""
+        SELECT member_attribute_name, STRING_AGG(DISTINCT member_attribute_val) as member_attr_val
+        FROM `ltvo-datalake-prod-dfd5.f_ltvo_{country}.member_attribute_dim`
+        WHERE record_date < "{datetime.now().strftime('%Y-%m-%d')}"
+        {excluded_fields.get(country, '')}
+        GROUP BY member_attribute_name
+        """
+        print(query)
+        return query
+
+    def process_query_results(self, results, country):
+        country=country.lower()
+        final_output = []
+        seen_attributes = set()
+        for row in results:
+            attribute_name = row[0]
+            print(attribute_name)
+            mem_val = row[1]
+            print(mem_val)
+            values = {}
+            final_attributes = {}
+            for value in mem_val.split(","):
+                if value in self.attribute_info.get(country.upper(), {}).get(attribute_name, {}):
+                    info = self.attribute_info[country.upper()][attribute_name][value]
+                    label = info.get('label', '')
+                    match = re.search(r"=\s*(.*)", label)
+                    if match:
+                        extracted_label=match.group(1)
+                    description = info.get('description', '')
+                    print(extracted_label)
+                    print()
+                else:
+                    extracted_label = ''
+                    description = ''
+                values[value] = {'label': extracted_label, 'description': description}
+                print(values)
+            final_attributes["country"] = country.upper()
+            final_attributes["attribute_name"] = attribute_name
+            final_attributes["name_label"] = attribute_name.replace("_", " ").title()
+            final_attributes["values"] = values
+            attributes_key = (final_attributes["country"], final_attributes["attribute_name"])
+            if attributes_key not in seen_attributes:
+                seen_attributes.add(attributes_key)
+                final_output.append(final_attributes)
+        return final_output
+
+# Example usage
+if __name__ == '__main__':
+    project_id = 'ltvo-dswb-prod-c423'
+    country_codes = ["US","CA","IT", "FR"]
+    member_attribute_fetcher = MemberAttributeFetcher(project_id, country_codes)
+    
+    for country in country_codes:
+        country=country.lower()
+        attributes = member_attribute_fetcher.fetch_member_attributes(country)
+        print(f"{country} completed successfully")
+        print(attributes)
+
