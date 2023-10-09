@@ -228,3 +228,56 @@ def read_customers(skip: int = 0, limit: int = 100):
     db = SessionLocal()
     customers = db.query(Customer).offset(skip).limit(limit).all()
     db.close
+
+
+
+
+2023-10-09 12:03:22,793 INFO sqlalchemy.engine.Engine INSERT INTO "Customer" (lastname, firstname, idf_proof, idnumber, phone_number_id, address, dob) VALUES (?, ?, ?, ?, ?, ?, ?)
+2023-10-09 12:03:22,794 INFO sqlalchemy.engine.Engine [generated in 0.00098s] ('mahesh', 'asdf', 'a', 'asdf', 7288099822, 'as', 'a')
+2023-10-09 12:03:22,797 INFO sqlalchemy.engine.Engine COMMIT
+2023-10-09 12:03:22,806 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2023-10-09 12:03:22,810 INFO sqlalchemy.engine.Engine SELECT "Customer".custid, "Customer".lastname, "Customer".firstname, "Customer".idf_proof, "Customer".idnumber, "Customer".phone_number_id, "Customer".address, "Customer".dob
+FROM "Customer"
+WHERE "Customer".custid = ?
+2023-10-09 12:03:22,811 INFO sqlalchemy.engine.Engine [generated in 0.00101s] (1,)
+2023-10-09 12:03:22,813 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:64244 - "POST /customers/ HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 428, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 78, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\applications.py", line 276, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 21, in __call__
+    raise e
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\routing.py", line 255, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\routing.py", line 141, in serialize_response
+    raise ValidationError(errors, field.type_)
+pydantic.error_wrappers.ValidationError: 1 validation error for CustomerResponse
+response
+  value is not a valid dict (type=type_error.dict)
