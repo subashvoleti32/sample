@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Service Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            display: inline;
+            margin: 0 1rem;
+        }
+
+        section {
+            margin: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        form {
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Customer Service Management</h1>
+        <nav>
+            <ul>
+                <li><a href="#create-customer">Create Customer</a></li>
+                <li><a href="#customer-list">Customer List</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="create-customer">
+        <h2>Create Customer</h2>
+        <form id="createCustomerForm">
+            <label for="lastname">Last Name:</label>
+            <input type="text" id="lastname" required><br>
+
+            <label for="firstname">First Name:</label>
+            <input type="text" id="firstname" required><br>
+
+            <button type="button" onclick="createCustomer()">Create Customer</button>
+        </form>
+    </section>
+
+    <section id="customer-list">
+        <h2>Customer List</h2>
+        <ul id="customerList"></ul>
+    </section>
+
+    <script>
+        async function createCustomer() {
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+
+            const customerData = {
+                "lastname": lastname,
+                "firstname": firstname
+            };
+
+            const response = await fetch("http://localhost:8000/customers/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(customerData)
+            });
+
+            if (response.status === 200) {
+                alert("Customer created successfully");
+                document.getElementById("createCustomerForm").reset();
+                fetchCustomerList();
+            } else {
+                alert("Error creating customer");
+            }
+        }
+
+        async function fetchCustomerList() {
+            const response = await fetch("http://localhost:8000/customers/");
+            const data = await response.json();
+
+            if (response.status === 200) {
+                const customerList = document.getElementById("customerList");
+                customerList.innerHTML = "";
+
+                data.forEach(customer => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `ID: ${customer.customerid}, Name: ${customer.firstname} ${customer.lastname}`;
+                    customerList.appendChild(listItem);
+                });
+            } else {
+                alert("Error fetching customer list");
+            }
+        }
+
+        // Initial fetch of customer list
+        fetchCustomerList();
+    </script>
+</body>
+</html>
