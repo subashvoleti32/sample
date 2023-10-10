@@ -739,3 +739,77 @@ class Bill(BillBase):
 
     raise exception
 sqlalchemy.exc.InvalidRequestError: When initializing mapper mapped class Staff->staff, expression 'service_requests_staff' failed to locate a name ("name 'service_requests_staff' is not defined"). If this is a class name, consider adding this relationship() to the <class 'models.Staff'> class after both dependent classes have been defined.
+
+
+
+service_requests_staff = Table(
+    "service_requests_staff",
+    Base.metadata,
+    Column("service_request_id", Integer, ForeignKey("service_requests.ticketid")),
+    Column("staff_id", Integer, ForeignKey("staff.staffid")),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from database import Base, engine
+from sqlalchemy import Column, String, Integer, ForeignKey, Table
+from sqlalchemy.orm import relationship
+
+# Define a secondary table for the many-to-many relationship between Staff and ServiceRequest
+service_requests_staff = Table(
+    "service_requests_staff",
+    Base.metadata,
+    Column("service_request_id", Integer, ForeignKey("service_requests.ticketid")),
+    Column("staff_id", Integer, ForeignKey("staff.staffid")),
+)
+
+class Customer(Base):
+    # ... (no changes here)
+
+class ServiceRequest(Base):
+    __tablename__ = "service_requests"
+    ticketid = Column(Integer, primary_key=True)
+    phone_number = Column(Integer, ForeignKey("phonenumber.phone_number"))
+    customerid = Column(Integer, ForeignKey("customer.customerid"))
+    staffid = Column(Integer, ForeignKey("staff.staffid"))
+    ticketstatus = Column(String)
+    description = Column(String)
+    customer = relationship("Customer", back_populates="service_requests")
+    staff = relationship("Staff", secondary=service_requests_staff, back_populates="service_requests")
+
+class Staff(Base):
+    # ... (no changes here)
+
+    # Add the service_requests relationship after both classes have been defined
+    service_requests = relationship("ServiceRequest", secondary=service_requests_staff, back_populates="staff")
+
+class PhoneNumber(Base):
+    # ... (no changes here)
+
+class Bill(Base):
+    # ... (no changes here)
+
+class PhoneNumbers(Base):
+    # ... (no changes here)
+
+# Create the tables
+Base.metadata.create_all(bind=engine)
+
+)
