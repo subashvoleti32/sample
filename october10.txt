@@ -481,3 +481,7 @@ class Bill(BillBase):
 
     class Config:
         orm_mode = True
+
+
+raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Mapper mapped class PhoneNumbers->phonenumbers could not assemble any primary key columns for mapped table 'phonenumbers'
