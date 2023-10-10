@@ -1,0 +1,380 @@
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+engine = create_engine("sqlite:///mydatabase.db")
+
+class Customer(Base):
+    __tablename__ = "customer"
+    customerid = Column(Integer, primary_key=True)
+    lastname = Column(String)
+    firstname = Column(String)
+    idf_type = Column(String)
+    idnum = Column(String)
+    address = Column(String)
+    dob = Column(String)
+    email = Column(String)
+    phone_numbers = relationship("PhoneNumber", back_populates="customer")
+    service_requests = relationship("ServiceRequest", back_populates="customer")
+
+class ServiceRequest(Base):
+    __tablename__ = "service_requests"
+    ticketid = Column(Integer, primary_key=True)
+    phone_number = Column(Integer, ForeignKey("phonenumber.phone_number"))
+    customerid = Column(Integer, ForeignKey("customer.customerid"))
+    staffid = Column(Integer, ForeignKey("staff.staffid"))
+    ticketstatus = Column(String)
+    description = Column(String)
+    customer = relationship("Customer", back_populates="service_requests")
+
+class Staff(Base):
+    __tablename__ = "staff"
+    staffid = Column(Integer, primary_key=True)
+    address = Column(String)
+    id_type = Column(String)
+    id_num = Column(String)
+    firstname = Column(String)
+    lastname = Column(String)
+    service_requests = relationship("ServiceRequest", secondary="service_requests_staff")
+
+class PhoneNumber(Base):
+    __tablename__ = "phonenumber"
+    phone_number = Column(Integer, primary_key=True)
+    type = Column(String)
+    plan = Column(String)
+    customerid = Column(Integer, ForeignKey("customer.customerid"))
+    customer = relationship("Customer", back_populates="phone_numbers")
+    bills = relationship("Bill", back_populates="phone_number")
+
+class Bill(Base):
+    __tablename__ = "bill"
+    phone_number = Column(Integer, ForeignKey("phonenumber.phone_number"))
+    amount = Column(Integer)
+    paymentid = Column(Integer, primary_key=True)
+    billid = Column(Integer, primary_key=True)
+    customerid = Column(Integer, ForeignKey("phonenumber.customerid"))
+    phone_number = relationship("PhoneNumber", back_populates="bills")
+
+
+
+
+
+
+
+
+
+
+from pydantic import BaseModel
+
+class CustomerBase(BaseModel):
+    lastname: str
+    firstname: str
+    idf_type: str
+    idnum: str
+    address: str
+    dob: str
+    email: str
+
+class CustomerCreate(CustomerBase):
+    pass
+
+class Customer(CustomerBase):
+    customerid: int
+
+    class Config:
+        orm_mode = True
+
+class ServiceRequestBase(BaseModel):
+    phone_number: int
+    customerid: int
+    staffid: int
+    ticketstatus: str
+    description: str
+
+class ServiceRequestCreate(ServiceRequestBase):
+    pass
+
+class ServiceRequest(ServiceRequestBase):
+    ticketid: int
+
+    class Config:
+        orm_mode = True
+
+# Similar data models for Staff, PhoneNumber, and Bill
+
+# Define Pydantic models for CRUD operations as needed
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
+
+app = FastAPI()
+
+# Dependency to get the SQLAlchemy session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.post("/customers/", response_model=Customer)
+def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
+    db_customer = Customer(**customer.dict())
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+# Create similar CRUD endpoints for other tables (ServiceRequest, Staff, PhoneNumber, Bill)
+
+
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
+
+app = FastAPI()
+
+# Dependency to get the SQLAlchemy session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.post("/customers/", response_model=Customer)
+def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
+    db_customer = Customer(**customer.dict())
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+# Create similar CRUD endpoints for other tables (ServiceRequest, Staff, PhoneNumber, Bill)
+
+
+
+
+
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+
+app = FastAPI()
+
+# Define SQLAlchemy session
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Dependency to get the SQLAlchemy session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Create
+@app.post("/customers/", response_model=Customer)
+def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
+    db_customer = Customer(**customer.dict())
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+# Read
+@app.get("/customers/{customer_id}", response_model=Customer)
+def read_customer(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.customerid == customer_id).first()
+    if customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return customer
+
+# Update
+@app.put("/customers/{customer_id}", response_model=Customer)
+def update_customer(customer_id: int, customer: CustomerCreate, db: Session = Depends(get_db)):
+    db_customer = db.query(Customer).filter(Customer.customerid == customer_id).first()
+    if db_customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    for key, value in customer.dict().items():
+        setattr(db_customer, key, value)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+# Delete
+@app.delete("/customers/{customer_id}", response_model=Customer)
+def delete_customer(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.customerid == customer_id).first()
+    if customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    db.delete(customer)
+    db.commit()
+    return customer
+# Create
+@app.post("/service_requests/", response_model=ServiceRequest)
+def create_service_request(service_request: ServiceRequestCreate, db: Session = Depends(get_db)):
+    db_service_request = ServiceRequest(**service_request.dict())
+    db.add(db_service_request)
+    db.commit()
+    db.refresh(db_service_request)
+    return db_service_request
+
+@app.post("/staff/", response_model=Staff)
+def create_staff(staff: StaffCreate, db: Session = Depends(get_db)):
+    db_staff = Staff(**staff.dict())
+    db.add(db_staff)
+    db.commit()
+    db.refresh(db_staff)
+    return db_staff
+
+@app.post("/phone_numbers/", response_model=PhoneNumber)
+def create_phone_number(phone_number: PhoneNumberCreate, db: Session = Depends(get_db)):
+    db_phone_number = PhoneNumber(**phone_number.dict())
+    db.add(db_phone_number)
+    db.commit()
+    db.refresh(db_phone_number)
+    return db_phone_number
+
+@app.post("/bills/", response_model=Bill)
+def create_bill(bill: BillCreate, db: Session = Depends(get_db)):
+    db_bill = Bill(**bill.dict())
+    db.add(db_bill)
+    db.commit()
+    db.refresh(db_bill)
+    return db_bill
+
+# Read
+@app.get("/service_requests/{ticket_id}", response_model=ServiceRequest)
+def read_service_request(ticket_id: int, db: Session = Depends(get_db)):
+    service_request = db.query(ServiceRequest).filter(ServiceRequest.ticketid == ticket_id).first()
+    if service_request is None:
+        raise HTTPException(status_code=404, detail="Service Request not found")
+    return service_request
+
+@app.get("/staff/{staff_id}", response_model=Staff)
+def read_staff(staff_id: int, db: Session = Depends(get_db)):
+    staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+    if staff is None:
+        raise HTTPException(status_code=404, detail="Staff not found")
+    return staff
+
+@app.get("/phone_numbers/{phone_number}", response_model=PhoneNumber)
+def read_phone_number(phone_number: int, db: Session = Depends(get_db)):
+    phone_number = db.query(PhoneNumber).filter(PhoneNumber.phone_number == phone_number).first()
+    if phone_number is None:
+        raise HTTPException(status_code=404, detail="Phone Number not found")
+    return phone_number
+
+@app.get("/bills/{bill_id}", response_model=Bill)
+def read_bill(bill_id: int, db: Session = Depends(get_db)):
+    bill = db.query(Bill).filter(Bill.billid == bill_id).first()
+    if bill is None:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    return bill
+
+# Update
+@app.put("/service_requests/{ticket_id}", response_model=ServiceRequest)
+def update_service_request(ticket_id: int, service_request: ServiceRequestCreate, db: Session = Depends(get_db)):
+    db_service_request = db.query(ServiceRequest).filter(ServiceRequest.ticketid == ticket_id).first()
+    if db_service_request is None:
+        raise HTTPException(status_code=404, detail="Service Request not found")
+    for key, value in service_request.dict().items():
+        setattr(db_service_request, key, value)
+    db.commit()
+    db.refresh(db_service_request)
+    return db_service_request
+
+@app.put("/staff/{staff_id}", response_model=Staff)
+def update_staff(staff_id: int, staff: StaffCreate, db: Session = Depends(get_db)):
+    db_staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+    if db_staff is None:
+        raise HTTPException(status_code=404, detail="Staff not found")
+    for key, value in staff.dict().items():
+        setattr(db_staff, key, value)
+    db.commit()
+    db.refresh(db_staff)
+    return db_staff
+
+@app.put("/phone_numbers/{phone_number}", response_model=PhoneNumber)
+def update_phone_number(phone_number: int, phone: PhoneNumberCreate, db: Session = Depends(get_db)):
+    db_phone_number = db.query(PhoneNumber).filter(PhoneNumber.phone_number == phone_number).first()
+    if db_phone_number is None:
+        raise HTTPException(status_code=404, detail="Phone Number not found")
+    for key, value in phone.dict().items():
+        setattr(db_phone_number, key, value)
+    db.commit()
+    db.refresh(db_phone_number)
+    return db_phone_number
+
+@app.put("/bills/{bill_id}", response_model=Bill)
+def update_bill(bill_id: int, bill: BillCreate, db: Session = Depends(get_db)):
+    db_bill = db.query(Bill).filter(Bill.billid == bill_id).first()
+    if db_bill is None:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    for key, value in bill.dict().items():
+        setattr(db_bill, key, value)
+    db.commit()
+    db.refresh(db_bill)
+    return db_bill
+
+# Delete
+@app.delete("/service_requests/{ticket_id}", response_model=ServiceRequest)
+def delete_service_request(ticket_id: int, db: Session = Depends(get_db)):
+    service_request = db.query(ServiceRequest).filter(ServiceRequest.ticketid == ticket_id).first()
+    if service_request is None:
+        raise HTTPException(status_code=404, detail="Service Request not found")
+    db.delete(service_request)
+    db.commit()
+    return service_request
+
+@app.delete("/staff/{staff_id}", response_model=Staff)
+def delete_staff(staff_id: int, db: Session = Depends(get_db)):
+    staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+    if staff is None:
+        raise HTTPException(status_code=404, detail="Staff not found")
+    db.delete(staff)
+    db.commit()
+    return staff
+
+@app.delete("/phone_numbers/{phone_number}", response_model=PhoneNumber)
+def delete_phone_number(phone_number: int, db: Session = Depends(get_db)):
+    phone_number = db.query(PhoneNumber).filter(PhoneNumber.phone_number == phone_number).first()
+    if phone_number is None:
+        raise HTTPException(status_code=404, detail="Phone Number not found")
+    db.delete(phone_number)
+    db.commit()
+    return phone_number
+
+@app.delete("/bills/{bill_id}", response_model=Bill)
+def delete_bill(bill_id: int, db: Session = Depends(get_db)):
+    bill = db.query(Bill).filter(Bill.billid == bill_id).first()
+    if bill is None:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    db.delete(bill)
+    db.commit()
+    return bill
