@@ -87,3 +87,58 @@ from app import db
 db.create_all()
 exit()
 
+
+
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 871, in _call_for_binds
+    engine = self.engines[key]
+             ^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 687, in engines
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+>>> db.create_all()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 871, in _call_for_binds
+    engine = self.engines[key]
+             ^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 687, in engines
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+>>> db.create_all()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 871, in _call_for_binds
+    engine = self.engines[key]
+             ^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_sqlalchemy\extension.py", line 687, in engines
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information
