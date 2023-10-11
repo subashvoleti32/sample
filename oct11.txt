@@ -18,3 +18,30 @@
         return {"df": df,
                 "summary": {"unknown_columns":unknown_col, 
                          "mismatch_columns":mismatch_col}}
+
+from sqlalchemy import Column, String
+from sqlalchemy.ext.declarative import declarative_base
+from flask_marshmallow import Schema
+
+Base = declarative_base()
+
+
+class AccessGroups(Base):
+    __tablename__ = 'access_groups'
+    group_name = Column(String(50), primary_key=True)
+    category= Column(String(50))
+    category_code = Column(String(10))
+    country = Column(String(50))
+    country_code = Column(String(10))
+
+    # def as_dict(self):
+    #     return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class AccessGroupsSchema(Schema):
+    class Meta:
+        fields = ("group_name", "category", "category_code", "country", "country_code")
+        model = AccessGroups
+
+access_groups_schema = AccessGroupsSchema()
+access_groups_list_schema = AccessGroupsSchema(many=True)
