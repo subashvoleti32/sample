@@ -144,5 +144,17 @@ the current application. To solve this, set up an application context
 with app.app_context(). See the documentation for more information
 
 
+
+
+
+
+
+
+
+
+ curl -X POST -H "Content-Type: application/json" -d '{"title": "Sample Task", "description": "This is a sample task.", "user_id": 1}' http://127.0.0.1:5000/tasks
+
+
+
                                              curl -X POST -H "Content-Type: application/json" -d '{"title": "Sample Task", "description": "This is a sample task.", "user_id": 1}' http://127.0.0.1:5000/tasks
 
