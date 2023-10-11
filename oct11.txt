@@ -1,0 +1,20 @@
+    def _cast_template(self, template):
+
+        df = pd.read_csv(template, low_memory=False)
+        df.columns = df.columns.str.strip()
+        col_dtypes = df.dtypes.to_dict()
+
+        unknown_col = []
+        mismatch_col = []
+        for col, val in col_dtypes.items():
+            if col not in self.benchmark_dtypes.keys():
+                unknown_col.append(col)
+                df = df.drop([col], axis=1)
+
+            elif val != self.benchmark_dtypes[col]:
+                mismatch_col.append({"column_name":col,"expected": self.benchmark_dtypes[col], "detected":val})
+                df[col] = df[col].astype(self.benchmark_dtypes[col])
+            
+        return {"df": df,
+                "summary": {"unknown_columns":unknown_col, 
+                         "mismatch_columns":mismatch_col}}
