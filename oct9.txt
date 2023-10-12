@@ -406,3 +406,92 @@ pydantic.error_wrappers.ValidationError: 1 validation error for PhoneNumberRespo
 response
   value is not a valid dict (type=type_error.dict)
 
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Management System</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <h1>Customer Management System</h1>
+
+    <h2>Create Customer</h2>
+    <form id="createCustomerForm">
+        <label for="lastname">Last Name:</label>
+        <input type="text" id="lastname" name="lastname" required>
+        <br>
+        <!-- Add fields for other customer attributes -->
+        <br>
+        <button type="button" onclick="createCustomer()">Create Customer</button>
+    </form>
+
+    <h2>Get Customer</h2>
+    <form id="getCustomerForm">
+        <label for="custid">Customer ID:</label>
+        <input type="number" id="custid" name="custid" required>
+        <button type="button" onclick="getCustomer()">Get Customer</button>
+    </form>
+
+    <h2>List Customers</h2>
+    <button type="button" onclick="listCustomers()">List Customers</button>
+    <ul id="customerList"></ul>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
+app.js:-
+
+const apiUrl = "http://localhost:8000"; // Replace with your FastAPI server address
+
+function createCustomer() {
+    const form = document.getElementById("createCustomerForm");
+    const formData = new FormData(form);
+    fetch(`${apiUrl}/customers/`, {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert("Customer created successfully.");
+        form.reset();
+    })
+    .catch(error => {
+        console.error("Error creating customer:", error);
+    });
+}
+
+function getCustomer() {
+    const custid = document.getElementById("custid").value;
+    fetch(`${apiUrl}/customers/${custid}`)
+    .then(response => response.json())
+    .then(data => {
+        alert(`Customer found: ${JSON.stringify(data)}`);
+    })
+    .catch(error => {
+        console.error("Error getting customer:", error);
+    });
+}
+
+function listCustomers() {
+    fetch(`${apiUrl}/customers/`)
+    .then(response => response.json())
+    .then(data => {
+        const customerList = document.getElementById("customerList");
+        customerList.innerHTML = "";
+        data.forEach(customer => {
+            const listItem = document.createElement("li");
+            listItem.innerText = `${customer.custid}: ${customer.firstname} ${customer.lastname}`;
+            customerList.appendChild(listItem);
+        });
+    })
+    .catch(error => {
+        console.error("Error listing customers:", error);
+    });
+}
