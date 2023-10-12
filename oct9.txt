@@ -495,3 +495,16 @@ function listCustomers() {
         console.error("Error listing customers:", error);
     });
 }
+
+
+Access to fetch at 'http://localhost:8000/customers/' from origin 'null' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+app.js:26     POST http://localhost:8000/customers/ net::ERR_FAILED 422 (Unprocessable Entity)
+createCustomer @ app.js:26
+onclick @ index.html:40
+app.js:36 Error creating customer: TypeError: Failed to fetch
+    at createCustomer (app.js:26:11)
+    at HTMLButtonElement.onclick (index.html:40:58)
+(anonymous) @ app.js:36
+Promise.catch (async)
+createCustomer @ app.js:35
+onclick @ index.html:40
