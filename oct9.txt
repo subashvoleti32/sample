@@ -586,3 +586,103 @@ function listCustomers() {
         console.error("Error listing customers:", error);
     });
 }
+
+
+
+
+
+
+
+
+
+
+class OptimizationResource(Resource):
+    def post(self):
+        input_json = request.get_json()
+        Optimization = optimization_service.create(input_json=input_json)
+        return Optimization
+
+    def get(self, id):
+        Optimization = optimization_service.get_by_id(id)
+        return Optimization
+
+    def put(self, id):
+        input_json = request.get_json()
+        Optimization = optimization_service.update(id, input_json)
+        return Optimization
+
+    def delete(self, id):
+        return optimization_service.delete(id)
+
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp')) if args.get('rpp') else 50
+        page = int(args.get('page')) if args.get('page') else 0
+        country = str(args.get('country')) if args.get('country') else None
+        category = str(args.get('category')) if args.get('category') else None
+        status = (str(args.get('status')).split(',')) if args.get('status') else None
+        optimizations = optimization_service.get_optimizations(rpp=rpp,page=page,country=country,category=category, status=status )
+        return optimizations
+
+class DevOptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp')) if args.get('rpp') else 50
+        page = int(args.get('page')) if args.get('page') else 0
+        country = str(args.get('country')) if args.get('country') else None
+        category = str(args.get('category')) if args.get('category') else None
+        status = (str(args.get('status')).split(',')) if args.get('status') else None
+        optimizations = optimization_service.get_optimizations_by_country(rpp=rpp,page=page,country=country, status=status )
+        return optimizations
+
+
+def create(input_json):
+    session = _init_session()
+    owner_email = input_json.get("owner_email", None)
+    experiment_params = input_json.get("experiment_params", None)
+
+    status = input_json.get('status', None)
+    optimization_name = input_json.get('optimization_name', None)
+    time_period = input_json.get('time_period', None)
+    budget = input_json.get('budget', None)
+    partition_count = input_json.get('partition_count', None)
+    breaks = input_json.get('breaks', None)
+    reach_output_format = input_json.get('reach_output_format', 'Sequential')
+    objective = input_json.get('objective', None)
+    experiment_params_frontend = input_json.get('experiment_params_frontend', None)
+    is_tesseract = input_json.get('is_tesseract', False)
+    country = input_json.get('country', None)
+    category = input_json.get('category', None)
+
+    try:
+        optimization = Optimization(experiment_params=experiment_params,
+                                    owner_email=owner_email,
+                                    status=status,
+                                    optimization_name=optimization_name,
+                                    time_period=time_period,
+                                    budget=budget,
+                                    partition_count=partition_count,
+                                    breaks=breaks,
+                                    reach_output_format=reach_output_format,
+                                    objective=objective,
+                                    experiment_params_frontend=experiment_params_frontend,
+                                    created_datetime=datetime.now().strftime(('%Y-%m-%d %H:%M:%S')),
+                                    last_modified_datetime=datetime.now().strftime(('%Y-%m-%d %H:%M:%S')),
+                                    is_tesseract = is_tesseract,
+                                    country = country,
+                                    category = category,
+                                    output_file_path="gs://")
+        session.add(optimization)
+        session.commit()
+        print('==================================OPTIMIZATION CREATED==================')
+        print(optimization)
+        print('==================================OPTIMIZATION SENDING==================')
+        print(optimization_schema.dump(optimization))
+        return optimization_schema.dump(optimization)
+    except:
+        raise
+        session.rollback()
+
+    finally:
+        session.close()
