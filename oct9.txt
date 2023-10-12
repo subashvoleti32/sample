@@ -508,3 +508,81 @@ app.js:36 Error creating customer: TypeError: Failed to fetch
 Promise.catch (async)
 createCustomer @ app.js:35
 onclick @ index.html:40
+
+
+
+
+
+
+
+
+
+
+
+const apiUrl = "http://localhost:8000"; // Replace with your FastAPI server address
+
+async function createCustomer() {
+    const form = document.getElementById("createCustomerForm");
+    const lastname = document.getElementById("lastname").value;
+    const firstname = document.getElementById("firstname").value;
+    const id_type = document.getElementById("id_type").value;
+    const idnum = document.getElementById("idnum").value;
+    const address = document.getElementById("address").value;
+    const dob = document.getElementById("dob").value;
+    const email = document.getElementById("email").value;
+    const body = {
+        "lastname":lastname,
+        "firstname":firstname,
+        "id_type":id_type,
+        "idnum":idnum,
+        "address":address,
+        "dob":dob,
+        "email":email
+    }
+    console.log(body)
+    const portnum=location.port
+    console.log(portnum)
+    console.log(window.location.href)
+    console.log(`${apiUrl}/customers/`)
+    await fetch(`${apiUrl}/customers/`, {
+        method: "POST",
+        body: JSON.stringify(body),
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert("Customer created successfully.");
+        form.reset();
+    })
+    .catch(error => {
+        console.error("Error creating customer:", error);
+    });
+}
+
+function getCustomer() {
+    const custid = document.getElementById("custid").value;
+    fetch(`${apiUrl}/customers/${custid}`)
+    .then(response => response.json())
+    .then(data => {
+        alert(`Customer found: ${JSON.stringify(data)}`);
+    })
+    .catch(error => {
+        console.error("Error getting customer:", error);
+    });
+}
+
+function listCustomers() {
+    fetch(`${apiUrl}/customers/`)
+    .then(response => response.json())
+    .then(data => {
+        const customerList = document.getElementById("customerList");
+        customerList.innerHTML = "";
+        data.forEach(customer => {
+            const listItem = document.createElement("li");
+            listItem.innerText = `${customer.custid}: ${customer.firstname} ${customer.lastname}`;
+            customerList.appendChild(listItem);
+        });
+    })
+    .catch(error => {
+        console.error("Error listing customers:", error);
+    });
+}
