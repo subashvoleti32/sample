@@ -227,3 +227,61 @@ def create(input_json):
     finally:
         session.close()
 
+
+
+
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+
+app = Flask(__name)
+api = Api(app)
+
+# Mocked data for demonstration purposes
+mock_optimizations = [
+    {
+        "id": 1,
+        "owner_email": "user1@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 1",
+        "country": "USA",
+        "category": "Marketing",
+    },
+    {
+        "id": 2,
+        "owner_email": "user2@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 2",
+        "country": "Canada",
+        "category": "Sales",
+    },
+]
+
+# API routes
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp', 50))
+        page = int(args.get('page', 0))
+        country = args.get('country', None)
+        category = args.get('category', None)
+        status = args.get('status', '').split(',')
+
+        filtered_optimizations = mock_optimizations
+
+        if country:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["country"] == country]
+        if category:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["category"] == category]
+        if status:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["status"] in status]
+
+        paginated_optimizations = filtered_optimizations[page * rpp: (page + 1) * rpp]
+        row_count = len(filtered_optimizations)
+
+        response_data = {'data': paginated_optimizations, 'row_count': row_count}
+        return jsonify(response_data)
+
+api.add_resource(OptimizationsResource, '/api/v2/optimization/list')
+
+if __name__ == '__main__':
+    app.run(debug=True)
