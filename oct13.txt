@@ -1,0 +1,90 @@
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+from datetime import datetime
+
+app = Flask(__name)
+api = Api(app)
+
+# Mocked data for demonstration purposes
+mock_optimizations = [
+    {
+        "id": 1,
+        "owner_email": "user1@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 1",
+        "country": "USA",
+        "category": "Marketing",
+    },
+    {
+        "id": 2,
+        "owner_email": "user2@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 2",
+        "country": "Canada",
+        "category": "Sales",
+    },
+]
+
+class OptimizationResource(Resource):
+    def post(self):
+        input_json = request.get_json()
+        # Mocked creation of an optimization
+        mock_optimization = {
+            "id": len(mock_optimizations) + 1,
+            "created_datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            **input_json,
+        }
+        mock_optimizations.append(mock_optimization)
+        return jsonify(mock_optimization)
+
+    def get(self, id):
+        # Mocked retrieval of an optimization by ID
+        optimization = next((opt for opt in mock_optimizations if opt["id"] == id), None)
+        if optimization:
+            return jsonify(optimization)
+        else:
+            return "Optimization not found", 404
+
+    def put(self, id):
+        input_json = request.get_json()
+        optimization = next((opt for opt in mock_optimizations if opt["id"] == id), None)
+        if optimization:
+            optimization.update(input_json)
+            return jsonify(optimization)
+        else:
+            return "Optimization not found", 404
+
+    def delete(self, id):
+        optimization = next((opt for opt in mock_optimizations if opt["id"] == id), None)
+        if optimization:
+            mock_optimizations.remove(optimization)
+            return "Optimization deleted", 200
+        else:
+            return "Optimization not found", 404
+
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp', 50))
+        page = int(args.get('page', 0))
+        country = args.get('country', None)
+        category = args.get('category', None)
+        status = args.get('status', '').split(',')
+
+        filtered_optimizations = mock_optimizations
+        if country:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["country"] == country]
+        if category:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["category"] == category]
+        if status:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["status"] in status]
+
+        paginated_optimizations = filtered_optimizations[page * rpp : (page + 1) * rpp]
+        return jsonify(paginated_optimizations)
+
+# Define the URL routes for the resources
+api.add_resource(OptimizationResource, '/optimization/<int:id>')
+api.add_resource(OptimizationsResource, '/optimizations')
+
+if __name__ == '__main__':
+    app.run(debug=True)
