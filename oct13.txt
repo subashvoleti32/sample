@@ -964,5 +964,50 @@ def set_user_profile(access_groups):
                 ] 
     
     return profile
+====================================================================================================
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+
+app = Flask(__name)
+api = Api(app)
+
+# Mocked user profile data for demonstration purposes
+mock_user_profile = {
+    "users_markets": [
+        {
+            "country": {"code": "USA"},
+            "categories": [
+                {"code": "Electronics"},
+                {"code": "Clothing"}
+            ]
+        },
+        {
+            "country": {"code": "Canada"},
+            "categories": [
+                {"code": "Sales"},
+                {"code": "Research"}
+            ]
+        }
+    ]
+}
+
+class UserProfileResource(Resource):
+    def get(self):
+        user_email = get_email_from_jwt(request)
+        user_profile = get_user_profile(user_email)
+        return user_profile
+
+def get_email_from_jwt(request):
+    # Mocked email for testing purposes
+    return "user@example.com"
+
+def get_user_profile(email):
+    # Mocked user profile for testing purposes
+    return mock_user_profile
+
+api.add_resource(UserProfileResource, '/api/v2/user_profile')
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
