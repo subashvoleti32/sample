@@ -813,3 +813,84 @@ api.add_resource(DemographicListResource, '/api/v2/demographics/list')
 if __name__ == '__main__':
     app.run(debug=True)
 
+-------------------------------------------
+
+
+
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+from marshmallow import Schema, fields
+
+app = Flask(__name)
+api = Api(app)
+
+# Mocked demographic data for demonstration purposes
+mock_demographics = [
+    {
+        "id": 1,
+        "demographic_name": "Demographic A",
+        "gender": "Male",
+        "minimum_age": 25,
+        "maximum_age": 45,
+        "origin": "Urban",
+        "race": "Caucasian",
+        "households": True,
+        "created_by": "User1",
+        "is_active": True,
+        "region_code": "123",
+        "country": "USA",
+    },
+    {
+        "id": 2,
+        "demographic_name": "Demographic B",
+        "gender": "Female",
+        "minimum_age": 30,
+        "maximum_age": 60,
+        "origin": "Rural",
+        "race": "African American",
+        "households": False,
+        "created_by": "User2",
+        "is_active": True,
+        "region_code": "456",
+        "country": "Canada",
+    },
+    {
+        "id": 3,
+        "demographic_name": "Demographic C",
+        "gender": "Male",
+        "minimum_age": 20,
+        "maximum_age": 40,
+        "origin": "Urban",
+        "race": "Asian",
+        "households": True,
+        "created_by": "User3",
+        "is_active": False,
+        "region_code": "789",
+        "country": "USA",
+    },
+]
+
+class DemographicListResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp', 1000))
+        page = int(args.get('page', 0))
+        country = args.get('country', None)
+        return get_demographics_by_country(country, rpp, page)
+
+# Function to get demographics data (mocked)
+def get_demographics_by_country(country, rpp, page):
+    if country is None:
+        return jsonify({'error': 'Country parameter is required'}), 400
+
+    filtered_demographics = [demo for demo in mock_demographics if demo["country"] == country]
+    paginated_demographics = filtered_demographics[page * rpp: (page + 1) * rpp]
+    row_count = len(filtered_demographics)
+
+    response_data = {'data': paginated_demographics, 'row_count': row_count}
+    return jsonify(response_data)
+
+api.add_resource(DemographicListResource, '/api/v2/demographics/list')
+
+if __name__ == '__main__':
+    app.run(debug=True)
