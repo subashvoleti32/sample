@@ -105,3 +105,125 @@ curl "http://127.0.0.1:5000/optimizations?country=USA&category=Marketing"
 
 curl "http://127.0.0.1:5000/optimizations?rpp=10&page=2"
 
+class Optimization(Base):
+    __tablename__ = 'optimizations'
+    id = Column(Integer, primary_key=True)
+    experiment_params = Column(MutableDict.as_mutable(JSON))
+    owner_email = Column(String(50))
+    status = Column(String(50))
+    optimization_name = Column(String(100))
+    time_period = Column(String(50))
+    budget = Column(DECIMAL(50, 2))
+    partition_count = Column(DECIMAL(50, 2))
+    breaks = Column(String(100))
+    reach_output_format = Column(String(100))
+    objective = Column(String(100))
+    created_datetime = Column(DateTime)
+    last_modified_datetime = Column(DateTime)
+    output_file_path = Column(String(300))
+    experiment_params_frontend = Column(MutableDict.as_mutable(JSON))
+    log_file_path = Column(String(300))
+    is_tesseract = Column(Boolean)
+    country = Column(String(30))
+    category = Column(String(30))
+    scenario_id = Column(String(100))
+
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp')) if args.get('rpp') else 50
+        page = int(args.get('page')) if args.get('page') else 0
+        country = str(args.get('country')) if args.get('country') else None
+        category = str(args.get('category')) if args.get('category') else None
+        status = (str(args.get('status')).split(',')) if args.get('status') else None
+        optimizations = optimization_service.get_optimizations(rpp=rpp,page=page,country=country,category=category, status=status )
+        return optimizations
+
+def get_optimizations(rpp, page, country, category, status):
+    session = _init_session()
+    try:
+        q = session.query(Optimization).filter_by(country=country).filter_by(category=category).filter(
+            Optimization.status.in_(status)).order_by(desc('created_datetime')).offset(rpp * page).limit(rpp)
+        for optimization in q:
+            optimization.experiment_params = {}
+        row_count = session.query(Optimization).filter_by(country=country).filter_by(category=category).filter(
+            Optimization.status.in_(status)).count()
+        response_json = json.dumps({'data': optimizations_schema.dump(q), 'row_count': row_count})
+        session.commit()
+        return json.loads(response_json)
+
+    except Exception as e:
+        session.rollback()
+
+    finally:
+        session.close()
+
+class OptimizationResource(Resource):
+    def post(self):
+        input_json = request.get_json()
+        Optimization = optimization_service.create(input_json=input_json)
+        return Optimization
+
+    def get(self, id):
+        Optimization = optimization_service.get_by_id(id)
+        return Optimization
+
+    def put(self, id):
+        input_json = request.get_json()
+        Optimization = optimization_service.update(id, input_json)
+        return Optimization
+
+    def delete(self, id):
+        return optimization_service.delete(id)
+
+
+def create(input_json):
+    session = _init_session()
+    owner_email = input_json.get("owner_email", None)
+    experiment_params = input_json.get("experiment_params", None)
+
+    status = input_json.get('status', None)
+    optimization_name = input_json.get('optimization_name', None)
+    time_period = input_json.get('time_period', None)
+    budget = input_json.get('budget', None)
+    partition_count = input_json.get('partition_count', None)
+    breaks = input_json.get('breaks', None)
+    reach_output_format = input_json.get('reach_output_format', 'Sequential')
+    objective = input_json.get('objective', None)
+    experiment_params_frontend = input_json.get('experiment_params_frontend', None)
+    is_tesseract = input_json.get('is_tesseract', False)
+    country = input_json.get('country', None)
+    category = input_json.get('category', None)
+
+    try:
+        optimization = Optimization(experiment_params=experiment_params,
+                                    owner_email=owner_email,
+                                    status=status,
+                                    optimization_name=optimization_name,
+                                    time_period=time_period,
+                                    budget=budget,
+                                    partition_count=partition_count,
+                                    breaks=breaks,
+                                    reach_output_format=reach_output_format,
+                                    objective=objective,
+                                    experiment_params_frontend=experiment_params_frontend,
+                                    created_datetime=datetime.now().strftime(('%Y-%m-%d %H:%M:%S')),
+                                    last_modified_datetime=datetime.now().strftime(('%Y-%m-%d %H:%M:%S')),
+                                    is_tesseract = is_tesseract,
+                                    country = country,
+                                    category = category,
+                                    output_file_path="gs://")
+        session.add(optimization)
+        session.commit()
+        print('==================================OPTIMIZATION CREATED==================')
+        print(optimization)
+        print('==================================OPTIMIZATION SENDING==================')
+        print(optimization_schema.dump(optimization))
+        return optimization_schema.dump(optimization)
+    except:
+        raise
+        session.rollback()
+
+    finally:
+        session.close()
+
