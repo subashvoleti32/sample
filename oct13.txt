@@ -88,3 +88,20 @@ api.add_resource(OptimizationsResource, '/optimizations')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+curl -X POST -H "Content-Type: application/json" -d '{"owner_email": "user3@example.com", "status": "Pending", "optimization_name": "Mock Optimization 3", "country": "UK", "category": "Research"}' http://127.0.0.1:5000/optimization
+
+curl -X PUT -H "Content-Type: application/json" -d '{"status": "Completed"}' http://127.0.0.1:5000/optimization/1
+
+curl -X PUT -H "Content-Type: application/json" -d '{"status": "Completed"}' http://127.0.0.1:5000/optimization/1
+
+curl -X DELETE http://127.0.0.1:5000/optimization/1
+
+curl http://127.0.0.1:5000/optimizations
+
+curl "http://127.0.0.1:5000/optimizations?country=USA&category=Marketing"
+
+curl "http://127.0.0.1:5000/optimizations?rpp=10&page=2"
+
