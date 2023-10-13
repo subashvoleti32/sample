@@ -603,3 +603,74 @@ template_mappings_schema = TemplateRelationMasterSchema(many=True)
 
 
 api.add_resource(ProductMappingResource, '/api/v2/product_mapping/list')
+
+
+
+
+
+
+
+
+
+
+
+
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+from marshmallow import Schema, fields
+
+app = Flask(__name)
+api = Api(app)
+
+# Mocked product mapping data for demonstration purposes
+mock_product_mapping = [
+    {
+        "product_name": "Product A",
+        "country": "USA",
+        "category": "Electronics",
+    },
+    {
+        "product_name": "Product B",
+        "country": "USA",
+        "category": "Electronics",
+    },
+    {
+        "product_name": "Product X",
+        "country": "Canada",
+        "category": "Clothing",
+    },
+    {
+        "product_name": "Product Y",
+        "country": "Canada",
+        "category": "Clothing",
+    },
+]
+
+class ProductMappingResource(Resource):
+    def get(self):
+        args = request.args
+        country = args.get('country', None)
+        category = args.get('category', None)
+        product_mapping = get_product_mapping(country, category)
+        return product_mapping
+
+# Function to get product mapping data (mocked)
+def get_product_mapping(country, category):
+    filtered_mapping = mock_product_mapping
+
+    if country:
+        filtered_mapping = [item for item in filtered_mapping if item["country"] == country]
+
+    if category:
+        filtered_mapping = [item for item in filtered_mapping if item["category"] == category]
+
+    product_names = [item["product_name"] for item in filtered_mapping]
+    
+    response_data = {'products_list': [{'product': product_name} for product_name in product_names]}
+    return jsonify(response_data)
+
+api.add_resource(ProductMappingResource, '/api/v2/product_mapping/list')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
