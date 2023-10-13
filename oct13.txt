@@ -555,4 +555,51 @@ api.add_resource(OptimizationsResource, '/api/v2/optimization/list')
 if __name__ == '__main__':
     app.run(debug=True)
 
+--------------------------------------------------------------------------------
+class ProductMappingResource(Resource):
+    def get(self):
+        args = request.args
+        country = str(args.get('country')) if args.get('country') else None
+        category = str(args.get('category')) if args.get('category') else None
+        product_mapping = product_mapping_service.get_product_mapping(country=country,category=category)
+        return product_mapping
 
+@enable_country_category_check
+def get_product_mapping(country, category):
+    session = _init_session()
+    try:
+        category = get_category(category)
+        product_names = session.query(TemplateRelationMaster.product_name).filter_by(country=country, category=category).distinct().all()
+        session.close()
+        dto = {'products_list': [{'product': product[0]} for product in product_names]}
+        return jsonify(dto)
+
+    except Exception as e:
+        session.rollback()
+
+    finally:
+        session.close()
+class TemplateRelationMaster(Base):
+    __tablename__ = 'template_relation'
+    id = Column(Integer, primary_key=True)
+    element_name_id = Column(Integer)
+    category = Column(String(100))
+    element_name_detail_id = Column(ARRAY(Integer))
+    created_datetime = Column(DateTime)
+    last_modified_datetime = Column(DateTime)
+    product_name = Column(String(50))
+    country = Column(String(30))
+    template = Column(String(100))
+
+
+class TemplateRelationMasterSchema(Schema):
+    class Meta:
+        fields = ("id", "element_name_id", "element_name_detail_id", "category", "product_name", "country", "template")
+        model = TemplateRelationMaster
+
+
+template_mapping_schema = TemplateRelationMasterSchema()
+template_mappings_schema = TemplateRelationMasterSchema(many=True)
+
+
+api.add_resource(ProductMappingResource, '/api/v2/product_mapping/list')
