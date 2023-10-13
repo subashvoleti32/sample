@@ -673,4 +673,65 @@ api.add_resource(ProductMappingResource, '/api/v2/product_mapping/list')
 
 if __name__ == '__main__':
     app.run(debug=True)
+-------------------------------------------------------------------------------------------------------------------------
+class DemographicMaster(Base):
+    __tablename__ = 'demographic_master'
+    id = Column(Integer, primary_key=True)
+    demographic_name = Column(String(50))
+    gender = Column(String(50))
+    minimum_age = Column(Integer)
+    maximum_age = Column(Integer)
+    origin = Column(String(50))
+    race = Column(String(50))
+    households = Column(Boolean)
+    created_by = Column(String(50))
+    created_datetime = Column(DateTime)
+    is_active = Column(Boolean)
+    region_code = Column(String(50))
+    country = Column(String(30))
+
+    # Column(String(30))
+
+    # def as_dict(self):
+    #     return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class DemographicMasterSchema(Schema):
+    class Meta:
+        fields = ("id", "demographic_name", "gender", "minimum_age", "maximum_age", "origin",
+                  "race", "households", "created_by", "created_datetime", "is_active", 
+                  "country", "region_code")
+        model = DemographicMaster
+
+demographic_schema = DemographicMasterSchema()
+demographics_schema = DemographicMasterSchema(many=True)
+
+
+def get_demographics_by_country(country, rpp, page):
+    if country is None:
+        return http.HTTPStatus.BAD_REQUEST
+
+    session = _init_session()
+
+    try:
+        q = session.query(DemographicMaster).filter_by(country=country).order_by(desc('created_datetime')).offset(rpp * page).limit(rpp)
+        row_count = session.query(DemographicMaster).filter_by(country=country).count()
+        response_json = json.dumps({'data': demographics_schema.dump(q), 'row_count': row_count})
+        return json.loads(response_json)
+    
+    except:
+        raise
+        session.rollback()
+    finally:
+        session.close()
+
+
+class DemographicListResource(Resource):
+    # this is to get demographics by country
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp')) if args.get('rpp') else 1000
+        page = int(args.get('page')) if args.get('page') else 0
+        country = args.get('country') if args.get('country') else None 
+        return demographic_service.get_demographics_by_country(country=country, rpp=rpp, page=page)
 
