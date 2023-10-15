@@ -26,6 +26,9 @@ services:
 
 
 ocker-compose up
+
+practice-wiremock-1  | /docker-entrypoint.sh: line 18: /home/wiremock/bin/wiremock: No such file or directory
+practice-wiremock-1 exited with code 127
 time="2023-10-15T22:49:45+05:30" level=warning msg="The \"PWD\" variable is not set. Defaulting 
 to a blank string."
 1 error(s) decoding:
