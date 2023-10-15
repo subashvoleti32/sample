@@ -1,1 +1,15 @@
 docker run -it --rm -p 8080:8080 --name wiremock -v ${PWD}:/home/wiremock wiremock/wiremock
+
+version: '3'
+services:
+  wiremock:
+    image: rodolpheche/wiremock
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./user_details_stub.json:/home/wiremock/mappings/user_details_stub.json
+    command: ["--verbose"]
+docker-compose up
+docker-compose up
+docker-compose down
+
