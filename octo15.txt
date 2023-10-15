@@ -61,3 +61,40 @@ to a blank string."
             "id": 3967,
 
 * error decoding 'Volumes[0]': invalid spec: :/home/wiremock: empty section between colons
+
+
+
+
+
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/api/v2/optimization/list",
+    "queryParameters": {
+      "country": {
+        "equalTo": "USA"
+      },
+      "category": {
+        "equalTo": "FAM"
+      },
+      "status": {
+        "matches": "^(Running|Succeeded|Failed)$"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "fixedDelayMilliseconds": 1000,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "data": [
+        {
+          "id": 3967
+        }
+      ]
+    }
+  }
+}
+
