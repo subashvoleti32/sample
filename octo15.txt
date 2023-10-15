@@ -33,4 +33,31 @@ time="2023-10-15T22:49:45+05:30" level=warning msg="The \"PWD\" variable is not 
 to a blank string."
 1 error(s) decoding:
 
+{
+    "request": {
+      "method": "GET",
+      "urlPathPattern": "api/v2/optimization/list",
+      "queryParameters": {
+        "country": {
+          "equalTo": "USA"
+        },
+        "category": {
+          "equalTo": "FAM"
+        },
+        "status": {
+          "equalTo": "Running,Succeeded,Failed"
+        }
+      }
+    },
+    "response": {
+      "status": 200,
+      "fixedDelayMilliseconds": 1000,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "jsonBody": {
+        "data": [
+          {
+            "id": 3967,
+
 * error decoding 'Volumes[0]': invalid spec: :/home/wiremock: empty section between colons
