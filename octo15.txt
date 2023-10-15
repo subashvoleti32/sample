@@ -22,3 +22,12 @@ services:
     volumes:
       - ./mappings:/home/wiremock/mappings
     command: ["--verbose"]
+
+
+
+ocker-compose up
+time="2023-10-15T22:49:45+05:30" level=warning msg="The \"PWD\" variable is not set. Defaulting 
+to a blank string."
+1 error(s) decoding:
+
+* error decoding 'Volumes[0]': invalid spec: :/home/wiremock: empty section between colons
