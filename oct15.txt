@@ -1,0 +1,145 @@
+{
+    "request": {
+      "method": "GET",
+      "urlPathPattern": "/api/v2/user/details"
+    },
+    "response": {
+      "status": 200,
+      "fixedDelayMilliseconds": 1000,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "jsonBody":{
+        "users_markets": [
+            {
+                "country": {
+                    "name": "United States",
+                    "code": "USA"
+                },
+                "categories": [
+                    {
+                        "name": "Fabric & Home Care",
+                        "code": "FHC"
+                    },
+                    {
+                        "name": "Family Care",
+                        "code": "FAM"
+                    },
+                    {
+                        "name": "Baby Care",
+                        "code": "BAB"
+                    },
+                    {
+                        "name": "Fem Care",
+                        "code": "FEM"
+                    },
+                    {
+                        "name": "Grooming",
+                        "code": "GRO"
+                    },
+                    {
+                        "name": "Hair Care",
+                        "code": "HAI"
+                    },
+                    {
+                        "name": "Oral Care",
+                        "code": "ORA"
+                    },
+                    {
+                        "name": "PHC",
+                        "code": "PHC"
+                    },
+                    {
+                        "name": "Zevo",
+                        "code": "ZEV"
+                    },
+                    {
+                        "name": "POR",
+                        "code": "POR"
+                    },
+                    {
+                        "name": "Only Admins Can See This",
+                        "code": "DEV"
+                    },
+                    {
+                        "name": "Skin Care",
+                        "code": "SKI"
+                    },
+                    {
+                        "name": "Personal Care",
+                        "code": "PCC"
+                    }
+                ]
+            },
+            {
+                "country": {
+                    "name": "Canada",
+                    "code": "CAN"
+                },
+                "categories": [
+                    {
+                        "name": "Fabric & Home Care",
+                        "code": "FHC"
+                    },
+                    {
+                        "name": "Family Care",
+                        "code": "FAM"
+                    },
+                    {
+                        "name": "Baby Care",
+                        "code": "BAB"
+                    },
+                    {
+                        "name": "Fem Care",
+                        "code": "FEM"
+                    },
+                    {
+                        "name": "Grooming",
+                        "code": "GRO"
+                    },
+                    {
+                        "name": "Hair Care",
+                        "code": "HAI"
+                    },
+                    {
+                        "name": "Oral Care",
+                        "code": "ORA"
+                    },
+                    {
+                        "name": "PHC",
+                        "code": "PHC"
+                    },
+                    {
+                        "name": "Zevo",
+                        "code": "ZEV"
+                    },
+                    {
+                        "name": "PORTFOLIO_ENGLISH",
+                        "code": "PRE"
+                    },
+                    {
+                        "name": "PORTFOLIO_FRENCH",
+                        "code": "PRF"
+                    },
+                    {
+                        "name": "POR",
+                        "code": "POR"
+                    },
+                    {
+                        "name": "HOME",
+                        "code": "HOM"
+                    },
+                    {
+                        "name": "Skin Care",
+                        "code": "SKI"
+                    },
+                    {
+                        "name": "Personal Care",
+                        "code": "PCC"
+                    }
+                ]
+            }
+        ]
+    }
+    
+  }}
