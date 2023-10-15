@@ -13,3 +13,12 @@ docker-compose up
 docker-compose up
 docker-compose down
 
+version: '3'
+services:
+  wiremock:
+    image: rodolpheche/wiremock
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mappings:/home/wiremock/mappings
+    command: ["--verbose"]
