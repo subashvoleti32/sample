@@ -1,0 +1,366 @@
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+
+app = Flask(__name__)
+api = Api(app)
+
+# Sample data for demonstration purposes
+mock_optimizations = [
+    {
+        "id": 1,
+        "owner_email": "user1@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 1",
+        "country": "USA",
+        "category": "Marketing",
+    },
+    {
+        "id": 2,
+        "owner_email": "user2@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 2",
+        "country": "Canada",
+        "category": "Sales",
+    },
+    {
+        "id": 3,
+        "owner_email": "user3@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 3",
+        "country": "USA",
+        "category": "Research",
+    },
+    {
+        "id": 4,
+        "owner_email": "user4@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 4",
+        "country": "Canada",
+        "category": "Marketing",
+    },
+    {
+        "id": 5,
+        "owner_email": "user5@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 5",
+        "country": "USA",
+        "category": "Sales",
+    },
+    {
+        "id": 5,
+        "owner_email": "user5@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 6",
+        "country": "Canada",
+        "category": "Marketing",
+    },
+]
+
+# Case-insensitive string comparison function
+def case_insensitive_equals(s1, s2):
+    return s1.lower() == s2.lower()
+
+# API routes
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp', 50))
+        page = int(args.get('page', 0))
+        country = args.get('country', None)
+        category = args.get('category', None)
+        status = args.get('status', '').split(',')
+
+        filtered_optimizations = mock_optimizations
+
+        if country:
+            filtered_optimizations = [opt for opt in filtered_optimizations if case_insensitive_equals(opt["country"], country)]
+        if category:
+            filtered_optimizations = [opt for opt in filtered_optimizations if case_insensitive_equals(opt["category"], category)]
+        if status:
+            filtered_optimizations = [opt for opt in filtered_optimizations if opt["status"].lower() in [s.lower() for s in status]]
+
+        paginated_optimizations = filtered_optimizations[page * rpp: (page + 1) * rpp]
+        row_count = len(filtered_optimizations)
+
+        response_data = {'data': paginated_optimizations, 'row_count': row_count}
+        return jsonify(response_data)
+mock_product_mapping = [
+    {
+        "product_name": "Product A",
+        "country": "USA",
+        "category": "Electronics",
+    },
+    {
+        "product_name": "Product B",
+        "country": "USA",
+        "category": "Electronics",
+    },
+    {
+        "product_name": "Product X",
+        "country": "Canada",
+        "category": "Clothing",
+    },
+    {
+        "product_name": "Product Y",
+        "country": "Canada",
+        "category": "Clothing",
+    },
+]
+class ProductMappingResource(Resource):
+    def get(self):
+        args = request.args
+        country = args.get('country', None)
+        category = args.get('category', None)
+        product_mapping = get_product_mapping(country, category)
+        return product_mapping
+# Function to get product mapping data (mocked)
+def get_product_mapping(country, category):
+    filtered_mapping = mock_product_mapping
+
+    if country:
+        filtered_mapping = [item for item in filtered_mapping if item["country"] == country]
+
+    if category:
+        filtered_mapping = [item for item in filtered_mapping if item["category"] == category]
+
+    product_names = [item["product_name"] for item in filtered_mapping]
+    
+    response_data = {'products_list': [{'product': product_name} for product_name in product_names]}
+    return jsonify(response_data)
+mock_demographics = [
+    {
+        "id": 1,
+        "demographic_name": "Demographic A",
+        "gender": "Male",
+        "minimum_age": 25,
+        "maximum_age": 45,
+        "origin": "Urban",
+        "race": "Caucasian",
+        "households": True,
+        "created_by": "User1",
+        "is_active": True,
+        "region_code": "123",
+        "country": "USA",
+    },
+    {
+        "id": 2,
+        "demographic_name": "Demographic B",
+        "gender": "Female",
+        "minimum_age": 30,
+        "maximum_age": 60,
+        "origin": "Rural",
+        "race": "African American",
+        "households": False,
+        "created_by": "User2",
+        "is_active": True,
+        "region_code": "456",
+        "country": "Canada",
+    },
+    {
+        "id": 3,
+        "demographic_name": "Demographic C",
+        "gender": "Male",
+        "minimum_age": 20,
+        "maximum_age": 40,
+        "origin": "Urban",
+        "race": "Asian",
+        "households": True,
+        "created_by": "User3",
+        "is_active": False,
+        "region_code": "789",
+        "country": "USA",
+    },
+]
+class DemographicListResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp', 1000))
+        page = int(args.get('page', 0))
+        country = args.get('country', None)
+        return get_demographics_by_country(country, rpp, page)
+
+# Function to get demographics data (mocked)
+def get_demographics_by_country(country, rpp, page):
+    if country is None:
+        return jsonify({'error': 'Country parameter is required'}), 400
+
+    filtered_demographics = [demo for demo in mock_demographics if demo["country"] == country]
+    paginated_demographics = filtered_demographics[page * rpp: (page + 1) * rpp]
+    row_count = len(filtered_demographics)
+
+    response_data = {'data': paginated_demographics, 'row_count': row_count}
+    return jsonify(response_data)
+###########################################################################
+# mock_user_profile = {
+#     "users_markets": [
+#         {
+#             "country": {"code": "USA"},
+#             "categories": [
+#                 {"code": "Electronics"},
+#                 {"code": "Clothing"}
+#             ]
+#         },
+#         {
+#             "country": {"code": "Canada"},
+#             "categories": [
+#                 {"code": "Sales"},
+#                 {"code": "Research"}
+#             ]
+#         }
+#     ]
+# }
+mock_user_profile={
+    "users_markets": [
+        {
+            "country": {
+                "name": "United States",
+                "code": "USA"
+            },
+            "categories": [
+                {
+                    "name": "Fabric & Home Care",
+                    "code": "FHC"
+                },
+                {
+                    "name": "Family Care",
+                    "code": "FAM"
+                },
+                {
+                    "name": "Baby Care",
+                    "code": "BAB"
+                },
+                {
+                    "name": "Fem Care",
+                    "code": "FEM"
+                },
+                {
+                    "name": "Grooming",
+                    "code": "GRO"
+                },
+                {
+                    "name": "Hair Care",
+                    "code": "HAI"
+                },
+                {
+                    "name": "Oral Care",
+                    "code": "ORA"
+                },
+                {
+                    "name": "PHC",
+                    "code": "PHC"
+                },
+                {
+                    "name": "Zevo",
+                    "code": "ZEV"
+                },
+                {
+                    "name": "POR",
+                    "code": "POR"
+                },
+                {
+                    "name": "Only Admins Can See This",
+                    "code": "DEV"
+                },
+                {
+                    "name": "Skin Care",
+                    "code": "SKI"
+                },
+                {
+                    "name": "Personal Care",
+                    "code": "PCC"
+                }
+            ]
+        },
+        {
+            "country": {
+                "name": "Canada",
+                "code": "CAN"
+            },
+            "categories": [
+                {
+                    "name": "Fabric & Home Care",
+                    "code": "FHC"
+                },
+                {
+                    "name": "Family Care",
+                    "code": "FAM"
+                },
+                {
+                    "name": "Baby Care",
+                    "code": "BAB"
+                },
+                {
+                    "name": "Fem Care",
+                    "code": "FEM"
+                },
+                {
+                    "name": "Grooming",
+                    "code": "GRO"
+                },
+                {
+                    "name": "Hair Care",
+                    "code": "HAI"
+                },
+                {
+                    "name": "Oral Care",
+                    "code": "ORA"
+                },
+                {
+                    "name": "PHC",
+                    "code": "PHC"
+                },
+                {
+                    "name": "Zevo",
+                    "code": "ZEV"
+                },
+                {
+                    "name": "PORTFOLIO_ENGLISH",
+                    "code": "PRE"
+                },
+                {
+                    "name": "PORTFOLIO_FRENCH",
+                    "code": "PRF"
+                },
+                {
+                    "name": "POR",
+                    "code": "POR"
+                },
+                {
+                    "name": "HOME",
+                    "code": "HOM"
+                },
+                {
+                    "name": "Skin Care",
+                    "code": "SKI"
+                },
+                {
+                    "name": "Personal Care",
+                    "code": "PCC"
+                }
+            ]
+        }
+    ]
+}
+
+class UserProfileResource(Resource):
+    def get(self):
+        user_email = get_email_from_jwt(request)
+        user_profile = get_user_profile(user_email)
+        return user_profile
+
+def get_email_from_jwt(request):
+    # Mocked email for testing purposes
+    return "user@example.com"
+
+def get_user_profile(email):
+    # Mocked user profile for testing purposes
+    return mock_user_profile
+#api1='/api/v2/optimization/list'
+api.add_resource(OptimizationsResource, '/api/v2/optimization/list')
+api.add_resource(ProductMappingResource,'/api/v2/product_mapping/list')
+api.add_resource(DemographicListResource, '/api/v2/demographics/list')
+api.add_resource(UserProfileResource, '/api/v2/user_profile')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
