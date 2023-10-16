@@ -102,3 +102,4 @@ to a blank string."
 
 Access to XMLHttpRequest at 'http://localhost:5000/api/v2/optimization/list?category=Sales&country=USA&status=Completed,In+Progress' from origin 'http://localhost:3000' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true' when the request's credentials mode is 'include'. The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute
 
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000", "supports_credentials": True}})
