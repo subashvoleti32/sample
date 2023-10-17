@@ -76,3 +76,26 @@ Query: country = USA                                       | country: USA
 Query: category = FHC                                      | category: FHC
 Query: status [matches] Running,Succeded,Failed            | status: Running,Succeded,Failed
 
+
+
+{
+    "request": {
+        "url": "/api/v2/optimization/list?country=USA&category=FHC&status=Running,Succeded,Failed",
+        "method": "GET"
+    },
+    "response": {
+        "status": 200,
+        "jsonBody": {
+            "Optimization_name": "Hair_Template",
+            "Time_period": "08/26/2022-12/31/2023",
+            "Objective": "Max.Reach",
+            "Partitions": "1",
+            "Breaks": "1",
+            "Owner": "Subash@pg.com",
+            "Createdon": "08/26/2022 8:22",
+            "Scenarioid": "qwer12343",
+            "Status": "In Progress"
+        }
+    }
+}
+
