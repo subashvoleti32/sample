@@ -1,0 +1,43 @@
+{
+    "request": {
+        "urlPathPattern": "/api/v2/optimization",
+        "method": "GET",
+        "queryParameters": {
+            "country": {
+                "equalTo": "USA"
+            },
+            "category":{
+                "equalTo":"FHC"
+            },
+            "status":{
+                "matches":".*"
+            }
+        }
+    },
+    "response": {
+        "status": 200,
+        "body":{
+            "Optimization_name":"Hair_Template",
+            "Time_period":"08/26/2022-12/31/2023",
+            "Objective":"Max.Reach",
+            "Partitions":"1",
+            "Breaks":"1",
+            "Owner":"Subash@pg.com",
+            "Createdon":"08/26/2022 8:22",
+            "Scenarioid":"qwer12343",
+            "Status":"In Progress"
+        }
+    }
+}
+
+Attaching to wiremock
+wiremock  | Exception in thread "main" com.github.tomakehurst.wiremock.standalone.MappingFileException: Error loading file /home/wiremock/./mappings/optimization_list.json:
+wiremock  | Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)
+wiremock  |     at com.github.tomakehurst.wiremock.standalone.JsonFileMappingsSource.loadMappingsInto(JsonFileMappingsSource.java:123)
+wiremock  |     at com.github.tomakehurst.wiremock.core.WireMockApp.loadMappingsUsing(WireMockApp.java:248)
+wiremock  |     at com.github.tomakehurst.wiremock.core.WireMockApp.loadDefaultMappings(WireMockApp.java:242)
+wiremock  |     at com.github.tomakehurst.wiremock.core.WireMockApp.<init>(WireMockApp.java:123)
+wiremock  |     at com.github.tomakehurst.wiremock.WireMockServer.<init>(WireMockServer.java:71)
+wiremock  |     at com.github.tomakehurst.wiremock.standalone.WireMockServerRunner.run(WireMockServerRunner.java:70)
+wiremock  |     at wiremock.Run.main(Run.java:23)
+wiremock exited with code 1
