@@ -97,5 +97,69 @@ Query: status [matches] Running,Succeded,Failed            | status: Running,Suc
             "Status": "In Progress"
         }
     }
+
+
+
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+from flask_cors import CORS
+from flask.logging import default_handler
+
+app = Flask(__name__)
+api = Api(app)
+CORS(app)
+
+# Sample data for demonstration purposes
+mock_optimizations = [
+    {
+        "id": 1,
+        "owner_email": "user1@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 1",
+        "country": "USA",
+        "category": "Marketing",
+    },
+    {
+        "id": 2,
+        "owner_email": "user2@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 2",
+        "country": "Canada",
+        "category": "Sales",
+    },
+    {
+        "id": 3,
+        "owner_email": "user3@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 3",
+        "country": "USA",
+        "category": "Research",
+    },
+    {
+        "id": 4,
+        "owner_email": "user4@example.com",
+        "status": "Completed",
+        "optimization_name": "Mock Optimization 4",
+        "country": "Canada",
+        "category": "Marketing",
+    },
+    {
+        "id": 5,
+        "owner_email": "user5@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 5",
+        "country": "USA",
+        "category": "Sales",
+    },
+    {
+        "id": 5,
+        "owner_email": "user5@example.com",
+        "status": "In Progress",
+        "optimization_name": "Mock Optimization 6",
+        "country": "Canada",
+        "category": "Marketing",
+    },
+]
+app.logger.info(f"mock_optimizations are{mock_optimizations}")
 }
 
