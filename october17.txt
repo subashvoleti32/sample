@@ -163,3 +163,36 @@ mock_optimizations = [
 app.logger.info(f"mock_optimizations are{mock_optimizations}")
 }
 
+
+
+
+
+class OptimizationsResource(Resource):
+    def get(self):
+        args = request.args
+        rpp = int(args.get('rpp')) if args.get('rpp') else 50
+        page = int(args.get('page')) if args.get('page') else 0
+        country = str(args.get('country')) if args.get('country') else None
+        category = str(args.get('category')) if args.get('category') else None
+        status = (str(args.get('status')).split(',')) if args.get('status') else None
+        optimizations = optimization_service.get_optimizations(rpp=rpp,page=page,country=country,category=category, status=status )
+        return optimizations
+
+def get_optimizations(rpp, page, country, category, status):
+    session = _init_session()
+    try:
+        q = session.query(Optimization).filter_by(country=country).filter_by(category=category).filter(
+            Optimization.status.in_(status)).order_by(desc('created_datetime')).offset(rpp * page).limit(rpp)
+        for optimization in q:
+            optimization.experiment_params = {}
+        row_count = session.query(Optimization).filter_by(country=country).filter_by(category=category).filter(
+            Optimization.status.in_(status)).count()
+        response_json = json.dumps({'data': optimizations_schema.dump(q), 'row_count': row_count})
+        session.commit()
+        return json.loads(response_json)
+
+    except Exception as e:
+        session.rollback()
+
+    finally:
+        session.close()
