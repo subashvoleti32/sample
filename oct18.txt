@@ -1,0 +1,40 @@
+{
+    "request": {
+        "url": "/api/v2/product_mapping/list?country=USA&category=FHC",
+        "method": "GET"
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "products_list": [
+              {
+                "product": "FEBREZE"
+              }, 
+              {
+                "product": "ALL_FHC"
+              }, 
+              {
+                "product": "MR CLEAN"
+              }, 
+              {
+                "product": "CASCADE"
+              }, 
+              {
+                "product": "DAWN"
+              }, 
+              {
+                "product": "MBCI HOME CARE SCALE"
+              }, 
+              {
+                "product": "MICROBAN"
+              }, 
+              {
+                "product": "SWIFFER"
+              }
+            ]
+          }
+    }
+}
