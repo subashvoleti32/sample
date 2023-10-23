@@ -189,6 +189,10 @@ class CustomerCreate(BaseModel):
             });
         });
     </script>
+
+
+customer_registration.html:31 Uncaught ReferenceError: showOtherTextInput is not defined
+    at HTMLSelectElement.onchange (customer_registration.html:31:94)
 </body>
 </html>
 ====================
