@@ -6,6 +6,28 @@ def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
     db.refresh(db_customer)
     return db_customer
 
+class CustomerResponse(BaseModel):
+    custid: int
+    lastname: str
+    firstname: str
+    idf_proof: str
+    idnumber: str
+    phone_number_id: int
+    address: str
+    dob: str
+
+class CustomerCreate(BaseModel):
+    custid:int
+    lastname: str
+    firstname: str
+    idf_proof: str
+    idnumber: str
+    phone_number_id: int
+    address: str
+    dob: str
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
