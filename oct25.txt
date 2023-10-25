@@ -15,3 +15,68 @@
         
     }
 }
+
+
+
+-------------------------------------
+{
+    "request": {
+        "url": "/api/v2/optimization/list?country=USA&category=FHC&status=Running,Succeded,Failed",
+        "method": "GET"
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin" : "*",
+          "Access-Control-Allow-Methods" : "*",
+          "Access-Control-Allow-Headers": "Accept, Content-Type, Content-Encoding, Server, Transfer-Encoding"
+        },
+        "jsonBody": []
+    }
+},
+{
+    "request": {
+        "url": "/api/v2/optimization/list?country=USA&category=FHC&status=Running,Succeded,Failed",
+        "method": "GET"
+    },
+    "response": {
+        "status": 400,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "error": "Bad Request"
+        }
+    }
+},
+{
+    "request": {
+        "url": "/api/v2/optimization/list?country=USA&category=FHC&status=Running,Succeded,Failed",
+        "method": "GET"
+    },
+    "response": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "error": "Internal Server Error"
+        }
+    }
+},
+{
+    "request": {
+        "url": "/api/v2/optimization/list?country=USA&category=FHC&status=Running,Succeded,Failed",
+        "method": "GET"
+    },
+    "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "error": "Not Found"
+        }
+    }
+}
