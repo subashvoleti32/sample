@@ -165,3 +165,44 @@ class DevOptimizationsResource(Resource):
         status = (str(args.get('status')).split(',')) if args.get('status') else None
         optimizations = optimization_service.get_optimizations_by_country(rpp=rpp,page=page,country=country, status=status )
         return optimizations
+
+
+
+from http import HTTPStatus
+
+class BaseExceptionClass(Exception):
+    def __init__(self, status_code: int, description: str, data: dict):
+        self.exception_case = self.__class__.__name__
+        self.status_code = status_code
+        self.data = data
+        self.description = description
+
+    def __str__(self):
+        return (
+                f"<Exception: " f"status_code: {self.status_code} "
+                + f"Details: {self.description} - " f"Data: {self.data}>"
+        )
+
+class AppException(object):
+    class DuplicateName(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.CONFLICT,
+                     description: str = " Duplicate Name: ",
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+
+    class UserNotFound(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.NOT_FOUND,
+                     description: str = " User Not Found: ",
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+
+    class DatabaseException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'Database Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+    class PostRequestException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'PostRequest Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
