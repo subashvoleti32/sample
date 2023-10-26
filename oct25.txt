@@ -206,3 +206,160 @@ class AppException(object):
                      description: str = 'PostRequest Error: ',
                      data: dict = None):
             BaseExceptionClass.__init__(self, status_code, description, data)
+
+
+--------------------------------------------
+class UserProfileResource(Resource):
+    def get(self):
+        user_email = get_email_from_jwt(request)
+        user_profile = get_user_profile(user_email)
+        return user_profile
+def get_email_from_jwt(request):
+    if os.getenv('ACTIVE_PROFILE') == 'LOCAL':
+        return os.getenv('LOCAL_USER_EMAIL') or 'local_user@pg.com'
+    decoded_jwt = jwt.decode(
+        request.headers["X-Goog-IAP-JWT-Assertion"], verify=False)
+    return decoded_jwt['email']
+
+
+def get_user_profile(email):
+    user_profile = {
+        "users_markets": [
+        ]
+    }
+    
+    users_groups = get_groups_for_user(email)
+    session['is_admin'] = 'CNF-gcpcl-ltvo-ui-na-adm' in users_groups or 'CNF-gcpcl-ltvo-ui-fc-admin' in users_groups
+
+    group_codes_list = get_codes_for_group(users_groups, is_admin=session['is_admin'])
+    for group_codes in group_codes_list:
+        if not _check_if_country_exists_in_profile(group_codes["country"], user_profile):
+            _append_country_to_profile(
+                group_codes["country"], user_profile)
+            _append_category_to_country(
+                group_codes["country"], group_codes["category"], user_profile)
+        else:
+            _append_category_to_country(
+                group_codes["country"], group_codes["category"], user_profile)
+
+    session['profile'] = set_user_profile(user_profile)
+    
+    return user_profile
+
+
+def _check_if_country_exists_in_profile(country, user_profile):
+    for market in user_profile["users_markets"]:
+        if market["country"]["code"] == country["code"]:
+            return True
+    return False
+
+
+def _append_country_to_profile(country, user_profile):
+    user_profile["users_markets"].append({
+        "country": country,
+        "categories": []
+    })
+
+
+def _append_category_to_country(country, category, user_profile):
+    for market in user_profile["users_markets"]:
+        if market["country"]["code"] == country["code"]:
+            market["categories"].append(category)
+
+
+def get_codes_for_group(groups_list, is_admin=False):
+
+    session = _init_session()
+    group_codes_list = []
+
+    if is_admin:
+        groups = session.query(AccessGroups).all()            
+    else:
+        groups = session.query(AccessGroups).filter(AccessGroups.group_name.in_(groups_list)).all()
+
+    for group in groups:
+        # TODO: this is temporary because it would require changing a whole table 
+        if group.group_name == "CNF-gcpcl-ltvo-ui-ca-por" and group.country_code == 'CAN':
+            portfolio_english = {
+                "category": {
+                    "name": 'PORTFOLIO_ENGLISH',
+                    "code": 'PRE'
+                },
+                "country": {
+                    "name": 'Canada',
+                    "code": 'CAN'
+                } 
+            }
+            portfolio_french = {
+                "category": {
+                    "name": 'PORTFOLIO_FRENCH',
+                    "code": 'PRF'
+                },
+                "country": {
+                    "name": 'Canada',
+                    "code": 'CAN'
+                } 
+            }
+            group_codes = {
+                "category": {
+                    "name": group.category,
+                    "code": group.category_code
+                },
+                "country": {
+                    "name": group.country,
+                    "code": group.country_code
+                } 
+            }
+            group_codes_list.append(portfolio_english)
+            group_codes_list.append(portfolio_french)
+            group_codes_list.append(group_codes)
+
+        else:
+            group_codes = {
+                "category": {
+                    "name": group.category,
+                    "code": group.category_code
+                },
+                "country": {
+                    "name": group.country,
+                    "code": group.country_code
+                } 
+            }
+            group_codes_list.append(group_codes)
+        
+    session.close()
+    return group_codes_list
+
+        
+
+
+def get_groups_for_user(email):
+    # users_groups = []
+    # for group in TEMP_GROUPS:
+    #     if email in group["members"]:
+    #         users_groups.append(group["group_name"])
+    # return users_groups
+    creds = compute_engine.Credentials()
+    service = discovery.build("admin", "directory_v1", credentials=creds)
+    groups = service.groups().list(domain="groups.pg.com",
+                                   query=f"memberKey={email}").execute()
+
+    # filter the groups
+    prefix_filter = 'CNF-GCPCL-LTVO-UI-'
+    groups["groups"]
+    filtered_groups = [g["name"] for g in groups["groups"]
+                       if g["name"].upper().startswith(prefix_filter)]
+    return filtered_groups
+
+
+def set_user_profile(access_groups):
+
+    profile = {}
+
+    for group in access_groups['users_markets']:
+        if group['country']['code'] not in profile:
+            profile[group['country']['code']] = [
+                category['code'] for category in group['categories']
+                ] 
+    
+    return profile
