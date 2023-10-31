@@ -8,3 +8,69 @@ services:
     volumes:
       - C:/LTVO/LTVO-MIGRATION/practice:/home/wiremock
     tty: true
+--------------------------------------
+FROM python:3.8.3 as api
+
+WORKDIR /ltvo-backend
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+COPY . /ltvo-backend/
+EXPOSE 9090
+
+RUN chmod a+x /ltvo-backend/setup/entrypoint.sh
+
+#RUN chmod a+x setup/wait_for_db.sh
+
+--------------------------------------
+version: '3'
+name: ltvo-backend
+
+services:
+  psql-db:
+    image: postgres:13
+    container_name: psql-db
+    environment:
+      POSTGRES_USER: ltvo_ui_dev
+      POSTGRES_PASSWORD: password123
+    hostname: psql-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@pg.com
+      PGADMIN_DEFAULT_PASSWORD: pass123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  api:
+    container_name: ltvo_api
+    build:
+      context: ..
+      dockerfile: setup/Dockerfile
+    image: ltvo-backend
+    environment:
+      - ACTIVE_PROFILE=LOCAL
+      - PG_HOST=psql-db:5432
+      - PG_USER=ltvo_ui_dev
+      - PG_PASSWORD=password123
+      - FLASK_ENV=development
+      - FLASK_APP=app
+    entrypoint: /ltvo-backend/setup/entrypoint.sh
+    ports:
+      - "9090:9090"
+    volumes:
+      - ..:/ltvo-backend
+    depends_on:
+      - psql-db
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
