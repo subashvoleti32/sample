@@ -26,3 +26,22 @@ def configure_logger():
     logger.addHandler(console_handler)
 
     return logger
+
+
+
+
+------------------------
+import logging
+
+def configure_logger():
+    logger = logging.getLogger("my_app")
+    logger.setLevel(logging.INFO)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - Line %(lineno)d - %(message)s')
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    return logger
+
