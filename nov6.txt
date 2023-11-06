@@ -25,3 +25,71 @@ def configure_logger():
     logger.addHandler(console_handler)
 
     return logger
+
+
+
+
+import logging
+
+class LessThanFilter(logging.Filter):
+    def __init__(self, level):
+        self.level = level
+
+    def filter(self, record):
+        return record.levelno < self.level
+
+# Usage example
+logger = logging.getLogger("my_app")
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+logging_handler_out = logging.StreamHandler(sys.stdout)
+logging_handler_out.setLevel(logging.INFO)
+logging_handler_out.addFilter(LessThanFilter(logging.WARNING))
+logging_handler_out.setFormatter(formatter)
+logger.addHandler(logging_handler_out)
+
+logging_handler_err = logging.StreamHandler(sys.stderr)
+logging_handler_err.setLevel(logging.WARNING)
+logging_handler_err.setFormatter(formatter)
+logger.addHandler(logging_handler_err)
+
+logger.info("This is an INFO message")
+logger.warning("This is a WARNING message")
+-----------------------------
+import logging
+import sys
+
+class LessThanFilter(logging.Filter):
+    def __init__(self, level):
+        self.level = level
+
+    def filter(self, record):
+        return record.levelno < self.level
+
+def configure_logger():
+    logger = logging.getLogger("my_app")
+    logger.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    logging_handler_out = logging.StreamHandler(sys.stdout)
+    logging_handler_out.setLevel(logging.INFO)
+    logging_handler_out.addFilter(LessThanFilter(logging.WARNING))
+    logging_handler_out.setFormatter(formatter)
+    logger.addHandler(logging_handler_out)
+
+    logging_handler_err = logging.StreamHandler(sys.stderr)
+    logging_handler_err.setLevel(logging.WARNING)
+    logging_handler_err.setFormatter(formatter)
+    logger.addHandler(logging_handler_err)
+
+    return logger
+
+if __name__ == "__main__":
+    logger = configure_logger()
+    logger.info("This is an INFO message")
+    logger.warning("This is a WARNING message")
+
+
