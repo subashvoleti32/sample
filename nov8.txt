@@ -1,0 +1,74 @@
+from http import HTTPStatus
+
+class BaseExceptionClass(Exception):
+    def __init__(self, status_code: int, description: str, data: dict):
+        self.exception_case = self.__class__.__name__
+        self.status_code = status_code
+        self.data = data
+        self.description = description
+
+    def __str__(self):
+        return (
+                f"<Exception: " f"status_code: {self.status_code} "
+                + f"Details: {self.description} - " f"Data: {self.data}>"
+        )
+
+class AppException(object):
+    class DuplicateName(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.CONFLICT,
+                     description: str = " Duplicate Name: ",
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+
+    class UserNotFound(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.NOT_FOUND,
+                     description: str = " User Not Found: ",
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+
+    class DatabaseException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'Database Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+    class PostRequestException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'PostRequest Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+    class GetRequestException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'GetRequest Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+    class PutRequestException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'PutRequest Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+    class DeleteRequestException(BaseExceptionClass):
+        def __init__(self, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+                     description: str = 'DeleteRequest Error: ',
+                     data: dict = None):
+            BaseExceptionClass.__init__(self, status_code, description, data)
+
+------------------
+import functools
+
+def handle_errors(func):
+    @functools.wraps(func)
+    def wrapper_decorator(*args, **kwargs):
+        # Do something before
+        try:
+           return func(*args, **kwargs)
+        except Exception as e:
+            app_logger.info(f"Request Error:{str(e)}")
+            description = "Error while doing {func.__name__}:"
+            raise AppException.PostRequestException(status_code = HTTPStatus.INTERNAL_SERVER_ERROR,description = description, data={'error_message': str(e)})
+    return wrapper_decorator
+----------------------------
+    @handle_errors
+    def post(self):
+        input_json = request.get_json()
+        Optimization = optimization_service.create(input_json=input_json)
+        return Optimization
