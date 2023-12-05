@@ -1,0 +1,56 @@
+def get_db_engine():
+    print("ACTIVE_PROFILE", ACTIVE_PROFILE)
+    if ACTIVE_PROFILE == 'LOCAL':
+        return get_local_db_engine()
+    elif ACTIVE_PROFILE == 'DEV':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'STG':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'PROD':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'LTVO_UTILS_DEV' or ACTIVE_PROFILE == 'LTVO_UTILS_STG' or ACTIVE_PROFILE == 'LTVO_UTILS_PROD':
+        return get_ltvo_utils_prod_dev_db_engine()
+    else:
+        return 'invalid Env'
+
+def _init_session():
+    logging.info("Attempting to connect to the DB")
+    for tries in range(5):
+        try:
+            session = _try_connection()
+            return session
+        except Exception as e:
+            logging.error(f"DB connection failed {tries} times: {str(e)}")
+            continue
+    raise Exception("Cannot connect to Databse in __init_session(). Session cannot be created!")
+
+def _try_connection():
+    logging.info(f'Attempting to set schema to {get_active_schema()}')
+    Session = sessionmaker(bind=get_db_engine())
+    session = Session()
+    session.execute(f"SET search_path TO {get_active_schema()}")
+    return session
+
+
+
+def get_gcp_dev_db_engine():
+    host = "10.132.5.9"  # TODO add secrets
+    user = "ltvo-dev"
+    passwd = "postgres_ltvo_26"
+    print(os.environ['HOME'])
+    db = "ltvo_ui_db"
+    project_id = 'ltvo-ui-fc-dev-3eab'
+    db_string = f"postgresql://{user}:{passwd}@{host}/{db}?sslmode=require" \
+                f"&sslrootcert={access_secret(project_id,'SERVER_CERT','/usr/local/share/ca-certificates/server-ca-psg.pem')}" \
+                f"&sslcert={access_secret(project_id,'CLIENT_CERT','/usr/local/share/ca-certificates/client-cert-psg.pem')}" \
+                f"&sslkey={access_secret(project_id,'CLIENT_KEY','/usr/local/share/ca-certificates/client-key-psg.pem')}"
+    os.system("chmod -R 0600 /usr/local/share/ca-certificates")
+    engine = sqlalchemy.create_engine(
+        # Equivalent URL:
+        db_string,
+        echo=True
+    )
+    return engine
+	
+	
+It seems the API takes a long time to start up. Are you able to take a look and see why it takes so long? Also, it creates one DB connection per request. Can you please look into creating a connection pool instead?
