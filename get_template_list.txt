@@ -14,7 +14,68 @@ JSON format
 
 Below is the confluence link
 
+version: '3'
+name: ltvo-backend
 
+services:
+  psql-db:
+    image: postgres:13
+    container_name: psql-db
+    environment:
+      POSTGRES_USER: ltvo_ui_dev
+      POSTGRES_PASSWORD: password123
+    hostname: psql-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  gcp_storage:
+    image: oittaa/gcp-storage-emulator
+    container_name: gcp_storage
+    ports:
+      - "9023:9023"
+    environment:
+      PORT: 9023
+      HOST: gcp_storage
+    volumes:
+      - gcp-data:/storage
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@pg.com
+      PGADMIN_DEFAULT_PASSWORD: pass123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  api:
+    container_name: ltvo_api
+    build:
+      context: ..
+      dockerfile: setup/Dockerfile
+    image: ltvo-backend
+    environment:
+      - ACTIVE_PROFILE=LOCAL
+      - PG_HOST=psql-db:5432
+      - PG_USER=ltvo_ui_dev
+      - PG_PASSWORD=password123
+      - FLASK_ENV=development
+      - FLASK_APP=app
+      - STORAGE_EMULATOR_HOST=http://gcp_storage:9023
+    entrypoint: /ltvo-backend/setup/entrypoint.sh
+    ports:
+      - "9090:9090"
+    volumes:
+      - ..:/ltvo-backend
+    depends_on:
+      - psql-db
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
+  gcp-data:
 
 GET COST FILE
 UI will pass a path such as “/na/usa/fhc/FHC_UNCONSTRAINED”
