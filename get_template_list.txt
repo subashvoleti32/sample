@@ -112,3 +112,10 @@ def get_file_names_endpoint():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+
+api.add_resource(CostFileResource, '/api/v2/cost_file')
+api.add_resource(CostFileResource, '/api/v2/cost_file_names')
+api.add_resource(OptimizationRunListResource, '/api/v2/optimization_runs')
+api.add_resource(DevOptimizationsResource, '/api/v2/dev_optimization/list')
+api.add_resource(OptimizationRunResource, *optimization_run_routes)
