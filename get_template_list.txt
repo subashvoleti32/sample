@@ -187,3 +187,13 @@ api.add_resource(CostFileResource, '/api/v2/cost_file_names')
 api.add_resource(OptimizationRunListResource, '/api/v2/optimization_runs')
 api.add_resource(DevOptimizationsResource, '/api/v2/dev_optimization/list')
 api.add_resource(OptimizationRunResource, *optimization_run_routes)
+
+
+
+from google.cloud._helpers import _NOW
+
+def create_anonymous_client(*args, **kwargs):
+    creds = AnonymousCredentials()
+    if _NOW() > creds.expiry:
+        creds.refresh(Request())
+    return storage.Client(credentials=creds, _http=grpc.Request())
