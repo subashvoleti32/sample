@@ -1,0 +1,26 @@
+UI will pass a path such as “/na/usa/fhc”
+
+Syntax for the path is /na/{country}/{category} This syntax will match the syntax of where the files are located in the COST bucket
+
+API will return the list of files located in the GCS cost bucket with the above path.
+
+Path in GCS should be namespaced by environment. For example, DEV should have a prefix of /dev/na/usa/fhc
+
+Pass (Category and country) and retrieve the list of tempelate
+
+Array of string
+
+JSON format
+
+Below is the confluence link
+
+
+
+GET COST FILE
+UI will pass a path such as “/na/usa/fhc/FHC_UNCONSTRAINED”
+
+syntax is /na/{country}/{category}/{template}
+
+API must validate the user has access to the country / category for which they are calling the endpoint. Can use legacy API functionality for this validation.
+
+API must return the json list of deals that are in the csv file at the above path
