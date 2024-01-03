@@ -24,3 +24,15 @@ syntax is /na/{country}/{category}/{template}
 API must validate the user has access to the country / category for which they are calling the endpoint. Can use legacy API functionality for this validation.
 
 API must return the json list of deals that are in the csv file at the above path
+
+
+gcp_storage:
+    image: oittaa/gcp-storage-emulator
+    container_name: gcp_storage
+    ports:
+      - "9023:9023"
+    environment:
+      PORT: 9023
+      HOST: gcp_storage
+    volumes:
+      - gcp-data:/storage
