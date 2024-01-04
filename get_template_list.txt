@@ -197,3 +197,57 @@ def create_anonymous_client(*args, **kwargs):
     if _NOW() > creds.expiry:
         creds.refresh(Request())
     return storage.Client(credentials=creds, _http=grpc.Request())
+'
+
+
+country=input("Enter country name")
+category=input("Enter category name")
+from google.cloud import storage
+storage_client=storage.Client()
+
+bucket_name="dbce-ltvo-ui-dev-16d3-ltvo-ui-cf-2q88ktf9"
+print(bucket_name)
+
+blob_prefix=f"/{country}/{category}/"
+
+bucket = storage_client.bucket(bucket_name)
+
+blobs=list(bucket.list_blobs(prefix=blob_prefix))
+
+file_names=[blob.name.split("/")[-1] for blob in blobs]
+
+print(file_names)
+
+
+Traceback (most recent call last):
+  File "/home/subash_vo/sample.py", line 12, in <module>
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/page_iterator.py", line 208, in _items_iter
+    for page in self._page_iter(increment=False):
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/page_iterator.py", line 244, in _page_iter
+    page = self._next_page()
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/page_iterator.py", line 373, in _next_page
+    response = self._get_next_page_response()
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/page_iterator.py", line 432, in _get_next_page_response
+    return self.api_request(
+  File "/usr/local/lib/python3.9/dist-packages/google/cloud/storage/_http.py", line 72, in api_request
+    return call()
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/retry.py", line 372, in retry_wrapped_func
+    return retry_target(
+  File "/usr/local/lib/python3.9/dist-packages/google/api_core/retry.py", line 207, in retry_target
+    result = target()
+  File "/usr/local/lib/python3.9/dist-packages/google/cloud/_http/__init__.py", line 482, in api_request
+    response = self._make_request(
+  File "/usr/local/lib/python3.9/dist-packages/google/cloud/_http/__init__.py", line 341, in _make_request
+    return self._do_request(
+  File "/usr/local/lib/python3.9/dist-packages/google/cloud/_http/__init__.py", line 379, in _do_request
+    return self.http.request(
+  File "/usr/local/lib/python3.9/dist-packages/google/auth/transport/requests.py", line 537, in request
+    self.credentials.before_request(auth_request, method, url, request_headers)
+  File "/usr/local/lib/python3.9/dist-packages/google/auth/credentials.py", line 175, in before_request
+    self.refresh(request)
+  File "/usr/local/lib/python3.9/dist-packages/google/auth/compute_engine/credentials.py", line 116, in refresh
+    self._retrieve_info(request)
+  File "/usr/local/lib/python3.9/dist-packages/google/auth/compute_engine/credentials.py", line 93, in _retrieve_info
+    self._service_account_email = info["email"]
+TypeError: string indices must be integers
