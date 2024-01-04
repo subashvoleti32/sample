@@ -393,3 +393,38 @@ def read_csv_file_content(country,category):
             return json_data
         except Exception as e:
             print(f"Exception is {str(e)}")
+
+
+
+
+class CostFileNameResource(Resource):
+    def get(self):
+        try:
+            args=request.args 
+            country=args.get('country')
+            category=args.get('category')
+            # if not country or not category:
+            #     return {"error":"Missing Required parameters"}, 400
+            # bucket_name="test_bucket"
+            # if not bucket_name:
+            #     return {"error":"bucket_name is not set"}, 500
+            file_names=get_csv_file_names(country,category)
+            return {"file_names":file_names}
+        except Exception as e:
+            return {"error":str(e)}, 500
+
+class CostFileContentResource(Resource):
+    def get(self):
+        try:
+            args=request.args 
+            country=args.get('country')
+            category=args.get('category')
+            # if not country or not category:
+            #     return {"error":"Missing Required parameters"}, 400
+            # bucket_name="test_bucket"
+            # if not bucket_name:
+            #     return {"error":"bucket_name is not set"}, 500
+            file_content=read_csv_file_content(country,category)
+            return file_content
+        except Exception as e:
+            return {"error":str(e)}, 500
