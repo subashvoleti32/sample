@@ -254,7 +254,7 @@ TypeError: string indices must be integers
 
 
 
-
+[['name', 'age', 'gender'], ['subash', '23', 'male']]
 
 
 
