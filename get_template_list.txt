@@ -288,6 +288,26 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.9/dist-packages/google/resumable_media/_download.py", line 188, in _process_response
     _helpers.require_status_code(
   File "/usr/local/lib/python3.9/dist-packages/google/resumable_media/_helpers.py", line 108, in require_status_code
+
+
+
+
+for csv_file in csv_file_names:
+    print(f"\nProcessing CSV file:{csv_file}")
+    print(csv_file)
+    file = bucket.blob(csv_file)
+    print(file.exists())
+    
+    try:
+        # blob=bucket.blob(csv_file)
+        # content=blob.download_as_text()
+        # print(content)
+        blob_name=csv_file
+        blob = bucket.blob(blob_name)
+        rows = blob.download_as_bytes().decode().splitlines()
+        rows_list=list(csv.reader(rows))
+        print(list(csv.reader(rows)))
+        print(rows_list[0])
     raise common.InvalidResponse(
 google.resumable_media.common.InvalidResponse: ('Request failed with status code', 404, 'Expected one of', <HTTPStatus.OK: 200>, <HTTPStatus.PARTIAL_CONTENT: 206>)
 
