@@ -326,3 +326,21 @@ Traceback (most recent call last):
     raise exceptions.from_http_status(response.status_code, message, response=response)
 google.api_core.exceptions.NotFound: 404 GET https://storage.googleapis.com/download/storage/v1/b/dbce-ltvo-ui-dev-16d3-ltvo-ui-cf-2q88ktf9/o/sample1.csv?alt=media: No such object: dbce-ltvo-ui-dev-16d3-ltvo-ui-cf-2q88ktf9/sample1.csv: ('Request failed with status code', 404, 'Expected one of', <HTTPStatus.OK: 200>, <HTTPStatus.PARTIAL_CONTENT: 206>)
 subash_vo@cloudshell:~$ 
+
+
+
+ header = rows[0].split(',')
+        
+        # Create a list of dictionaries
+        data_list = []
+        for row in rows[1:]:
+            row_values = row.split(',')
+            data_dict = {header[i]: row_values[i] for i in range(len(header))}
+            data_list.append(data_dict)
+        
+        # Print the list of dictionaries
+        print(data_list)
+        
+        # Convert the list to JSON
+        json_data = json.dumps(data_list, indent=2)
+        print(json_data)
