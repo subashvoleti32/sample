@@ -466,6 +466,39 @@ class TestYourModule(unittest.TestCase):
         mock_blob.download_as_bytes.return_value.decode.return_value = 'header1,header2\nvalue1,value2'
         mock_bucket.blob.return_value = mock_blob
 
+
+
+
+
+
+
+
+
+from google.cloud import storage
+import json
+import pandas as pd
+storage_client=storage.Client()
+import csv
+from get_appconstants import dev_configs
+def get_csv_file_content(country,category,filename):
+    storage_client=storage.Client()
+    bucket_name=dev_configs.get('bucket_name')
+    ns=dev_configs.get('ns')
+    print(f"Bucket_name is {bucket_name}")
+    print(f"Namespace is {ns}")
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    print(f"File path is {blob_prefix}")
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name.split("/")[-1] for blob in blobs if blob.name.lower().endswith(".csv")]
+    final_csv_files=[{"csv_file_name":csv_file}for csv_file in csv_file_names]
+    return final_csv_files
+country=input("Enter Country name")
+category = input("Enter Category name")
+file_name=input("Enter Csv_file name")
+csv_file_names=get_csv_file_names(country,category,file_name)
+print(csv_file_names)
+
         result = read_csv_file_content('your_country', 'your_category')
 
         expected_result = '[{"template": {"header1": "value1", "header2": "value2"}}]'
