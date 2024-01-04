@@ -344,3 +344,52 @@ subash_vo@cloudshell:~$
         # Convert the list to JSON
         json_data = json.dumps(data_list, indent=2)
         print(json_data)
+
+
+
+
+def get_csv_file_names(country,category):
+    storage_client=storage.Client()
+    bucket_name=get_app_configs().get(ESM_GCS_BUCKET)
+    ns=get_app_configs().get(NAMESPACE)
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name for blob in blobs if blob.name.lower().endswith(".csv")]
+    return csv_file_names
+
+@enable_country_check
+@enable_country_category_check
+def read_csv_file_content(country,category):
+    storage_client=storage.Client()
+    bucket_name=get_app_configs().get(ESM_GCS_BUCKET)
+    ns=get_app_configs().get(NAMESPACE)
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name for blob in blobs if blob.name.lower().endswith(".csv")]
+    for csv_file in csv_file_names:
+        print(f"\nProcessing CSV file:{csv_file}")
+        file = bucket.blob(csv_file)
+        if file.exists():
+            print("File Exists")
+        else:
+            print("File Doesnot exists")
+        try:
+            blob_name=csv_file
+            blob = bucket.blob(blob_name)
+            rows = blob.download_as_bytes().decode().splitlines()
+            rows_list=list(csv.reader(rows))
+            print(list(csv.reader(rows)))
+            print(rows_list[0])
+            header = rows[0].split(',')
+            data_list = []
+            for row in rows[1:]:
+                row_values = row.split(',')
+                data_dict = {header[i]: row_values[i] for i in range(len(header))}
+                data_list.append({"template":data_dict})
+            print(data_list)
+            json_data = json.dumps(data_list, indent=2)
+            return json_data
+        except Exception as e:
+            print(f"Exception is {str(e)}")
