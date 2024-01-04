@@ -534,3 +534,60 @@ if __name__ == '__main__':
     "gender": "male"
   }
 ]
+
+
+from google.cloud import storage
+import json
+import pandas as pd
+storage_client=storage.Client()
+import csv
+from get_appconstants import dev_configs
+def get_csv_file_content(country,category,filename):
+    storage_client=storage.Client()
+    bucket_name=dev_configs.get('bucket_name')
+    ns=dev_configs.get('ns')
+    print(f"Bucket_name is {bucket_name}")
+    print(f"Namespace is {ns}")
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    print(f"File path is {blob_prefix}")
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name.split("/")[-1] for blob in blobs if blob.name.lower().endswith(".csv")]
+    final_csv_files=[{"csv_file_name":csv_file}for csv_file in csv_file_names]
+    print(final_csv_files)
+    print(file_name in csv_file_names)
+    try:
+        if file_name in csv_file_names:
+            blob_name=f"ltvo_{ns}/na/{country}/{category}"+"/"+file_name
+            print(blob_name)
+            blob = bucket.blob(blob_name)
+            rows = blob.download_as_bytes().decode().splitlines()
+            rows_list=list(csv.reader(rows))
+            print(list(csv.reader(rows)))
+            print(rows_list[0])
+            header = rows[0].split(',')
+            data_list = []
+            for row in rows[1:]:
+                row_values = row.split(',')
+                data_dict = {header[i]: row_values[i] for i in range(len(header))}
+                data_list.append(data_dict)
+            print(data_list)
+            
+            # Convert the list to JSON
+            # json_data = json.dumps(data_list, indent=2)
+            # print(json_data)
+            # return json_data
+            return data_list
+        else:
+            print("file does not exist in bucket")
+    except Exception as e:
+        print(f"Exception is {str(e)}")
+country=input("Enter Country name")
+category = input("Enter Category name")
+file_name=input("Enter Csv_file name")
+csv_file_names=get_csv_file_content(country,category,file_name)
+print(csv_file_names)
+
+['name', 'age', 'gender']
+[{'name': 'subash', 'age': '23', 'gender': 'male'}]
+[{'name': 'subash', 'age': '23', 'gender': 'male'}]
