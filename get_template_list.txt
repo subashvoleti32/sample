@@ -432,3 +432,56 @@ class CostFileContentResource(Resource):
 
 api.add_resource(CostFileResource, '/api/v2/cost_file')
 api.add_resource(CostFileNameResource, '/api/v2/cost_file_names')
+
+
+
+
+import unittest
+from unittest.mock import patch, MagicMock
+from your_module import get_csv_file_names, read_csv_file_content, CostFileNameResource, CostFileContentResource
+
+class TestYourModule(unittest.TestCase):
+
+    @patch('your_module.storage.Client')
+    @patch('your_module.get_app_configs')
+    def test_get_csv_file_names(self, mock_get_app_configs, mock_storage_client):
+        mock_get_app_configs.return_value = {'ESM_GCS_BUCKET': 'your_bucket', 'NAMESPACE': 'your_namespace'}
+        mock_bucket = MagicMock()
+        mock_storage_client.return_value.bucket.return_value = mock_bucket
+        mock_blob1 = MagicMock(name='blob1', name='path/to/your_file1.csv')
+        mock_blob2 = MagicMock(name='blob2', name='path/to/your_file2.csv')
+        mock_bucket.list_blobs.return_value = [mock_blob1, mock_blob2]
+
+        result = get_csv_file_names('your_country', 'your_category')
+
+        self.assertEqual(result, ['path/to/your_file1.csv', 'path/to/your_file2.csv'])
+
+    @patch('your_module.storage.Client')
+    @patch('your_module.get_app_configs')
+    def test_read_csv_file_content(self, mock_get_app_configs, mock_storage_client):
+        mock_get_app_configs.return_value = {'ESM_GCS_BUCKET': 'your_bucket', 'NAMESPACE': 'your_namespace'}
+        mock_bucket = MagicMock()
+        mock_storage_client.return_value.bucket.return_value = mock_bucket
+        mock_blob = MagicMock()
+        mock_blob.download_as_bytes.return_value.decode.return_value = 'header1,header2\nvalue1,value2'
+        mock_bucket.blob.return_value = mock_blob
+
+        result = read_csv_file_content('your_country', 'your_category')
+
+        expected_result = '[{"template": {"header1": "value1", "header2": "value2"}}]'
+        self.assertEqual(result, expected_result)
+
+    def test_cost_file_name_resource(self):
+        resource = CostFileNameResource()
+        with patch.object(resource, 'get', return_value={'file_names': ['file1.csv', 'file2.csv']}):
+            response = resource.get()
+        self.assertEqual(response, {'file_names': ['file1.csv', 'file2.csv']})
+
+    def test_cost_file_content_resource(self):
+        resource = CostFileContentResource()
+        with patch.object(resource, 'get', return_value='{"template": {"header1": "value1", "header2": "value2"}}'):
+            response = resource.get()
+        self.assertEqual(response, '{"template": {"header1": "value1", "header2": "value2"}}')
+
+if __name__ == '__main__':
+    unittest.main()
