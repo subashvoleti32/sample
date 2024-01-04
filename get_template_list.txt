@@ -251,3 +251,24 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.9/dist-packages/google/auth/compute_engine/credentials.py", line 93, in _retrieve_info
     self._service_account_email = info["email"]
 TypeError: string indices must be integers
+
+
+
+
+
+
+
+country=input("Enter country name")
+category=input("Enter category name")
+from google.cloud import storage
+storage_client=storage.Client()
+
+bucket_name="dbce-ltvo-ui-dev-16d3-ltvo-ui-cf-2q88ktf9"
+print(bucket_name)
+blob_prefix=f"ltvo_dev/na/{country}/{category}"
+#print("dbce-ltvo-ui-dev-16d3-ltvo-ui-cf-2q88ktf9/ltvo_dev/na/usa/fhc")
+bucket = storage_client.bucket(bucket_name)
+
+blobs=list(bucket.list_blobs(prefix=blob_prefix))
+file_names=[blob.name.split("/")[-1] for blob in blobs]
+print(file_names)
