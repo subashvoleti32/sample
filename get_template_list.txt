@@ -672,3 +672,128 @@ class TestYourAPI(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+
+import unittest
+from unittest.mock import patch, Mock
+from flask import Flask
+from your_module import api, get_csv_file_names, read_csv_file_content
+
+class TestYourAPI(unittest.TestCase):
+
+    @patch('your_module.get_app_configs')
+    @patch('your_module.storage.Client')
+    def test_get_csv_file_names(self, mock_storage_client, mock_get_app_configs):
+        # Test when files exist
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+        mock_get_app_configs.return_value = {
+            'ESM_GCS_BUCKET': 'test_bucket',
+            'NAMESPACE': 'test_namespace'
+        }
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.download_as_bytes.return_value = b'file_content'
+
+        result = get_csv_file_names('us', 'category')
+
+        self.assertEqual(result, ['test_file.csv'])
+
+        # Test when no files exist
+        mock_bucket.list_blobs.return_value = []
+        result = get_csv_file_names('us', 'category')
+
+        self.assertEqual(result, [])
+
+    @patch('your_module.storage.Client')
+    def test_read_csv_file_content(self, mock_storage_client):
+        # Test when file exists
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.exists.return_value = True
+        mock_blob.download_as_bytes.return_value = b'header1,header2\nvalue1,value2'
+
+        result = read_csv_file_content('us', 'category')
+
+        self.assertEqual(result, '[{"template": {"header1": "value1", "header2": "value2"}}]')
+
+        # Test when file does not exist
+        mock_blob.exists.return_value = False
+        result = read_csv_file_content('us', 'category')
+
+        self.assertEqual(result, 'File Doesnot exists')
+
+    @patch('your_module.get_app_configs')
+    @patch('your_module.storage.Client')
+    def test_get_csv_file_names_missing_configs(self, mock_storage_client, mock_get_app_configs):
+        # Test when app configs are missing
+        mock_get_app_configs.return_value = {}
+        result = get_csv_file_names('us', 'category')
+
+        self.assertEqual(result, [])  # Assuming it returns an empty list on missing configs
+
+    @patch('your_module.storage.Client')
+    def test_read_csv_file_content_exception(self, mock_storage_client):
+        # Test when an exception occurs during file content reading
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.exists.return_value = True
+        mock_blob.download_as_bytes.side_effect = Exception('Simulated error')
+
+        result = read_csv_file_content('us', 'category')
+
+        self.assertEqual(result, 'Exception is Simulated error')
+
+    # Additional test cases...
+
+    @patch('your_module.storage.Client')
+    def test_read_csv_file_content_empty_file(self, mock_storage_client):
+        # Test when the file is empty
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.exists.return_value = True
+        mock_blob.download_as_bytes.return_value = b''
+
+        result = read_csv_file_content('us', 'category')
+
+        self.assertEqual(result, 'Empty file content')
+
+    @patch('your_module.storage.Client')
+    def test_read_csv_file_content_invalid_csv(self, mock_storage_client):
+        # Test when the file contains invalid CSV
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.exists.return_value = True
+        mock_blob.download_as_bytes.return_value = b'header1,header2\nvalue1'
+
+        result = read_csv_file_content('us', 'category')
+
+        self.assertEqual(result, 'Invalid CSV format')
+
+if __name__ == '__main__':
+    unittest.main()
