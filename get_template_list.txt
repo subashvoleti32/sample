@@ -1169,3 +1169,93 @@ def test_get_csv_file_names(self, mock_storage_client:Mock):
 ERROR test_cost_file_service.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Cre...
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ================================================ 1 warning, 1 error in 10.08s =============================================
+
+
+
+
+
+import unittest
+from unittest.mock import Mock, patch
+from your_module import get_csv_file_names  # Replace 'your_module' with the actual module name
+
+class TestGetCsvFileNames(unittest.TestCase):
+
+    @patch("your_module.storage.Client")
+    @patch("your_module.get_app_configs")
+    @patch("your_module.app_logger")
+    def test_get_csv_file_names(self, mock_logger, mock_get_app_configs, mock_storage_client):
+        # Mocking necessary objects
+        mock_bucket = Mock()
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+
+        mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "your_bucket",
+            "NAMESPACE": "your_namespace"
+        }
+
+        mock_storage_client.return_value.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = mock_blobs
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_logger.info.assert_called_with("Bucket_name is your_bucket")
+        mock_logger.info.assert_called_with("Namespace:your_namespace")
+        mock_logger.info.assert_called_with("file path in gcs Bucket:ltvo_your_namespace/na/US/category")
+        mock_logger.info.assert_called_with('final_files info:[{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]')
+
+        expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
+        self.assertEqual(result, expected_result)
+
+    @patch("your_module.storage.Client")
+    @patch("your_module.get_app_configs")
+    @patch("your_module.app_logger")
+    def test_get_csv_file_names_no_csv_files(self, mock_logger, mock_get_app_configs, mock_storage_client):
+        # Mocking necessary objects
+        mock_bucket = Mock()
+        mock_blobs = [Mock(name="other_file.txt"), Mock(name="image.png")]
+
+        mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "your_bucket",
+            "NAMESPACE": "your_namespace"
+        }
+
+        mock_storage_client.return_value.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = mock_blobs
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_logger.info.assert_called_with("Bucket_name is your_bucket")
+        mock_logger.info.assert_called_with("Namespace:your_namespace")
+        mock_logger.info.assert_called_with("file path in gcs Bucket:ltvo_your_namespace/na/US/category")
+        mock_logger.info.assert_called_with('final_files info:[]')
+
+        expected_result = []
+        self.assertEqual(result, expected_result)
+
+    @patch("your_module.storage.Client")
+    @patch("your_module.get_app_configs")
+    @patch("your_module.app_logger")
+    def test_get_csv_file_names_no_bucket(self, mock_logger, mock_get_app_configs, mock_storage_client):
+        # Mocking necessary objects
+        mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "nonexistent_bucket",
+            "NAMESPACE": "your_namespace"
+        }
+
+        mock_storage_client.return_value.bucket.side_effect = Exception("Bucket not found")
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_logger.error.assert_called_with("Error accessing GCS bucket: Bucket not found")
+
+        expected_result = []
+        self.assertEqual(result, expected_result)
+
+if __name__ == '__main__':
+    unittest.main()
