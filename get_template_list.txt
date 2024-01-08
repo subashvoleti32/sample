@@ -1012,4 +1012,68 @@ def read_csv_file_content(country,category,file_name):
     except Exception as e:
         return f"Exception is {str(e)}"
 
+
+
+import unittest
+from unittest.mock import patch, Mock
+from services import cost_file_service  # Assuming 'cost_file_service' is the correct module name
+
+class TestCostFileService(unittest.TestCase):
+
+    @patch('services.cost_file_service.get_app_configs')
+    @patch('services.cost_file_service.storage.Client')
+    def test_get_csv_file_names(self, mock_storage_client, mock_get_app_configs):
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+
+        mock_get_app_configs.return_value = {
+            'ESM_GCS_BUCKET': 'test_bucket',
+            'NAMESPACE': 'test_namespace'
+        }
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+
+        result = cost_file_service.get_csv_file_names('us', 'category')
+
+        self.assertEqual(result, [{'csv_file_name': 'test_file.csv'}])
+
+    @patch('services.cost_file_service.storage.Client')
+    def test_read_csv_file_content(self, mock_storage_client):
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'test_file.csv'
+        mock_blob.download_as_bytes.return_value = b'header1,header2\nvalue1,value2'
+
+        result = cost_file_service.read_csv_file_content('us', 'category', 'test_file.csv')
+
+        expected_result = '[{"header1": "value1", "header2": "value2"}]'
+        self.assertEqual(result, expected_result)
+
+    @patch('services.cost_file_service.storage.Client')
+    def test_read_csv_file_content_nonexistent_file(self, mock_storage_client):
+        mock_storage = Mock()
+        mock_bucket = Mock()
+        mock_blob = Mock()
+
+        mock_storage_client.return_value = mock_storage
+        mock_storage.bucket.return_value = mock_bucket
+        mock_bucket.list_blobs.return_value = [mock_blob]
+        mock_blob.name = 'nonexistent_file.csv'
+
+        result = cost_file_service.read_csv_file_content('us', 'category', 'nonexistent_file.csv')
+
+        expected_result = 'Filename nonexistent_file.csv does not exist in test_bucket'
+        self.assertEqual(result, expected_result)
+
+if __name__ == '__main__':
+    unittest.main()
+
     
