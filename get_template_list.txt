@@ -945,6 +945,10 @@ def upload_template(file, country, optimization_id):
             "message": f"Could not read the file, error: {str(e)}"
         }, http.HTTPStatus.UNPROCESSABLE_ENTITY
 
+
+ERROR test_cost_file_service.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Cre...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
     # save to a bucket
     bucket = client.get_bucket(get_app_configs().get(generate_fn[country][0]))        
     bucket.blob(filename).upload_from_string(csv_data, content_type='text/csv')
