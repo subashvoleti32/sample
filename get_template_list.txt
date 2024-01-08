@@ -797,3 +797,41 @@ class TestYourAPI(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test_cost_file_service.py:1: in <module>
+    from services.cost_file_service import get_csv_file_names,read_csv_file_content
+..\..\services\cost_file_service.py:7: in <module>
+    from google.cloud import storage
+E   ImportError: cannot import name 'storage' from 'google.cloud' (unknown location)
+
+@patch('services.cost_file_service.get_app_configs')
+@patch('services.cost_file_service.storage.Client')
+def test_get_csv_file_names(self, mock_storage_client, mock_get_app_configs):
+        # Test when files exist
+    mock_storage = Mock()
+    mock_bucket = Mock()
+    mock_blob = Mock()
+    mock_get_app_configs.return_value = {
+            'ESM_GCS_BUCKET': 'test_bucket',
+            'NAMESPACE': 'test_namespace'
+        }
+    mock_storage_client.return_value = mock_storage
+    mock_storage.bucket.return_value = mock_bucket
+    mock_bucket.list_blobs.return_value = [mock_blob]
+    mock_blob.name = 'test_file.csv'
+    mock_blob.download_as_bytes.return_value = b'file_content'
+
+    result = get_csv_file_names('us', 'category')
+
+    self.assertEqual(result, ['test_file.csv'])
+
+    # Test when no files exist
+    mock_bucket.list_blobs.return_value = []
+    result = get_csv_file_names('us', 'category')
+
+    self.assertEqual(result, [])
