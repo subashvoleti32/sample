@@ -1150,3 +1150,19 @@ class TestCostFileContentResource(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+
+
+@patch('services.cost_file_service.get_csv_file_names',return_value=[{'csv_file_name': 'test_file.csv'}])
+def test_get_csv_file_names(self, mock_storage_client:Mock):
+    result = cost_file_service.get_csv_file_names('us', 'category')
+    mock_storage_client.assert_called_once_with('us','fhc')
+    mock_storage_client.assert_called_once()
+    expected=[{'csv_file_name': 'test_file.csv'}]
+    #self.assertEqual(result, [{'csv_file_name': 'test_file.csv'}])
+    with app.test_client() as test_client:
+            # Act
+            response = test_client.get('/api/v2/cost_file')
+            # Assert
+            assert response.status_code == 200
+            assert response.json == expected
+
