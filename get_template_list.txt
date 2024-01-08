@@ -1259,3 +1259,52 @@ class TestGetCsvFileNames(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@patch("your_module.get_app_configs")
+    @patch("your_module.app_logger")
+    def test_get_csv_file_names_mocked_function(self, mock_logger, mock_get_app_configs):
+        # Mocking necessary objects
+        mock_bucket = MagicMock()
+        mock_blobs = [MagicMock(name="file1.csv"), MagicMock(name="file2.csv")]
+
+        mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "your_bucket",
+            "NAMESPACE": "your_namespace"
+        }
+
+        # Mocking the get_csv_file_names function
+        with patch("your_module.get_csv_file_names") as mock_get_csv_file_names:
+            mock_get_csv_file_names.return_value = [{"csv_file_name": "mocked_file.csv"}]
+
+            # Call the function with test data
+            result = get_csv_file_names("US", "category")
+
+            # Assertions
+            mock_logger.info.assert_called_with("Bucket_name is your_bucket")
+            mock_logger.info.assert_called_with("Namespace:your_namespace")
+            mock_logger.info.assert_called_with("file path in gcs Bucket:ltvo_your_namespace/na/US/category")
+            mock_logger.info.assert_called_with('final_files info:[{"csv_file_name": "mocked_file.csv"}]')
+
+            expected_result = [{"csv_file_name": "mocked_file.csv"}]
+            self.assertEqual(result, expected_result)
