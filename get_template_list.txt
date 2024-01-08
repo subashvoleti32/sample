@@ -1166,3 +1166,6 @@ def test_get_csv_file_names(self, mock_storage_client:Mock):
             assert response.status_code == 200
             assert response.json == expected
 
+ERROR test_cost_file_service.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Cre...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+================================================ 1 warning, 1 error in 10.08s =============================================
