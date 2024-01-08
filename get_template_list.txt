@@ -1076,4 +1076,73 @@ class TestCostFileService(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-    
+
+
+
+# tests/test_your_module.py
+import unittest
+from unittest.mock import patch, Mock
+
+# Mock the google.cloud import statement
+with patch('your_module.storage.Client', Mock()), \
+     patch('your_module.storage.Blob', Mock()):
+    from your_module import app, get_csv_file_names, read_csv_file_content
+
+class TestCostFileNameResource(unittest.TestCase):
+
+    def setUp(self):
+        self.app = app.test_client()
+
+    @patch('your_module.get_csv_file_names')
+    def test_get_file_names_success(self, mock_get_csv_file_names):
+        mock_get_csv_file_names.return_value = ['file1.csv', 'file2.csv']
+
+        response = self.app.get('/api/v2/cost_file_names?country=US&category=Sales')
+
+        mock_get_csv_file_names.assert_called_once_with('US', 'Sales')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {'file_names': ['file1.csv', 'file2.csv']})
+
+    def test_get_file_names_missing_params(self):
+        response = self.app.get('/api/v2/cost_file_names')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {'error': 'Missing Required parameters'})
+
+class TestCostFileContentResource(unittest.TestCase):
+
+    def setUp(self):
+        self.app = app.test_client()
+
+    @patch('your_module.read_csv_file_content')
+    def test_get_file_content_success(self, mock_read_csv_file_content):
+        mock_read_csv_file_content.return_value = '{"template": [{"header1": "value1", "header2": "value2"}]}'
+
+        response = self.app.get('/api/v2/cost_file?country=US&category=Sales')
+
+        mock_read_csv_file_content.assert_called_once_with('US', 'Sales')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_data(as_text=True), '{"template": [{"header1": "value1", "header2": "value2"}]}')
+
+    def test_get_file_content_missing_params(self):
+        response = self.app.get('/api/v2/cost_file')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {'error': 'Missing Required parameters'})
+
+    @patch('your_module.storage.Client')
+    @patch('your_module.storage.Blob')
+    def test_read_csv_file_content(self, mock_storage_blob, mock_storage_client):
+        # Add test logic for checking file existence and reading CSV content
+        mock_blob_instance = mock_storage_blob.return_value
+        mock_blob_instance.exists.return_value = True
+        mock_blob_instance.download_as_bytes.return_value = b'header1,header2\nvalue1,value2'
+
+        mock_client_instance = mock_storage_client.return_value
+        mock_client_instance.bucket.return_value.blob.return_value = mock_blob_instance
+
+        result = read_csv_file_content('US', 'Sales')
+
+        self.assertEqual(result, '[{"template": {"header1": "value1", "header2": "value2"}}]')
+
+if __name__ == '__main__':
+    unittest.main()
+
