@@ -1360,3 +1360,63 @@ if __name__ == '__main__':
 
             expected_result = [{"csv_file_name": "mocked_file.csv"}]
             self.assertEqual(result, expected_result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ @patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_valid_case(self, mock_get_csv_file_names):
+        mock_get_csv_file_names.return_value = [{"csv_file_name": "mocked_file.csv"}]
+        result = get_csv_file_names("US", "category")
+        mock_get_csv_file_names.assert_called_with("US", "category")
+        expected_result = [{"csv_file_name": "mocked_file.csv"}]
+        self.assertEqual(result, expected_result)
+
+
+   @patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_missing_params(self, mock_get_csv_file_names):
+        # Missing parameters
+        with self.assertRaises(TypeError):
+            get_csv_file_names() 
+@patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_empty_result(self, mock_get_csv_file_names):
+        # Empty result
+        mock_get_csv_file_names.return_value = []
+        result = get_csv_file_names("US", "empty_category")
+        mock_get_csv_file_names.assert_called_with("US", "empty_category")
+        self.assertEqual(result, []) 
+
+@patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_exception(self, mock_get_csv_file_names):
+        # Exception during processing
+        mock_get_csv_file_names.side_effect = Exception("Test exception")
+        with self.assertRaises(Exception):
+            get_csv_file_names("US", "category")
+@patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_invalid_country(self, mock_get_csv_file_names):
+        # Invalid country
+        with self.assertRaises(ValueError):
+            get_csv_file_names("InvalidCountry", "category")
+
+    @patch("your_module.get_csv_file_names")
+    def test_get_csv_file_names_invalid_category(self, mock_get_csv_file_names):
+        # Invalid category
+        with self.assertRaises(ValueError):
+            get_csv_file_names("US", "InvalidCategory")
