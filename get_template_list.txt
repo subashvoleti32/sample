@@ -1024,6 +1024,58 @@ from services import cost_file_service  # Assuming 'cost_file_service' is the co
 
 class TestCostFileService(unittest.TestCase):
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@patch('services.cost_file_service.get_csv_file_names',return_value=[{'csv_file_name': 'test_file.csv'}])
+# @patch('google.cloud.storage.Client',autospec=True)
+def test_get_csv_file_names(self, mock_storage_client:Mock):
+    result = cost_file_service.get_csv_file_names('us', 'category')
+    mock_storage_client.assert_called_once_with('us','fhc')
+    mock_storage_client.assert_called_once()
+    expected=[{'csv_file_name': 'test_file.csv'}]
+    #self.assertEqual(result, [{'csv_file_name': 'test_file.csv'}])
+    with app.test_client() as test_client:
+            # Act
+            response = test_client.get('/api/v2/cost_file')
+            # Assert
+            assert response.status_code == 200
+            assert response.json == expected
+
+
+@patch("services.cost_file_service.get_app_configs")
+def test_get_csv_file_names_mocked_function(self, mock_get_app_configs):
+    mock_bucket = MagicMock()
+    mock_blobs = [MagicMock(name="file1.csv"), MagicMock(name="file2.csv")]
+    mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "your_bucket",
+            "NAMESPACE": "your_namespace"
+        }       
+    with patch("services.cost_file_service.get_csv_file_names") as mock_get_csv_file_names:
+        mock_get_csv_file_names.return_value = [{"csv_file_name": "mocked_file.csv"}]
+        result = cost_file_service.get_csv_file_names("US", "category")
+        expected_result = [{"csv_file_name": "mocked_file.csv"}]
+        self.assertEqual(result, expected_result)
+
+
     @patch('services.cost_file_service.get_app_configs')
     @patch('services.cost_file_service.storage.Client')
     def test_get_csv_file_names(self, mock_storage_client, mock_get_app_configs):
