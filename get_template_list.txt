@@ -1420,3 +1420,53 @@ if __name__ == '__main__':
         # Invalid category
         with self.assertRaises(ValueError):
             get_csv_file_names("US", "InvalidCategory")
+
+
+
+
+
+
+
+============================================= ERRORS ============================================== 
+___________________________ ERROR collecting test_cost_file_service.py ____________________________ 
+test_cost_file_service.py:3: in <module>
+    from app import app
+..\..\app.py:13: in <module>
+    from api.experiment_resource import ExperimentResource, ExperimentsResource, RefreshExperimentsResource
+..\..\api\experiment_resource.py:5: in <module>
+    from services import experiment_service, notification_service
+..\..\services\experiment_service.py:9: in <module>
+    from models.experiment_master import ExperimentMaster, experiments_schema, experiment_schema    
+..\..\models\__init__.py:1: in <module>
+    from .access_groups import AccessGroups
+..\..\models\access_groups.py:4: in <module>
+    from .base import Base
+..\..\models\base.py:9: in <module>
+    engine = get_db_engine()
+..\..\configs.py:137: in get_db_engine
+    return get_ltvo_utils_prod_dev_db_engine()
+..\..\configs.py:211: in get_ltvo_utils_prod_dev_db_engine
+    client = secretmanager.SecretManagerServiceClient()
+C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\cloud\secretmanager_v1\services\secret_manager_service\client.py:481: in __init__
+    self._transport = Transport(
+C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\cloud\secretmanager_v1\services\secret_manager_service\transports\grpc.py:157: in __init__
+    super().__init__(
+C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\cloud\secretmanager_v1\services\secret_manager_service\transports\base.py:100: in __init__
+    credentials, _ = google.auth.default(
+C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\auth\_default.py:691: in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+E   google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+----------------------------------------- Captured stdout ----------------------------------------- 
+Active_ProfileLTVO_UTILS_DEV  -- LogLevel:- INFO -- FileName:- configs.py -- LineNumber :- 11       
+ACTIVE_PROFILE LTVO_UTILS_DEV
+Getting connection string  -- LogLevel:- INFO -- FileName:- configs.py -- LineNumber :- 209
+======================================== warnings summary ========================================= 
+..\..\..\..\..\..\..\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_marshmallow\__init__.py:25
+  C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_marshmallow\__init__.py:25: UserWarning: Flask-SQLAlchemy integration requires marshmallow-sqlalchemy to be installed.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+===================================== short test summary info ===================================== 
+ERROR test_cost_file_service.py - google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+=================================== 1 warning, 1 error in 3.29s ===================================
