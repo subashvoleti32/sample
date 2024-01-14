@@ -475,3 +475,45 @@ supplier_map = {
     "WB": "Warner Media",
     "WETV": "AMC",
     "WGNA": "WGN"}
+
+
+
+
+
+
+
+
+
+@patch("your_module.get_app_configs")
+    @patch("your_module.app_logger")
+    @patch("your_module.storage.bucket.Bucket")
+    @patch("your_module.storage.blob.Blob")
+    @patch("your_module.secretmanager.SecretManagerServiceClient")
+    def test_get_csv_file_names_mocked_function(self, mock_secret_manager, mock_blob, mock_bucket, mock_logger, mock_get_app_configs):
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+
+        mock_get_app_configs.return_value = {
+            "ESM_GCS_BUCKET": "your_bucket",
+            "NAMESPACE": "your_namespace"
+        }
+
+        # Mocking the SecretManagerServiceClient
+        mock_secret_manager_instance = mock_secret_manager.return_value
+        mock_secret_manager_instance.access_secret_version.return_value.payload.data.decode.return_value = "mocked_secret_value"
+
+        # Mocking relevant methods in the module
+        mock_bucket_instance = mock_bucket.return_value
+        mock_bucket_instance.list_blobs.return_value = mock_blobs
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_logger.info.assert_called_with("Bucket_name is your_bucket")
+        mock_logger.info.assert_called_with("Namespace:your_namespace")
+        mock_logger.info.assert_called_with("file path in gcs Bucket:ltvo_your_namespace/na/US/category")
+        mock_logger.info.assert_called_with('final_files info:[{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]')
+
+        expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
+        self.assertEqual(result, expected_result)
