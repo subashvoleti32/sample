@@ -25,3 +25,453 @@ C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\goog
 C:\Users\10722751\AppData\Local\Programs\Python\Python311\Lib\site-packages\google\auth\_default.py:691: in default
     raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
 E   google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+
+
+
+import os
+import shutil
+
+import sqlalchemy
+from google.cloud import secretmanager
+from sqlalchemy.orm import sessionmaker
+
+import my_logger
+app_logger=my_logger.configure_logger()
+ACTIVE_PROFILE = 'LTVO_UTILS_DEV'
+app_logger.info(f"Active_Profile{ACTIVE_PROFILE}")
+# ENV variable is set in the kubernetes deployment through the GitHub Action deploy step
+if os.getenv('ACTIVE_PROFILE'):
+    ACTIVE_PROFILE = os.getenv('ACTIVE_PROFILE')
+
+
+def get_app_configs():
+    if ACTIVE_PROFILE == 'LOCAL' or ACTIVE_PROFILE == 'DEV' or ACTIVE_PROFILE == 'STG' or ACTIVE_PROFILE == 'PROD':
+        app_logger.info(f"Get_Local_App_configs:{experiment_configs_old}")
+        return experiment_configs_old
+    if ACTIVE_PROFILE == 'LTVO_UTILS_DEV':
+        app_logger.info(f"Get_Dev_App_configs:{experiment_configs_dev}")
+        return experiment_configs_dev
+    if ACTIVE_PROFILE == 'LTVO_UTILS_STG':
+        app_logger.info(f"Get_stage_app_configs:{experiment_configs_stg}")
+        return experiment_configs_stg
+    if ACTIVE_PROFILE == 'LTVO_UTILS_PROD':
+        app_logger.info(f"Get_prod_app_configs:{experiment_configs_prod}")
+        return experiment_configs_prod
+
+experiment_configs_old = {
+    "KUBEFLOW_CONFIG_JSON" :  "nafc_ui_test.json",
+    "KUBEFLOW_PROJECT_ID":"ltvo-ui-fc-dev-3eab",
+    "OUTPUT_GCS_BUCKET" :"ltvo-ui-fc-dev-3eab-ltvo-us-a98mqx6h",
+    "OUTPUT_GCS_BUCKET_CA" :"ltvo-ui-fc-dev-3eab-ltvo-us-a98mqx6h",
+    "ESM_GCS_BUCKET" : "ltvo-ui-fc-dev-3eab-ltvo-us-a98mqx6h",
+    "INPUT_GCS_BUCKET": "ltvo-ui-fc-dev-3eab-ltvo-us-a98mqx6h",
+    "LTVO_PROJECT_ID":"ltvo-ui-fc-dev-3eab",
+    "DSWB_PRJECT_ID":"ltvo-ui-fc-dev-3eab",
+    "KUBEFLOW_PROJECT_ID":"ltvo-ui-fc-dev-3eab",
+    "DATASET_ID":  "s_ltvo_us"
+}
+
+experiment_configs_dev = {
+    "KUBEFLOW_CONFIG_JSON" :  "nafc_ui_utils_develop.json",
+    "KUBEFLOW_PROJECT_ID":"ltvo-dswb-prod-c423",
+    "OUTPUT_GCS_BUCKET" :"ltvo-dswb-prod-c423-ltvo-us-kubeflow-output-eyyroxpx",
+    "OUTPUT_GCS_BUCKET_CA" :"ltvo-dswb-prod-c423-ltvo-ca-kubeflow-output-upkno8gr",
+    "ESM_GCS_BUCKET" : "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "ESM_GCS_BUCKET_CA": "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "INPUT_GCS_BUCKET": "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "LTVO_PROJECT_ID":"ltvo-utils-prod-eaa5",
+    "INIT_PARAMS_PRJ":"ltvo-datalake-prod-dfd5",
+    "DSWB_PRJECT_ID":"ltvo-dswb-prod-c423",
+    "DATASET_ID":  "s_ltvo_us",
+    "ns":"dev",
+    "AIE_API_BASE_URL": "http://ltvo-ds.aif-kfp-api-dev:8182",
+    "LTVO_IMAGE": "gcr.io/ltvo-dswb-prod-c423/ltvo_kfp_global_cpu_base_runner@sha256:308602797364e43b40a47279cc2893a1b7645098180bc4086dd1545a2b916773",
+    "AAG_USER_SERVICE_URL": "https://aag-msgraph-service-2255rb7oba-uk.a.run.app"
+}
+experiment_configs_stg = {
+    "KUBEFLOW_CONFIG_JSON" :  "nafc_ui_utils_stg.json",
+    "KUBEFLOW_PROJECT_ID":"ltvo-kubeflow-stg-dc3d",
+    "OUTPUT_GCS_BUCKET" :"ltvo-kubeflow-stg-dc3d-ltvo-us-kubeflow-output-pp8batf3",
+    "OUTPUT_GCS_BUCKET_CA" :"ltvo-kubeflow-stg-dc3d-ltvo-ca-kubeflow-output-7oeakr3i",
+    "ESM_GCS_BUCKET" : "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "ESM_GCS_BUCKET_CA" : "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "INPUT_GCS_BUCKET": "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "LTVO_PROJECT_ID":"ltvo-utils-prod-eaa5",
+    "DSWB_PRJECT_ID":"ltvo-kubeflow-stg-dc3d",
+    "INIT_PARAMS_PRJ":"ltvo-datalake-prod-dfd5",
+    "DATASET_ID":  "s_ltvo_us",
+    "ns":"stg",
+    "AIE_API_BASE_URL": "http://ltvo-ds.aif-kfp-api-stg:8182",
+    "LTVO_IMAGE": 
+"gcr.io/ltvo-kubeflow-stg-dc3d/ltvo_kfp_global_cpu_base_runner:v2.21.0-ds",
+    "AAG_USER_SERVICE_URL": "https://aag-msgraph-service-2255rb7oba-uk.a.run.app"
+}
+
+experiment_configs_prod = {
+    "KUBEFLOW_CONFIG_JSON" :  "nafc_ui_utils_prod.json",
+    "KUBEFLOW_PROJECT_ID":"ltvo-kubeflow-prod-9306",
+    "OUTPUT_GCS_BUCKET" :"ltvo-kubeflow-prod-9306-ltvo-us-kubeflow-output-dx2q4tbu",
+    "OUTPUT_GCS_BUCKET_CA" :"ltvo-kubeflow-prod-9306-ltvo-ca-kubeflow-output-z8zwpbu7",
+    # "ESM_GCS_BUCKET" : "ltvo-kubeflow-prod-9306-ltvo-us-n43dfp3s",
+    "ESM_GCS_BUCKET" : "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "ESM_GCS_BUCKET_CA" : "ltvo-cost-prod-e8fb-cost-ui-na-h5odhwzl",
+    "INPUT_GCS_BUCKET": "ltvo-kubeflow-prod-9306-ltvo-us-n43dfp3s",
+    "LTVO_PROJECT_ID":"ltvo-utils-prod-eaa5",
+    "DSWB_PRJECT_ID":"ltvo-kubeflow-prod-9306",
+    "INIT_PARAMS_PRJ":"ltvo-datalake-prod-dfd5",
+    "DATASET_ID":  "s_ltvo_us",
+    "ns":"prod",
+    "AIE_API_BASE_URL": "http://ltvo-ds.aif-kfp-api-prod:8182",
+    "LTVO_IMAGE": 
+"gcr.io/ltvo-kubeflow-prod-9306/ltvo_kfp_global_cpu_base_runner:v2.21.0-ds",
+    "AAG_USER_SERVICE_URL": "https://aag-msgraph-service-2255rb7oba-uk.a.run.app"
+}
+
+db_config = {
+    "pool_size": 3,
+    "max_overflow": 2,
+    "pool_timeout": 30,  # 30 seconds
+    # [END cloud_sql_mysql_sqlalchemy_timeout]
+
+    # [START cloud_sql_mysql_sqlalchemy_lifetime]
+    # 'pool_recycle' is the maximum number of seconds a connection can persist.
+    # Connections that live longer than the specified amount of time will be
+    # reestablished
+    "pool_recycle": 3600,  # 30 minutes
+    # [END cloud_sql_mysql_sqlalchemy_lifetime]
+}
+
+def get_active_schema():
+    active_schema = 'ltvo_dev_schema'
+    if ACTIVE_PROFILE == 'STG'  or ACTIVE_PROFILE == 'LTVO_UTILS_STG':
+        active_schema = 'ltvo_stg_schema'
+    elif ACTIVE_PROFILE == 'PROD' or ACTIVE_PROFILE == 'LTVO_UTILS_PROD':
+        active_schema= 'ltvo_prd_schema'
+    elif ACTIVE_PROFILE == 'LTVO_UTILS_DEV':
+        active_schema = 'ltvo_dev_schema'
+    elif ACTIVE_PROFILE == 'LOCAL':
+        active_schema = 'public'
+    return active_schema
+
+def get_db_engine():
+    print("ACTIVE_PROFILE", ACTIVE_PROFILE)
+    if ACTIVE_PROFILE == 'LOCAL':
+        return get_local_db_engine()
+    elif ACTIVE_PROFILE == 'DEV':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'STG':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'PROD':
+        return get_gcp_dev_db_engine()
+    elif ACTIVE_PROFILE == 'LTVO_UTILS_DEV' or ACTIVE_PROFILE == 'LTVO_UTILS_STG' or ACTIVE_PROFILE == 'LTVO_UTILS_PROD':
+        return get_ltvo_utils_prod_dev_db_engine()
+    else:
+        return 'invalid Env'
+
+
+class SingletonSession:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if SingletonSession._instance is None:
+            SingletonSession()
+        return SingletonSession._instance
+
+    def __init__(self):
+        if SingletonSession._instance is not None:
+            raise Exception("SingletonSession is already instantiated")
+        else:
+            app_logger.info("Attempting to extablish DB connection")
+            app_logger.info(f'Attempting to set schema to {get_active_schema()}')
+            Session = sessionmaker(bind=get_db_engine())
+            self.session = Session()
+            self.session.execute(f"SET search_path TO {get_active_schema()}")
+            SingletonSession._instance = self
+
+
+def _init_session():
+    app_logger.info("Init Session calledB")
+    for tries in range(5):
+        try:
+            session = _try_connection()
+            return session
+        except Exception as e:
+            app_logger.error(f"DB connection failed {tries} times: {str(e)}")
+            continue
+    raise Exception("Cannot connect to Databse in __init_session(). Session cannot be created!")
+
+
+
+def _try_connection():
+    app_logger.info("Returning Singleton Session")
+    session = SingletonSession.get_instance().session
+    app_logger.info("Session returned")
+    app_logger.info(session)
+    return session
+
+
+def get_gcp_dev_db_engine():
+    host = "10.132.5.9"  # TODO add secrets
+    user = "ltvo-dev"
+    passwd = "postgres_ltvo_26"
+    print(os.environ['HOME'])
+    db = "ltvo_ui_db"
+    project_id = 'ltvo-ui-fc-dev-3eab'
+    db_string = f"postgresql://{user}:{passwd}@{host}/{db}?sslmode=require" \
+                f"&sslrootcert={access_secret(project_id,'SERVER_CERT','/usr/local/share/ca-certificates/server-ca-psg.pem')}" \
+                f"&sslcert={access_secret(project_id,'CLIENT_CERT','/usr/local/share/ca-certificates/client-cert-psg.pem')}" \
+                f"&sslkey={access_secret(project_id,'CLIENT_KEY','/usr/local/share/ca-certificates/client-key-psg.pem')}"
+    os.system("chmod -R 0600 /usr/local/share/ca-certificates")
+    engine = sqlalchemy.create_engine(
+        # Equivalent URL:
+        db_string,
+        echo=True
+    )
+    return engine
+
+def get_ltvo_utils_prod_dev_db_engine():
+
+    def write_string_to_pem(string, pem_file_path):
+        with open(pem_file_path, 'w') as pem_file:
+            pem_file.write(string)
+
+    app_logger.info('Getting connection string')
+    host = "10.123.10.13" # TODO add secrets
+    client = secretmanager.SecretManagerServiceClient()
+    app_logger.info('Succesfully connected to secret manager')
+    project_id = 'ltvo-utils-prod-eaa5'
+
+    # Get the DB certs from secret manager
+    server_cert_name = f"projects/{project_id}/secrets/postgresql-ui-fc-server-ca/versions/latest"
+    client_cert_name = f"projects/{project_id}/secrets/postgresql-ui-fc-client-cert/versions/latest"
+    client_cert_key = f"projects/{project_id}/secrets/postgresql-ui-fc-client-key/versions/latest"
+    server_cert_path = "/usr/local/share/ca-certificates/server-ca-psg.pem"
+    client_cert_path = "/usr/local/share/ca-certificates/client-cert-psg.pem"
+    client_key_path = "/usr/local/share/ca-certificates/client-key-psg.pem"
+    os.system("chmod -R 0600 /etc/secret")
+    os.system("chmod -R 0600 /usr/local/share/ca-certificates")
+    
+    try:
+        response = client.access_secret_version(name=server_cert_name)
+        payload = response.payload.data.decode("UTF-8")
+        server_cert = payload.replace("\\n","\n")
+        write_string_to_pem(server_cert, server_cert_path)
+        app_logger.info(f"Server Cert {server_cert}")
+        app_logger.info("Retrieved Server Cert")
+    except Exception as e:
+        app_logger.error(f"Could not get Server Cert: {str(e)}")
+    
+    try:
+        response = client.access_secret_version(name=client_cert_name)
+        payload = response.payload.data.decode("UTF-8")
+        write_string_to_pem(payload.replace("\\n","\n"), client_cert_path)
+        app_logger.info("Retrieved Client Cert")
+    except Exception as e:
+        app_logger.error(f"Could not get Client Cert: {str(e)}")
+    
+    try:
+        response = client.access_secret_version(name=client_cert_key)
+        payload = response.payload.data.decode("UTF-8")
+        write_string_to_pem(payload.replace("\\n","\n"), client_key_path)
+        app_logger.info("Retrieved Client Key")
+    except Exception as e:
+        app_logger.error(f"Could not get Client Key: {str(e)}")
+
+    user = ''
+    passwd = ''
+    db = ''
+
+    try:
+        name = f"projects/{project_id}/secrets/ui-fc-sql/versions/latest"
+        response = client.access_secret_version(name=name)
+        payload = response.payload.data.decode("UTF-8")
+        user = payload.split(',')[0]
+        passwd = payload.split(',')[1]
+        db = payload.split(',')[2]
+        app_logger.info("Retrieved DB Credentials")
+    except Exception as e:
+        app_logger.error(f"Could not get DB Credentials: {str(e)}")
+
+    # engine = sqlalchemy.create_engine(
+    #     sqlalchemy.engine.url.URL.create(
+    #         drivername='postgresql+pg8000',
+    #         username=user,
+    #         password=passwd,
+    #         host=host,
+    #         port=3306,
+    #         database=db,
+    #     )
+    # )
+
+    os.system("chmod -R 0600 /usr/local/share/ca-certificates")
+    server_cert_size = os.stat(server_cert_path).st_size
+    client_cert_size = os.stat(client_cert_path).st_size
+    client_key_size = os.stat(client_key_path).st_size
+    app_logger.info(f"Server cert size: {str(server_cert_size)}")
+    app_logger.info(f"Client cert size: {str(client_cert_size)}")
+    app_logger.info(f"Client key size: {str(client_key_size)}")
+
+
+    db_string = f"postgresql://{user}:{passwd}@{host}/{db}?sslmode=verify-ca" \
+                f"&sslrootcert={server_cert_path}" \
+                f"&sslcert={client_cert_path}" \
+                f"&sslkey={client_key_path}"
+    engine = sqlalchemy.create_engine(
+        # Equivalent URL:
+        db_string,
+        echo=True
+    )
+    app_logger.info("BD Connection established")
+    return engine
+
+
+def get_local_db_engine():
+    host = os.environ.get('PG_HOST', "psql-db:5432")
+    user = os.environ.get('PG_USER', "ltvo_ui_dev")
+    passwd = os.environ.get('PG_PASSWORD', "password123")
+    db_string = f"postgresql://{user}:{passwd}@{host}/ltvo_ui_dev"
+    app_logger.info(f"get_local_db_engine:{db_string}")
+    print(db_string)
+    engine = sqlalchemy.create_engine(
+        # Equivalent URL:
+        db_string,
+        echo=True
+    )
+    return engine
+
+def access_secret(project_id, secret_id, file_path, secret_version="latest"):
+    sm_client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/{secret_version}"
+    response = sm_client.access_secret_version(request={"name": name})
+    secret = response.payload.data.decode("UTF-8")
+    f = open(file_path, "w")
+    f.write(secret)
+    f.close()
+    return file_path
+
+host = "localhost"
+user = "ltvo_ui_dev"
+passwd = "password123"
+
+# host="10.132.5.9"
+# user="ltvo-dev"
+# passwd="postgres_ltvo_26"
+# print(os.environ['HOME'])
+# db = "ltvo_ui_dev"
+
+
+# db_string_gcp = f"postgresql://{user}:{passwd}@{host}/ltvo_ui_db?sslmode=require" \
+#             f"&sslrootcert={os.environ['SERVER_CERT']}" \
+#             f"&sslcert={os.environ['CLIENT_CERT']}" \
+#             f"&sslkey={os.environ['CLIENT_KEY']}"
+
+db_string = f"postgresql://{user}:{passwd}@{host}/ltvo_ui_dev"
+
+# TODO Confirm if these are needed?
+supplier_map = {
+    "ABC": "Disney",
+    "ADSM": "Warner Media",
+    "AEN": "AETN",
+    "AMC": "AMC",
+    "AMTV": "CBSViacom",
+    "APL": "Discovery",
+    "AZA": "HC2 Broadcasting Holdings Inc",
+    "BBCA": "AMC",
+    "BEIE": "HC2 Broadcasting Holdings Inc",
+    "BET": "CBSViacom",
+    "BHER": "CBSViacom",
+    "BOOM": "Warner Media",
+    "BRVO": "NBC Universal",
+    "CBS": "CBSViacom",
+    "CC": "Discovery",
+    "CCP": "CCPTV",
+    "CFE": "ES",
+    "CMDY": "CBSViacom",
+    "CMT": "CBSViacom",
+    "CNBC": "NBC Universal",
+    "CNN": "Warner Media",
+    "CNNE": "Warner Media",
+    "COZ": "NBC Universal",
+    "CTD": "CBSViacom",
+    "CW": "CW",
+    "DAD": "Disney",
+    "DAL": "Disney",
+    "DAM": "Discovery",
+    "DFAM": "Discovery",
+    "DFC": "Discovery",
+    "DISC": "Discovery",
+    "DIY": "Discovery",
+    "DLIF": "Discovery",
+    "DSE": "Discovery",
+    "ENT": "NBC Universal",
+    "ESPD": "FOX",
+    "ESPN": "Disney",
+    "ESPN2": "Disney",
+    "ESPNU": "Disney",
+    "FOOD": "Discovery",
+    "FOX": "FOX",
+    "FOXNC": "FOX",
+    "FRFM": "Disney",
+    "FS1": "FOX",
+    "FX": "Disney",
+    "FXX": "Disney",
+    "FYI": "AETN",
+    "GAC": "Discovery",
+    "GALA": "Univision",
+    "GOLF": "NBC Universal",
+    "HALL": "Hallmark",
+    "HGTV": "Discovery",
+    "HIST": "AETN",
+    "HLN": "Warner Media",
+    "HMM": "Hallmark",
+    "ID": "Discovery",
+    "IFC": "AMC",
+    "ITN": "ITN",
+    "LIF": "AETN",
+    "LMN": "AETN",
+    "LOGO": "CBSViacom",
+    "MSNBC": "NBC Universal",
+    "MTV": "CBSViacom",
+    "MTV2": "CBSViacom",
+    "NAN": "CBSViacom",
+    "NBC": "NBC Universal",
+    "NBCSN": "NBC Universal",
+    "NBU": "NBC Universal",
+    "NGC": "Disney",
+    "NGWD": "Disney",
+    "NICK": "CBSViacom",
+    "NKJR": "CBSViacom",
+    "NWSY": "Newsy",
+    "OWN": "Discovery",
+    "OXYG": "NBC Universal",
+    "PAR": "CBSViacom",
+    "POP": "CBSViacom",
+    "PPI": "Sony",
+    "SCI": "Discovery",
+    "SMTH": "CBSViacom",
+    "SPT": "Sony",
+    "SUND": "AMC",
+    "SYFY": "NBC Universal",
+    "TBSC": "Warner Media",
+    "TEL": "NBC Universal",
+    "TLC": "Discovery",
+    "TNT": "Warner Media",
+    "TOON": "Warner Media",
+    "TRAV": "Discovery",
+    "TRI": "Trifecta",
+    "TRU": "Warner Media",
+    "TUDN": "Univision",
+    "TVL": "CBSViacom",
+    "TWC": "ES",
+    "UKID": "NBC Universal",
+    "UMA": "Univision",
+    "UNI": "Univision",
+    "UNVSO": "NBC Universal",
+    "USA": "NBC Universal",
+    "VH1": "CBSViacom",
+    "VICE": "AETN",
+    "WB": "Warner Media",
+    "WETV": "AMC",
+    "WGNA": "WGN"}
