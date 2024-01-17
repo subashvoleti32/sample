@@ -569,3 +569,16 @@ def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_defa
     expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
     self.assertEqual(result, expected_result)
 
+
+
+
+
+self = <MagicMock name='Client' id='133291568635136'>
+mock_storage_client = <MagicMock name='default' id='133291568093120'>
+mock_default_credentials = <unittest.mock._patch object at 0x793a5c999f10>
+
+
+
+
+self = <MagicMock name='default' id='133291568093120'>, args = (), kwargs = {}, expected = 'default()'
+actual = 'not called.', error_message = 'expected call not found.\nExpected: default()\nActual: not called.'
