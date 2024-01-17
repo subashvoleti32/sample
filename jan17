@@ -420,3 +420,11 @@ def test_read_csv_file_content_mocked_function(mock_storage_client, mock_default
 
 if __name__ == '__main__':
     unittest.main()
+
+
+self = <MagicMock name='Client' id='139036575808720'>, args = ()
+kwargs = {'credentials': <MagicMock id='139036575808576'>}
+expected = "Client(credentials=<MagicMock id='139036575808576'>)", actual = 'not called.'
+error_message = "expected call not found.\nExpected: Client(credentials=<MagicMock id='139036575808576'>)\nActual: not called."
+
+this is the reason for the assertion error
