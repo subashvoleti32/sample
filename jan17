@@ -729,3 +729,52 @@ self = <MagicMock name='Client' id='140235419023152'>, args = ()
 kwargs = {'credentials': <MagicMock id='140235418970480'>}, expected = call(credentials=<MagicMock id='140235418970480'>)
 actual = call(), _error_message = <function NonCallableMock.assert_called_with.<locals>._error_message at 0x7f8b1a5bf820>
 cause = None
+
+
+
+
+
+
+
+
+import pytest
+from unittest.mock import MagicMock
+
+@pytest.fixture
+def mock_default_credentials(mocker):
+    return mocker.patch("google.auth.default", autospec=True)
+
+@pytest.fixture
+def mock_storage_client(mocker):
+    return mocker.patch("google.cloud.storage.Client", autospec=True)
+
+@pytest.fixture
+def mock_storage_client_instance(mock_storage_client):
+    return mock_storage_client.return_value
+
+
+
+
+import pytest
+from unittest.mock import Mock, patch
+from app import get_csv_file_names
+
+class TestCostFileService:
+
+    @pytest.mark.usefixtures('mock_default_credentials', 'mock_storage_client_instance')
+    def test_get_csv_file_names_mocked_function6(self, mock_storage_client_instance):
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = mock_blobs
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_storage_client_instance.bucket.assert_called_with("your_bucket")
+        mock_storage_client_instance.bucket.return_value.list_blobs.assert_called_with(
+            prefix="ltvo_your_namespace/na/US/category"
+        )
+
+        expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
+        assert result == expected_result
