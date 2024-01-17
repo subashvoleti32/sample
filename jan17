@@ -590,3 +590,76 @@ FAILED test_cost_file_service5.py::test_read_csv_file_content_mocked_function - 
 
 self = <MagicMock name='default' id='133291568093120'>, args = (), kwargs = {}, expected = 'default()'
 actual = 'not called.', error_message = 'expected call not found.\nExpected: default()\nActual: not called.'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+________________________________________ test_get_csv_file_names_mocked_function ________________________________________
+
+self = <MagicMock name='Client' id='133428836881984'>
+mock_storage_client = <MagicMock name='default' id='133428836918656'>
+mock_default_credentials = <MagicMock name='default' id='133428837445104'>
+
+    @patch("google.auth.default")
+    @patch("google.cloud.storage.Client")
+    def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_default_credentials):
+        # Mock default credentials
+        mock_credentials = MagicMock()
+        mock_default_credentials.return_value = (mock_credentials, None)
+    
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+    
+        mock_storage_client_instance = mock_storage_client.return_value
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = mock_blobs
+    
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+    
+        # Assertions
+>       mock_storage_client.assert_called_once_with()  # Adjusted the assertion to match 'Client()'
+
+test_cost_file_service5.py:26: 
+
+
+self = <MagicMock name='default' id='133428836918656'>, args = (), kwargs = {}
+msg = "Expected 'default' to be called once. Called 0 times."
+
+    def assert_called_once_with(self, /, *args, **kwargs):
+        """assert that the mock was called exactly once and that that call was
+        with the specified arguments."""
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to be called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'default' to be called once. Called 0 times.
+
+/usr/lib/python3.9/unittest/mock.py:918: AssertionError
