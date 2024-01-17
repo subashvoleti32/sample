@@ -702,3 +702,9 @@ def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_defa
 
         expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
         self.assertEqual(result, expected_result)
+
+
+self = <MagicMock name='Client' id='140235419023152'>, args = ()
+kwargs = {'credentials': <MagicMock id='140235418970480'>}, expected = call(credentials=<MagicMock id='140235418970480'>)
+actual = call(), _error_message = <function NonCallableMock.assert_called_with.<locals>._error_message at 0x7f8b1a5bf820>
+cause = None
