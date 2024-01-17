@@ -68,3 +68,29 @@ class TestApp(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+
+
+
+file /home/subash_vo/jan16/ds-cf-ltvo-ui-fc/ltvo-backend/tests/unit_tests/test_cost_file_service3.py, line 6
+  @patch("google.auth.default")
+  @patch("google.cloud.storage.Client")
+  def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_default_credentials):
+E       fixture 'mock_default_credentials' not found
+>       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/subash_vo/jan16/ds-cf-ltvo-ui-fc/ltvo-backend/tests/unit_tests/test_cost_file_service3.py:6
+_____________________________ ERROR at setup of test_read_csv_file_content_mocked_function ______________________________
+file /home/subash_vo/jan16/ds-cf-ltvo-ui-fc/ltvo-backend/tests/unit_tests/test_cost_file_service3.py, line 32
+  @patch("google.auth.default")
+  @patch("google.cloud.storage.Client")
+  @patch("services.cost_file_service.storage.Client")
+  def test_read_csv_file_content_mocked_function(self, mock_storage_client, mock_default_credentials, mock_storage_client_services):
+E       fixture 'mock_storage_client_services' not found
+>       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/subash_vo/jan16/ds-cf-ltvo-ui-fc/ltvo-backend/tests/unit_tests/test_cost_file_service3.py:32
