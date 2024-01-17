@@ -349,6 +349,55 @@ def test_get_csv_file_names_mocked_function(mock_storage_client, mock_default_cr
         prefix="ltvo_your_namespace/na/US/category"
     )
 
+
+
+mock_storage_client = <MagicMock name='Client' id='135902238755760'>
+mock_default_credentials = <MagicMock name='Client' id='135902235865440'>
+mock_storage_client_services = <MagicMock name='default' id='135902235688576'>
+
+    @patch("google.auth.default")
+    @patch("google.cloud.storage.Client")
+    @patch("services.cost_file_service.storage.Client")
+    def test_read_csv_file_content_mocked_function(mock_storage_client, mock_default_credentials, mock_storage_client_services):
+        # Mock default credentials
+        mock_credentials = MagicMock()
+        mock_default_credentials.return_value = (mock_credentials, None)
+    
+        # Mocking necessary objects
+        mock_blob = Mock(name="file1.csv")
+    
+        mock_storage_client_instance = mock_storage_client.return_value
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = [mock_blob]
+        mock_storage_client_instance.bucket.return_value.blob.return_value.download_as_bytes.return_value.decode.return_value = "csv_data"
+    
+        # Call the function with test data
+        result = read_csv_file_content("US", "category", "file1.csv")
+    
+        # Assertions
+>       mock_storage_client.assert_called_with()
+
+test_cost_file_service5.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='Client' id='135902238755760'>, args = (), kwargs = {}, expected = 'Client()'
+actual = 'not called.', error_message = 'expected call not found.\nExpected: Client()\nActual: not called.'
+
+    def assert_called_with(self, /, *args, **kwargs):
+        """assert that the last call was made with the specified arguments.
+    
+        Raises an AssertionError if the args and keyword args passed in are
+        different to the last call to the mock."""
+        if self.call_args is None:
+            expected = self._format_mock_call_signature(args, kwargs)
+            actual = 'not called.'
+            error_message = ('expected call not found.\nExpected: %s\nActual: %s'
+                    % (expected, actual))
+>           raise AssertionError(error_message)
+E           AssertionError: expected call not found.
+E           Expected: Client()
+E           Actual: not called.
+
+/usr/lib/python3.9/unittest/mock.py:898: AssertionError
     expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
     assert result == expected_result
 
