@@ -217,3 +217,84 @@ def test_read_csv_file_content_mocked_function(self, mock_storage_client, mock_d
     expected_result = '{"csv_file_name": "file1.csv"}'
     self.assertEqual(result, expected_result)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import unittest
+from unittest.mock import patch, MagicMock, Mock
+from services.cost_file_service import get_csv_file_names, read_csv_file_content
+
+class TestCostFileService(unittest.TestCase):
+
+    @patch("google.auth.default")
+    @patch("google.cloud.storage.Client")
+    def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_default_credentials):
+        # Mock default credentials
+        mock_credentials = MagicMock()
+        mock_default_credentials.return_value = (mock_credentials, None)
+
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+
+        mock_storage_client_instance = mock_storage_client.return_value
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = mock_blobs
+
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+
+        # Assertions
+        mock_storage_client.assert_called_with(credentials=mock_credentials)
+        mock_storage_client_instance.bucket.assert_called_with("your_bucket")
+        mock_storage_client_instance.bucket.return_value.list_blobs.assert_called_with(
+            prefix="ltvo_your_namespace/na/US/category"
+        )
+
+        expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
+        self.assertEqual(result, expected_result)
+
+    @patch("google.auth.default")
+    @patch("google.cloud.storage.Client")
+    @patch("services.cost_file_service.storage.Client")
+    def test_read_csv_file_content_mocked_function(self, mock_storage_client, mock_default_credentials, mock_storage_client_services):
+        # Mock default credentials
+        mock_credentials = MagicMock()
+        mock_default_credentials.return_value = (mock_credentials, None)
+
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv")]
+
+        mock_storage_client_instance = mock_storage_client.return_value
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = mock_blobs
+        mock_blob_instance = mock_storage_client_instance.bucket.return_value.blob.return_value
+        mock_blob_instance.download_as_bytes.return_value.decode.return_value = "csv_data"
+
+        # Call the function with test data
+        result = read_csv_file_content("US", "category", "file1.csv")
+
+        # Assertions
+        mock_storage_client.assert_called_with(credentials=mock_credentials)
+        mock_storage_client_instance.bucket.assert_called_with("your_bucket")
+        mock_storage_client_instance.bucket.return_value.list_blobs.assert_called_with(
+            prefix="ltvo_your_namespace/na/US/category"
+        )
+        mock_storage_client_instance.bucket.return_value.blob.assert_called_with(
+            "ltvo_your_namespace/na/US/category/file1.csv"
+        )
+        mock_blob_instance.download_as_bytes.assert_called_once()
+
+        expected_result = '{"csv_file_name": "file1.csv"}'
+        self.assertEqual(result, expected_result)
+
+if __name__ == '__main__':
+    unittest.main()
