@@ -94,3 +94,27 @@ E       fixture 'mock_storage_client_services' not found
 >       use 'pytest --fixtures [testpath]' for help on them.
 
 /home/subash_vo/jan16/ds-cf-ltvo-ui-fc/ltvo-backend/tests/unit_tests/test_cost_file_service3.py:32
+4
+
+
+
+
+
+
+
+
+# conftest.py
+import pytest
+from unittest.mock import MagicMock
+
+@pytest.fixture
+def mock_default_credentials(request):
+    return MagicMock()
+
+@pytest.fixture
+def mock_storage_client(request):
+    return MagicMock()
+
+@pytest.fixture
+def mock_storage_client_services(request):
+    return MagicMock()
