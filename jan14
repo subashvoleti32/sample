@@ -618,3 +618,238 @@ def test_get_csv_file_names_mocked_function(self, mock_secret_manager, mock_blob
     expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
     self.assertEqual(result, expected_result)
 
+---------------------------------------------------
+
+
+import unittest
+from unittest.mock import MagicMock, patch, Mock
+from app import app
+from services.cost_file_service import get_csv_file_names
+#from api.experiment_resource import ExperimentResource, ExperimentsResource, RefreshExperimentsResource
+import pytest 
+
+
+class MockStorageClient:
+    def __init__(self, mock_blobs):
+        self.mock_blobs = mock_blobs
+
+    class MockBlob:
+        def __init__(self, name):
+            self.name = name
+
+    def bucket(self, bucket_name):
+        return MockStorageClient.MockBucket(self.mock_blobs)
+
+    class MockBucket:
+        def __init__(self, mock_blobs):
+            self.mock_blobs = mock_blobs
+
+        def list_blobs(self, prefix=None):
+            return [MockStorageClient.MockBlob(name) for name in self.mock_blobs]
+        
+
+@patch("services.cost_file_service.storage.Client", MockStorageClient)
+def test_get_csv_file_names_mocked_function(self, mock_secret_manager, mock_blob, mock_bucket, mock_logger, mock_get_app_configs):
+    # Mocking necessary objects
+    mock_blobs = ["file1.csv", "file2.csv"]
+
+    mock_get_app_configs.return_value = {
+        "ESM_GCS_BUCKET": "your_bucket",
+        "NAMESPACE": "your_namespace"
+    }
+
+    # Mocking the SecretManagerServiceClient
+    mock_secret_manager_instance = mock_secret_manager.return_value
+    mock_secret_manager_instance.access_secret_version.return_value.payload.data.decode.return_value = "mocked_secret_value"
+
+    # Call the function with test data
+    result = get_csv_file_names("US", "category")
+
+    # Assertions
+    mock_logger.info.assert_called_with("Bucket_name is your_bucket")
+    mock_logger.info.assert_called_with("Namespace:your_namespace")
+    mock_logger.info.assert_called_with("file path in gcs Bucket:ltvo_your_namespace/na/US/category")
+    mock_logger.info.assert_called_with('final_files info:[{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]')
+
+    expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
+    self.assertEqual(result, expected_result)
+
+
+
+
+
+
+from io import BytesIO
+import tempfile
+import json
+import http
+
+from flask import send_file, jsonify, request
+from google.cloud import storage
+import pandas as pd
+import openpyxl
+import csv
+
+from configs import get_app_configs
+from utils.app_constants import ESM_GCS_BUCKET, ESM_GCS_BUCKET_CA,NAMESPACE
+from utils.filename_generator import generate_namespaced_esm_filename_us
+from utils.filename_generator import generate_namespaced_esm_filename_ca
+from annotations.param_checks import enable_country_check, enable_country_category_check
+import my_logger
+app_logger = my_logger.configure_logger()
+BUCKET_NAME = 'ltvo-dswb-prod-c423-ltvo-us-t4p8zaot'
+generate_fn = {
+    'USA': (ESM_GCS_BUCKET, generate_namespaced_esm_filename_us),
+    'CAN': (ESM_GCS_BUCKET_CA, generate_namespaced_esm_filename_ca)
+}
+
+def download_template_as_xlsx(blob):
+    blob_content = blob.download_as_bytes()
+    df = pd.read_csv(BytesIO(blob_content))
+    df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], 
+            axis=1, inplace=True)
+    # download template
+    with tempfile.NamedTemporaryFile(suffix=".xlsx") as temp:
+        df.to_excel(temp, index=False)
+        return send_file(
+            temp.name, 
+            as_attachment=True,  
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    
+
+def download_template(country, template):
+    # check if correct country was provided
+    if country not in generate_fn: 
+        return {
+            'message': f"Country {country} not supported."
+        }, http.HTTPStatus.NOT_FOUND
+    
+    storage_client = storage.Client()
+    bucket_name = BUCKET_NAME # param from config
+    blob_name = 'ESM_STG/' + country + '/' + template + '.csv' 
+    
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.get_blob(blob_name)
+    if not blob: return
+
+    return download_template_as_xlsx(blob)
+
+
+def clone_template(country, optimization_id):
+    # check if correct country was provided
+    if country not in generate_fn: 
+        return {
+            'message': f"Country {country} not supported."
+        }, http.HTTPStatus.NOT_FOUND
+    
+    storage_client = storage.Client()
+    bucket_name = get_app_configs().get(generate_fn[country][0])
+    blob_name = generate_fn[country][1](optimization_id)
+
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.get_blob(blob_name)
+    if not blob: return
+
+    return download_template_as_xlsx(blob)    
+
+    
+def upload_template(file, country, optimization_id):
+
+    # check if correct country was provided
+    if country not in generate_fn: 
+        return {
+            'message': f"Country {country} not supported."
+        }, http.HTTPStatus.NOT_FOUND
+
+    # prepare client, bucket and filename
+    client = storage.Client()
+    bucket = client.get_bucket(get_app_configs().get(generate_fn[country][0])) 
+    filename = generate_fn[country][1](optimization_id)  
+
+    # convert to csv
+    csv_data = None
+    try:
+        if file.filename.endswith('.xlsx'):
+            df = pd.read_excel(file, engine='openpyxl')
+            csv_data = df.to_csv(index=False)
+        elif file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+            csv_data = df.to_csv(index=False)
+        else:
+            return {
+                "message": "Invalid file format. Send xlsx or csv."
+            }, http.HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        return {
+            "message": f"Could not read the file, error: {str(e)}"
+        }, http.HTTPStatus.UNPROCESSABLE_ENTITY
+
+    # save to a bucket
+    bucket = client.get_bucket(get_app_configs().get(generate_fn[country][0]))        
+    bucket.blob(filename).upload_from_string(csv_data, content_type='text/csv')
+
+    return {
+        "message": filename
+    }, http.HTTPStatus.OK
+
+# def create_anonymous_client(*args, **kwargs):
+#     creds = AnonymousCredentials()
+#     if _NOW() > creds.expiry:
+#         creds.refresh(Request())
+#     return storage.Client(credentials=creds, _http=grpc.Request())
+def get_csv_file_names(country,category):
+    storage_client=storage.Client()
+    bucket_name=get_app_configs().get(ESM_GCS_BUCKET)
+    app_logger.info(f"Bucket_name is {bucket_name}")
+    ns=get_app_configs().get(NAMESPACE)
+    app_logger.info(f"Namespace:{ns}")
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    app_logger.info(f'file path in gcs Bucket:{blob_prefix}')
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name for blob in blobs if blob.name.lower().endswith(".csv")]
+    final_csv_files=[{"csv_file_name":csv_file}for csv_file in csv_file_names]
+    app_logger.info(f'final_files info:{final_csv_files}')
+    return final_csv_files
+
+@enable_country_check
+@enable_country_category_check
+def read_csv_file_content(country,category,file_name):
+    storage_client=storage.Client()
+    bucket_name=get_app_configs().get(ESM_GCS_BUCKET)
+    app_logger.info(f"Bucket_name is {bucket_name}")
+    ns=get_app_configs().get(NAMESPACE)
+    app_logger.info(f"Namespace:{ns}")
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    app_logger.info(f"file path in GCS Bucket :{blob_prefix}")
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    csv_file_names=[blob.name for blob in blobs if blob.name.lower().endswith(".csv")]
+    try:
+        if file_name in csv_file_names:
+            blob_name=f"ltvo_{ns}/na/{country}/{category}"+"/"+file_name
+            app_logger.info(f"file path for specified file:{blob_name}")
+            blob = bucket.blob(blob_name)
+            rows = blob.download_as_bytes().decode().splitlines()
+            rows_list=list(csv.reader(rows))
+            app_logger.info(f"list of rows in csv file:{list(csv.reader(rows))}")
+            app_logger.info(f"List of rows in the csv file:{rows_list[0]}")
+            header = rows[0].split(',')
+            app_logger.info(f"Headers in the csv file:{header}")
+            data_list = []
+            for row in rows[1:]:
+                row_values = row.split(',')
+                data_dict = {header[i]: row_values[i] for i in range(len(header))}
+                data_list.append(data_dict)
+                app_logger.info(f"final_data{data_list}")
+                #Convert the list to JSON
+                json_data = json.dumps(data_list, indent=2)
+                app_logger.info(f"Final Json Data is :{json_data}")
+                return json_data
+        else:
+                return f"Filename{file_name} doesnot exist in {bucket_name}"
+    except Exception as e:
+        return f"Exception is {str(e)}"
+
+    
