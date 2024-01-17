@@ -118,3 +118,33 @@ def mock_storage_client(request):
 @pytest.fixture
 def mock_storage_client_services(request):
     return MagicMock()
+
+
+self = <MagicMock name='Client' id='136750836725984'>
+mock_storage_client = <MagicMock name='default' id='136750833419120'>
+mock_default_credentials = <MagicMock id='136751023560208'>
+
+    @patch("google.auth.default")
+    @patch("google.cloud.storage.Client")
+    def test_get_csv_file_names_mocked_function(self, mock_storage_client, mock_default_credentials):
+        # Mock default credentials
+        mock_credentials = MagicMock()
+        mock_default_credentials.return_value = (mock_credentials, None)
+    
+        # Mocking necessary objects
+        mock_blobs = [Mock(name="file1.csv"), Mock(name="file2.csv")]
+    
+        mock_storage_client_instance = mock_storage_client.return_value
+        mock_storage_client_instance.bucket.return_value.list_blobs.return_value = mock_blobs
+    
+        # Call the function with test data
+        result = get_csv_file_names("US", "category")
+    
+        # Assertions
+>       mock_storage_client.assert_called_with(credentials=mock_credentials)
+
+test_cost_file_service3.py:23:
+
+
+FAILED test_cost_file_service3.py::test_get_csv_file_names_mocked_function - AssertionError: expected call not found.
+FAILED test_cost_file_service3.py::test_read_csv_file_content_mocked_function - AssertionError: expected call not found.
