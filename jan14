@@ -517,3 +517,53 @@ supplier_map = {
 
         expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
         self.assertEqual(result, expected_result)
+
+
+
+
+
+
+
+
+class BigQueryResults:
+    def __init__(self, lst):
+        self.lst = lst
+
+    def result(self):
+        return self.lst
+
+    @property
+    def total_rows(self):
+        return len(self.lst)
+
+
+class BigQueryInteractiveCountsRow:
+    def __init__(self, segment_id, count):
+        self.segment_id = segment_id
+        self.ct = count
+
+
+class RequestsResponse:
+    def __init__(self, response_data: Any, http_status: int) -> None:
+        self._response_data = response_data
+        self._http_status = http_status
+
+    @property
+    def ok(self):
+        return self._http_status == 200
+
+    @property
+    def data(self) -> Any:
+        return self._response_data
+
+    @property
+    def text(self) -> str:
+        return json.dumps(self._response_data, sort_keys=True)
+
+    def json(self) -> str:
+        return self._response_data
+
+    @property
+    def status_code(self) -> int:
+        return self._http_status
+
