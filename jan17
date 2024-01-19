@@ -818,3 +818,6 @@ class TestCostFileService:
 
         expected_result = [{"csv_file_name": "file1.csv"}, {"csv_file_name": "file2.csv"}]
         assert result == expected_result
+
+
+Traceback (most recent call last):   File "/usr/local/lib/python3.8/logging/__init__.py", line 1084, in emit     stream.write(msg + self.terminator) BlockingIOError: [Errno 11] write could not complete without blocking
