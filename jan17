@@ -604,10 +604,50 @@ actual = 'not called.', error_message = 'expected call not found.\nExpected: def
 
 
 
+"[\n  {\n    \"\": \"322\",\n    \"element_name\": \"BET_Base\",\n    \"grouping_description\": \"Base\",\n    \"type\": \"Unwired\",\n    \"supplier\": \"Paramount\",\n    \"channel_name\": \"BET\",\n    \"start_day\": \"0\",\n    \"end_day\": \"6\",\n    \"start_time\": \"7:00:00 AM\",\n    \"end_time\": \"3:00:00 AM\",\n    \"include_program_type_name\": \"FALSE\",\n    \"program_type_name\": \"\\\"SPORTS ANTHOLOGY;SPORTS ANTHOLOGY;SPORTS EVENT;SPORTS NEWS;AWARD CEREMONIES\",\n    \"include_program_event_name\": \" PAGEANTS\\\"\",\n    \"program_event_name\": \"FALSE\",\n    \"include_program_name\": \"0\",\n    \"program_name\": \"\",\n    \"base_limit\": \"\",\n    \"tier_1_premium\": \"41585.3925\",\n    \"tier_1_limit\": \"0\",\n    \"tier_2_premium\": \"0\",\n    \"tier_2_limit\": \"0\",\n    \"tier_3_premium\": \"0\",\n    \"tier_3_limit\": \"0\",\n    \"min_grp\": \"0\",\n    \"max_grp\": \"0\",\n    \"min_total_budget\": \"100\",\n    \"max_total_budget\": \"0\",\n    \"group_min_budget\": \"999999999\",\n    \"group_max_budget\": \"0\",\n    \"group_min_grp_pct\": \"999999999\",\n    \"group_max_grp_pct\": \"0\",\n    \"guarantee_demo\": \"100\",\n    \"category\": \"W1864\",\n    \"quarter\": \"FABRIC\",\n    \"cost_per_point\": \"OND'23\",\n    \"cost_per_unit\": \"0\",\n    \"spend\": \"1039.634813\",\n    \"cost_range_low\": \"41585.3925\",\n    \"cost_range_high\": \"1\",\n    \"alt_spend\": \"1\",\n    \"product_name\": \"41585.3925\",\n    \"template\": \"ALL_FHC\"\n  }\n]"
 
 
 
 
+
+def read_csv_file_content(country,category,file_name):
+    storage_client=storage.Client()
+    bucket_name=get_app_configs().get(ESM_GCS_BUCKET)
+    app_logger.info(f"Bucket_name is {bucket_name}")
+    ns=get_app_configs().get(NAMESPACE)
+    app_logger.info(f"Namespace:{ns}")
+    blob_prefix=f"ltvo_{ns}/na/{country}/{category}"
+    app_logger.info(f"file path in GCS Bucket :{blob_prefix}")
+    bucket = storage_client.bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=blob_prefix))
+    app_logger.info(f"Blobs:{blobs}")
+    csv_file_names=[blob.name.split("/")[-1] for blob in blobs if blob.name.lower().endswith(".csv")]
+    app_logger.info(f"csv_file_names:{csv_file_names}")
+    try:
+        if file_name in csv_file_names:
+            blob_name=f"ltvo_{ns}/na/{country}/{category}"+"/"+file_name
+            app_logger.info(f"file path for specified file:{blob_name}")
+            blob = bucket.blob(blob_name)
+            rows = blob.download_as_bytes().decode().splitlines()
+            rows_list=list(csv.reader(rows))
+            app_logger.info(f"list of rows in csv file:{list(csv.reader(rows))}")
+            app_logger.info(f"List of rows in the csv file:{rows_list[0]}")
+            header = rows[0].split(',')
+            app_logger.info(f"Headers in the csv file:{header}")
+            data_list = []
+            for row in rows[1:]:
+                row_values = row.split(',')
+                data_dict = {header[i]: row_values[i] for i in range(len(header))}
+                data_list.append(data_dict)
+                app_logger.info(f"final_data{data_list}")
+                #Convert the list to JSON
+                json_data = json.dumps(data_list, indent=2)
+                app_logger.info(f"Final Json Data is :{json_data}")
+                return json_data
+        else:
+                return f"Filename{file_name} doesnot exist in {bucket_name}"
+    except Exception as e:
+        return f"Exception is {str(e)}"
 
 
 
