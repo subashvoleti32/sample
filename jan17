@@ -879,3 +879,118 @@ class SingletonLogger:
 def configure_logger():
     logger = SingletonLogger.get_instance().logger
     return logger
+
+
+
+
+
+
+
+import logging
+from logging.handlers import RotatingFileHandler
+
+class SingletonLogger:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if SingletonLogger._instance is None:
+            SingletonLogger()
+        return SingletonLogger._instance
+
+    def __init__(self):
+        if SingletonLogger._instance is not None:
+            raise Exception("SingletonLogger is already instantiated")
+        else:
+            self.logger = logging.getLogger("my_app")
+            self.logger.setLevel(logging.INFO)
+
+            formatter = logging.Formatter('%(message)s  -- LogLevel:- %(levelname)s -- FileName:- %(filename)s -- LineNumber :- %(lineno)d ')
+
+            # Configure a rotating file handler
+            file_handler = RotatingFileHandler("my_app.log", maxBytes=10*1024*1024, backupCount=5)
+            file_handler.setLevel(logging.INFO)
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(file_handler)
+
+            SingletonLogger._instance = self
+
+def configure_logger():
+    logger = SingletonLogger.get_instance().logger
+    return logger
+-----------------------
+import logging
+import sys
+import threading
+import queue
+
+class LessThanFilter(logging.Filter):
+    def __init__(self, level):
+        self.level = level
+
+    def filter(self, record):
+        return record.levelno < self.level
+
+class LogWorker(threading.Thread):
+    def __init__(self, log_queue):
+        super().__init__()
+        self.log_queue = log_queue
+
+    def run(self):
+        while True:
+            record = self.log_queue.get()
+            if record is None:
+                break
+            handler = logging.StreamHandler(record.stream)
+            handler.setFormatter(record.formatter)
+            handler.handle(record)
+
+class LogRecordWithStream(logging.LogRecord):
+    def __init__(self, *args, stream=None, formatter=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stream = stream
+        self.formatter = formatter
+
+class SingletonLogger:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if SingletonLogger._instance is None:
+            SingletonLogger()
+        return SingletonLogger._instance
+
+    def __init__(self):
+        if SingletonLogger._instance is not None:
+            raise Exception("SingletonLogger is already instantiated")
+        else:
+            self.logger = logging.getLogger("my_app")
+            self.logger.setLevel(logging.INFO)
+
+            formatter = logging.Formatter('%(message)s  -- LogLevel:- %(levelname)s -- FileName:- %(filename)s -- LineNumber :- %(lineno)d ')
+
+            self.log_queue = queue.Queue()
+            log_worker = LogWorker(self.log_queue)
+            log_worker.start()
+
+            logging_handler_out = logging.StreamHandler(sys.stdout)
+            logging_handler_out.setLevel(logging.INFO)
+            logging_handler_out.addFilter(LessThanFilter(logging.WARNING))
+            logging_handler_out.setFormatter(formatter)
+            self.logger.addHandler(logging_handler_out)
+
+            logging_handler_err = logging.StreamHandler(sys.stderr)
+            logging_handler_err.setLevel(logging.WARNING)
+            logging_handler_err.setFormatter(formatter)
+            self.logger.addHandler(logging_handler_err)
+
+            SingletonLogger._instance = self
+
+    def log(self, level, msg):
+        stream = sys.stdout if level < logging.WARNING else sys.stderr
+        record = LogRecordWithStream("my_app", level, "", 0, msg, None, None, stream=stream, formatter=None)
+        self.log_queue.put(record)
+
+def configure_logger():
+    logger = SingletonLogger.get_instance().logger
+    return logger
