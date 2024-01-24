@@ -821,3 +821,61 @@ class TestCostFileService:
 
 
 Traceback (most recent call last):   File "/usr/local/lib/python3.8/logging/__init__.py", line 1084, in emit     stream.write(msg + self.terminator) BlockingIOError: [Errno 11] write could not complete without blocking
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import logging
+import sys
+
+class LessThanFilter(logging.Filter):
+    def __init__(self, level):
+        self.level = level
+
+    def filter(self, record):
+        return record.levelno < self.level
+
+class SingletonLogger:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if SingletonLogger._instance is None:
+            SingletonLogger()
+        return SingletonLogger._instance
+
+    def __init__(self):
+        if SingletonLogger._instance is not None:
+            raise Exception("SingletonLogger is already instantiated")
+        else:
+            self.logger = logging.getLogger("my_app")
+            self.logger.setLevel(logging.INFO)
+
+            formatter = logging.Formatter('%(message)s  -- LogLevel:- %(levelname)s -- FileName:- %(filename)s -- LineNumber :- %(lineno)d ')
+
+            logging_handler_out = logging.StreamHandler(sys.stdout)
+            logging_handler_out.setLevel(logging.INFO)
+            logging_handler_out.addFilter(LessThanFilter(logging.WARNING))
+            logging_handler_out.setFormatter(formatter)
+            self.logger.addHandler(logging_handler_out)
+
+            logging_handler_err = logging.StreamHandler(sys.stderr)
+            logging_handler_err.setLevel(logging.WARNING)
+            logging_handler_err.setFormatter(formatter)
+            self.logger.addHandler(logging_handler_err)
+
+            SingletonLogger._instance = self
+
+def configure_logger():
+    logger = SingletonLogger.get_instance().logger
+    return logger
