@@ -1,0 +1,473 @@
+from google.auth import jwt
+import os
+
+from google.auth import compute_engine
+from googleapiclient import discovery
+import google.auth.transport.requests
+import google.oauth2.id_token
+
+from flask import session
+import requests
+from configs import get_app_configs
+from utils.app_constants import AAG_USER_SERVICE_URL
+
+from configs import _init_session
+from models.access_groups import AccessGroups
+import my_logger
+app_logger=my_logger.configure_logger()
+
+def get_email_from_jwt(request):
+    if os.getenv('ACTIVE_PROFILE') == 'LOCAL':
+        return os.getenv('LOCAL_USER_EMAIL') or 'local_user@pg.com'
+    decoded_jwt = jwt.decode(
+        # request.headers["X-Goog-IAP-JWT-Assertion"], verify=False)
+        request.headers["PETERs-JWT-Assertion"], verify=False)
+    app_logger.info(f"Request decoted jwt is {decoded_jwt['email']}")
+    return decoded_jwt['email']
+
+
+def get_user_profile(email):
+    app_logger.info(f"Getting User profile for {email}")
+
+    user_profile = {
+        "users_markets": [
+        ]
+    }
+    
+    users_groups = get_groups_for_user(email)
+    app_logger.info(f'User groups for {email}: {str(users_groups)}')
+    session['is_admin'] = 'CNF-gcpcl-ltvo-ui-na-adm' in users_groups or 'CNF-gcpcl-ltvo-ui-fc-admin' in users_groups
+    app_logger.info(f'is_admin session set for {email}')
+
+    group_codes_list = get_codes_for_group(users_groups, is_admin=session['is_admin'])
+    app_logger.info(f'group codes for {email}: {str(group_codes_list)}')
+    for group_codes in group_codes_list:
+        if not _check_if_country_exists_in_profile(group_codes["country"], user_profile):
+            _append_country_to_profile(
+                group_codes["country"], user_profile)
+            _append_category_to_country(
+                group_codes["country"], group_codes["category"], user_profile)
+        else:
+            _append_category_to_country(
+                group_codes["country"], group_codes["category"], user_profile)
+
+    app_logger.info(f'{email} user profile: {str(user_profile)}')
+    session['profile'] = set_user_profile(user_profile)
+    app_logger.info(f"session Profile:{session['profile']}")
+    app_logger.info(f"user_profile:{user_profile}")
+    
+    return user_profile
+
+
+def _check_if_country_exists_in_profile(country, user_profile):
+    for market in user_profile["users_markets"]:
+        if market["country"]["code"] == country["code"]:
+            return True
+    return False
+
+
+def _append_country_to_profile(country, user_profile):
+    user_profile["users_markets"].append({
+        "country": country,
+        "categories": []
+    })
+
+
+def _append_category_to_country(country, category, user_profile):
+    for market in user_profile["users_markets"]:
+        if market["country"]["code"] == country["code"]:
+            market["categories"].append(category)
+
+
+def get_codes_for_group(groups_list, is_admin=False):
+
+    db_session = _init_session()
+    group_codes_list = []
+
+    if is_admin:
+        groups = db_session.query(AccessGroups).all()            
+    else:
+        groups = db_session.query(AccessGroups).filter(AccessGroups.group_name.in_(groups_list)).all()
+
+    for group in groups:
+        # TODO: this is temporary because it would require changing a whole table 
+        if group.group_name == "CNF-gcpcl-ltvo-ui-ca-por" and group.country_code == 'CAN':
+            portfolio_english = {
+                "category": {
+                    "name": 'PORTFOLIO_ENGLISH',
+                    "code": 'PRE'
+                },
+                "country": {
+                    "name": 'Canada',
+                    "code": 'CAN'
+                } 
+            }
+            portfolio_french = {
+                "category": {
+                    "name": 'PORTFOLIO_FRENCH',
+                    "code": 'PRF'
+                },
+                "country": {
+                    "name": 'Canada',
+                    "code": 'CAN'
+                } 
+            }
+            group_codes = {
+                "category": {
+                    "name": group.category,
+                    "code": group.category_code
+                },
+                "country": {
+                    "name": group.country,
+                    "code": group.country_code
+                } 
+            }
+            group_codes_list.append(portfolio_english)
+            group_codes_list.append(portfolio_french)
+            group_codes_list.append(group_codes)
+
+        else:
+            group_codes = {
+                "category": {
+                    "name": group.category,
+                    "code": group.category_code
+                },
+                "country": {
+                    "name": group.country,
+                    "code": group.country_code
+                } 
+            }
+            group_codes_list.append(group_codes)
+        
+    app_logger.info(f"Group_codes_list:{group_codes_list}")
+    return group_codes_list
+
+
+def get_groups_for_user(email):
+    app_logger.info(f"Getting groups for {email}")
+    prefix_filter = 'CNF-GCPCL-LTVO-UI-'
+    creds = get_app_configs().get(AAG_USER_SERVICE_URL)
+    # params = {"email": email, "group_filter": "cnf-gcpcl-"}
+    aag_url  = f"{creds}/v1/user/groups/?email={email}&group_filter={prefix_filter}"
+    app_logger.info(f"Sending GET request to {aag_url}")
+    try:
+        app_logger.info("getting auth token")
+        auth_req = google.auth.transport.requests.Request()
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, creds)
+        if len(id_token) > 0:
+            app_logger.info("id token is not empty")
+        headers = {"Authorization": f"Bearer {id_token}"}
+
+        response = requests.get(aag_url, headers=headers)
+        app_logger.info(f"Response Status Code {response.status_code}")
+        if response.status_code == 200:
+            app_logger.info(f"Response {response.json()}")
+            return [group["name"] for group in response.json()]
+    except Exception as e:
+        app_logger.error(f"Error getting groups for {email}: {e}")
+        raise Exception(f"Error getting groups for {email}: {e}")
+
+    return "Should not have gotten here in get_groups_for_user"
+
+
+def set_user_profile(access_groups):
+
+    profile = {}
+
+    for group in access_groups['users_markets']:
+        if group['country']['code'] not in profile:
+            profile[group['country']['code']] = [
+                category['code'] for category in group['categories']
+                ]
+
+def build_demographic(input_json):
+    demographic_name = input_json["demographic_name"]
+    gender = input_json.get("gender")
+    minimum_age = input_json.get("minimum_age")
+    maximum_age = input_json.get("maximum_age")
+    origin = input_json.get("origin")
+    race = input_json.get("race")
+    households = input_json.get("households", False)
+    created_by = input_json["created_by"]
+    country = input_json["country"]
+    region_code = input_json["region_code"] if "region_code" in input_json else None
+    app_logger.info(f"Building Latest Demograph")
+    app_logger.info(f"This is Building Demographic")
+    app_logger.info(f"Created Demographic")
+    app_logger.info(f"Building Demography:demographic_name:{demographic_name},gender:{gender},minimum_age:{minimum_age},maximum_age:{maximum_age},origin:{origin}race:{race},household:{households}country:{country}")
+    demographic_master = DemographicMaster(demographic_name=demographic_name,
+                                           gender=gender,
+                                           minimum_age=minimum_age,
+                                           maximum_age=maximum_age,
+                                           origin=origin,
+                                           race=race,
+                                           households=households,
+                                           created_by=created_by,
+                                           country=country,
+                                           region_code=region_code,
+                                           created_datetime=datetime.now().strftime(('%Y-%m-%d %H:%M:%S')),
+                                           is_active=1)
+
+    # config was here
+
+    # WE WILL SEND JSON (experiment_params) to the kuberflow TODO
+    session = _init_session()
+    try:
+        print("INSIDE TRY --------")
+        session.add(demographic_master)
+        session.commit()
+        app_logger.info(f"Created demographic Response:- {demographic_schema.dump(demographic_master)}")
+        return demographic_schema.dump(demographic_master)
+    except:
+        raise
+        session.rollback()
+    finally:
+        session.close()
+    return profile
+
+
+import os
+import shutil
+import uuid
+import logging
+
+# import kfp
+from flask import Flask
+from flask_cors import cross_origin, CORS
+from flask_marshmallow import Marshmallow
+from flask_restx import Api
+from flask_sqlalchemy import SQLAlchemy
+from flask_apscheduler import APScheduler
+from api.experiment_resource import ExperimentResource, ExperimentsResource, RefreshExperimentsResource
+from api.aie_kubeflow_job_resource import AieJobResource
+from api.app_config_resource import AppConfigResource
+from api.deal_description_detail_resource import DealDescriptionDetailResource, DealDescriptionsDetailsResource, \
+    SearchDealsResource
+from api.debug_resource import DebugResource
+from api.esm_mapping_resource import EsmMappingsResource, EsmUploadToGCS, EsmCloneResource
+from api.deal_description_resource import DealDescriptionResource, DealDescriptionsResource, DealDescriptionCopyResource
+from api.demographic_resource import DemographicResource, DemographicsResource, DemographicListResource
+from api.esm_mapping_resource import EsmMappingResource
+from api.grouping_desc_resource import GroupingResource, GroupingsResource
+from api.kubeflow_resource import KubeflowResource, OptimizationRunResource
+from api.optimization_resource import OptimizationsResource, DevOptimizationsResource, OptimizationResource
+from api.program_list_resource import ProgramListResource, ProgramListsResource, ProgramListsByNameResource, ProgramListsResourceFilter
+from api.jwt_email import JWTemail
+from api.template_mapping_resource import TemplateMappingResource, TemplateMappingsResource, TemplateMappingsMultiproductResource
+
+from api.exp_output_resource import ExperimentOutputResource, ExperimentOutputDictionaryValuesResource, \
+    ExperimentOutputSummaryFile, ExperimentOutputTotalFile, ExperimentLogResource, TesseractSummaryFile, \
+    TesseractResultsFile, ReportUrlResource
+from api.user_profile_resource import UserProfileResource
+from api.configuration_factory_resource import ConfigurationFactoryResource
+from api.aie_kubeflow_job_api import AieKubeflowJobResource
+from api.product_mapping_resource import ProductMappingResource
+from api.upload_template_resource import UploadTemplateResource
+from api.optimization_runs_resource import OptimizationRunListResource
+from api.test_admin_resource import TestAdminResource
+from api.optimization_update_resource import OptimizationUpdateResource
+
+from api.backup_restore_resource import TemplateBackUpRestoreResource
+
+from configs import db_string
+
+logging.basicConfig(level=logging.INFO)
+app = Flask(__name__)
+app.config.SCHEDULER_API_ENABLED = True
+CORS(app)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = db_string
+app.config['SECRET_KEY'] = uuid.uuid4().hex
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
+api = Api(app, doc='/api/v1/docs')
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+grouping_routes = [
+    '/api/v1/grouping_description',
+    '/api/v1/grouping_description/<int:id>'
+]
+demographic_routes = [
+    '/api/v1/demographics',
+    '/api/v1/demographics/<int:id>'
+    '/api/v2/demographics',
+    '/api/v2/demographics/<int:id>'
+]
+
+deal_description_routes = [
+    '/api/v1/deal_description',
+    '/api/v1/deal_description/<int:id>'
+]
+
+deal_description_detail_routes = [
+    '/api/v1/deal_description_detail',
+    '/api/v1/deal_description_detail/<int:id>'
+]
+esm_mapping_routes = [
+    '/api/v1/esm_mapping',
+    '/api/v1/esm_mapping/<int:id>'
+]
+
+programlist_routes = [
+    '/api/v1/programlist',
+    '/api/v1/programlist/<int:id>'
+]
+
+kubeflow_routes = [
+    '/api/v1/kubeflow',
+    '/api/v1/kubeflow/run/<string:id>'
+]
+
+debugging_routes = [
+    '/api/v1/debug/optimization/<string:optz_id>/run-configs'
+]
+
+
+optimizations_routes = [
+    '/api/v2/optimization/list'
+]
+
+optimization_routes = [
+    '/api/v2/optimization',
+    '/api/v2/optimization/<int:id>',
+]
+
+aie_kubeflow_job_routes = [
+    '/api/v2/aie-kubeflow-job',
+    '/api/v2/aie-kubeflow-job/<string:id>'
+]
+
+aie_job_routes = [
+    '/api/v2/aie-run'
+]
+
+optimization_run_routes = [
+    '/api/v2/runs'
+]
+
+
+api.add_resource(OptimizationRunListResource, '/api/v2/optimization_runs')
+api.add_resource(DevOptimizationsResource, '/api/v2/dev_optimization/list')
+api.add_resource(OptimizationRunResource, *optimization_run_routes)
+
+api.add_resource(DemographicListResource, '/api/v2/demographics/list')
+api.add_resource(UserProfileResource, '/api/v2/user/details')
+api.add_resource(ConfigurationFactoryResource, '/api/v2/config-factory')
+api.add_resource(AieKubeflowJobResource, *aie_kubeflow_job_routes)
+
+api.add_resource(KubeflowResource, *kubeflow_routes)
+api.add_resource(AieJobResource, *aie_job_routes)
+api.add_resource(GroupingResource, *grouping_routes)
+api.add_resource(TemplateMappingResource, '/api/v1/esm-template')
+api.add_resource(DemographicResource, *demographic_routes)
+api.add_resource(OptimizationResource, *optimization_routes)
+api.add_resource(OptimizationsResource, *optimizations_routes)
+
+api.add_resource(DealDescriptionResource, *deal_description_routes)
+api.add_resource(DealDescriptionCopyResource, '/api/v1/deal_description_copy')
+api.add_resource(DealDescriptionDetailResource, *deal_description_detail_routes)
+api.add_resource(EsmMappingResource, *esm_mapping_routes)
+api.add_resource(ExperimentOutputResource, '/api/v1/exp_output/')
+api.add_resource(ExperimentOutputDictionaryValuesResource, '/api/v1/exp_output_dict/')
+api.add_resource(ExperimentOutputSummaryFile, '/api/v1/exp_output_summary_df/')
+api.add_resource(ExperimentOutputTotalFile, '/api/v1/exp_output_total_df/')
+api.add_resource(TesseractSummaryFile, '/api/v1/tesseract_summary_df/')
+api.add_resource(TesseractResultsFile, '/api/v1/tesseract_results_df/')
+api.add_resource(ExperimentLogResource, '/api/v1/experiment/log')
+api.add_resource(EsmUploadToGCS, '/api/v1/esm_upload/<experiment_id>')
+api.add_resource(JWTemail, '/api/v1/jwt_email')
+api.add_resource(AppConfigResource, '/api/v1/app-configs')
+api.add_resource(DebugResource, *debugging_routes)
+
+api.add_resource(DemographicsResource, '/api/v1/demographics/list')
+api.add_resource(GroupingsResource, '/api/v1/grouping_descriptions/list')
+api.add_resource(DealDescriptionsResource, '/api/v1/deal_descriptions/list')
+api.add_resource(DealDescriptionsDetailsResource, '/api/v1/deal_descriptions_details/list')
+api.add_resource(SearchDealsResource, '/api/v1/deals/search')
+api.add_resource(ProgramListResource, *programlist_routes)
+api.add_resource(ProgramListsByNameResource, '/api/v1/programlistbyname')
+api.add_resource(ProgramListsResource, '/api/v1/programlists/dict')
+api.add_resource(ProgramListsResourceFilter, '/api/v1/programlists/dict/input')
+api.add_resource(EsmCloneResource, '/api/v1/exp/esm_mappings/clone')
+api.add_resource(EsmMappingsResource, '/api/v1/esm_mappings/<category>')
+api.add_resource(TemplateMappingsResource, '/api/v1/esm_template/list/<category>')
+api.add_resource(TemplateMappingsMultiproductResource, '/api/v2/esm-mapping/<template>')
+# api.add_resource(TemplateResource, '/api/v1/esm_template/run')
+
+api.add_resource(ProductMappingResource, '/api/v2/product_mapping/list')
+api.add_resource(UploadTemplateResource,'/api/v2/upload_template')
+
+api.add_resource(TemplateBackUpRestoreResource,'/api/v2/backup_restore')
+api.add_resource(OptimizationUpdateResource, '/api/v2/update_optimizations') # this is request looping for fe update
+api.add_resource(RefreshExperimentsResource, '/api/v2/refresh-optimizations')
+api.add_resource(TestAdminResource, '/api/v2/test_admin')
+
+api.add_resource(ReportUrlResource, '/api/v2/report-url')
+
+from services.monitoring_service.refresh_service import refresh_statuses
+
+# @scheduler.task('interval', id='run_scan', seconds=120, misfire_grace_time=900)
+# def run_scanner():
+#     print("AUTOMATICALLY REFRESHING STAUSES")
+#     refresh_statuses()
+#     # print("AUTOMATICALLY REFRESHING STAUSES FOR USA")
+#     # refresh_statuses('USA')
+#     # print("AUTOMATICALLY REFRESHING STAUSES FOR CANADA")
+#     # refresh_statuses('CAN')
+
+
+# scheduler.start()
+
+def setup_local_gcp_bucket():
+    from google.cloud import exceptions, storage
+    from configs import get_app_configs
+
+    buckets = [
+        get_app_configs().get(bucket_name)
+        for bucket_name in [
+            "OUTPUT_GCS_BUCKET", "OUTPUT_GCS_BUCKET_CA",
+            "ESM_GCS_BUCKET", "INPUT_GCS_BUCKET"
+        ]
+    ]
+
+    print(f"GCP HOST: {os.environ.get('STORAGE_EMULATOR_HOST')}")
+    # client = storage.Client()
+    if os.getenv("STORAGE_EMULATOR_HOST"):
+        # Local testing etc.
+        print("Creating anonymous client object now for gcp")
+        client = storage.Client.create_anonymous_client()
+        client.project = "none"
+    else:
+        # Normal usage
+        client = storage.Client()
+    for bucket_name in buckets:
+        try:
+            print(f"Creating local gcp bucket: {bucket_name}")
+            bucket = client.create_bucket(bucket_name)
+
+        except exceptions.Conflict:
+            print(f"Checking bucket ({bucket_name}) exists")
+            bucket = client.bucket(bucket_name)
+            blob = bucket.blob("blob1")
+            blob.upload_from_string("test1")
+            print("BUcket data is below...")
+            print(blob.download_as_bytes())
+            print(f"Bucket ({bucket_name}) exists already, yayy")
+
+
+if __name__ == '__main__':
+    if os.getenv('ACTIVE_PROFILE') == 'LOCAL':
+        try:
+            setup_local_gcp_bucket()
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+        print("hello world.......................")
+        app.run(debug=True, port=9090, host="0.0.0.0")
+    else:
+        print("starting app")
+        app.run(debug=True, host="0.0.0.0")
+        
+        
