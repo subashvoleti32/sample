@@ -33,3 +33,14 @@ Get Cookie from API
     Log    Cookie Value: ${cookie_value}
     # Now you can use ${cookie_value} in subsequent requests
 
+
+ WARN ] Error in file 'C:\LTVO\LTVO-MIGRATION\MOCK-API\ims-ltvo-api-mock\mappings\sample.robot' on line 19: The '[Return]' setting is deprecated. Use the 'RETURN' statement instead.
+==============================================================================
+Sample
+==============================================================================
+Get Cookie from API :: Get the cookie from the API response.          | FAIL |
+No keyword with name 'Get Response Header' found. Did you try using keyword 'RequestsLibrary.GET' and forgot to use enough whitespace between keyword and arguments?
+------------------------------------------------------------------------------
+Sample                                                                | FAIL |
+1 test, 0 passed, 1 failed
+==============================================================================
