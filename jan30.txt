@@ -76,3 +76,25 @@ Get Cookie Value
     ${headers}    Get Headers    ${response}
     ${cookie_value}    Set Variable If    'Set-Cookie' in ${headers}    ${headers['Set-Cookie']}    None
     [Return]    ${cookie_value}
+
+
+
+
+*** Variables ***
+${BASE_URL}            https://api.example.com/data
+
+*** Test Cases ***
+Get Cookie from API
+    [Documentation]    Get the cookie from the API response.
+    ${response}    Get    ${BASE_URL}
+    ${cookie_value}    Get Cookie Value    ${response}
+    Log To Console    \nCookie Value: ${cookie_value}
+    # Now you can use ${cookie_value} in subsequent requests
+
+*** Keywords ***
+Get Cookie Value
+    [Documentation]    Extracts and returns the 'Set-Cookie' header value from the response.
+    [Arguments]    ${response}
+    ${headers}    Get Headers    ${response}
+    ${cookie_value}    Set Variable If    'set-cookie' in ${headers}    ${headers['set-cookie']}    ${headers['Set-Cookie']}
+    [Return]    ${cookie_value}
