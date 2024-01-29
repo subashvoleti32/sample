@@ -198,3 +198,7 @@ Get Cookie Value
 [ WARN ] You might have an = symbol in url. You better place 'url=' before, example: 'url=/your-url/foo?param=a' or use '/your-url/foo  params=param=a' or escape it
 Get Cookie from API :: Get the cookie from the API response.          | FAIL |
 TypeError: RequestsOnSessionKeywords.get_on_session() missing 1 required positional argument: 'url'
+
+
+
+ ${url}    Set Variable    ${BASE_URL}
