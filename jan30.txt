@@ -17,3 +17,19 @@ Get Cookie Value
     [Arguments]    ${response}
     ${cookie}    Get Response Header    Set-Cookie
     [Return]    ${cookie}
+
+
+*** Settings ***
+Library           RequestsLibrary
+
+*** Variables ***
+${BASE_URL}            https://api.example.com/data
+
+*** Test Cases ***
+Get Cookie from API
+    [Documentation]    Get the cookie from the API response.
+    ${response}    Get    ${BASE_URL}
+    ${cookie_value}    Set Variable    ${response.headers['Set-Cookie']}
+    Log    Cookie Value: ${cookie_value}
+    # Now you can use ${cookie_value} in subsequent requests
+
