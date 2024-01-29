@@ -44,3 +44,35 @@ No keyword with name 'Get Response Header' found. Did you try using keyword 'Req
 Sample                                                                | FAIL |
 1 test, 0 passed, 1 failed
 ==============================================================================
+
+
+
+
+
+
+
+
+
+
+*** Settings ***
+Library           RequestsLibrary
+
+*** Variables ***
+${BASE_URL}            https://api.example.com/data
+
+*** Test Cases ***
+Get Cookie from API
+    [Documentation]    Get the cookie from the API response.
+    ${response}    Get    ${BASE_URL}
+    ${cookie_value}    Set Variable    ${response.headers['Set-Cookie']}
+    Log To Console    \nCookie Value: ${cookie_value}
+    [Return]    ${cookie_value}
+    # Now you can use ${cookie_value} in subsequent requests
+
+*** Keywords ***
+Get Cookie Value
+    [Documentation]    Extracts and returns the 'Set-Cookie' header value from the response.
+    [Arguments]    ${response}
+    ${headers}    Get Headers    ${response}
+    ${cookie_value}    Set Variable If    'Set-Cookie' in ${headers}    ${headers['Set-Cookie']}    None
+    [Return]    ${cookie_value}
