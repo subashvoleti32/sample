@@ -191,3 +191,10 @@ Get Cookie Value
     ${cookie_header}    Set Variable    ${response.headers['Set-Cookie']}
     ${cookie_value}    Set Variable    ${cookie_header}
     [Return]    ${cookie_value}
+
+
+
+==============================================================================
+[ WARN ] You might have an = symbol in url. You better place 'url=' before, example: 'url=/your-url/foo?param=a' or use '/your-url/foo  params=param=a' or escape it
+Get Cookie from API :: Get the cookie from the API response.          | FAIL |
+TypeError: RequestsOnSessionKeywords.get_on_session() missing 1 required positional argument: 'url'
