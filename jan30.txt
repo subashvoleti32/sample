@@ -161,3 +161,8 @@ Get Cookie Value
     ${cookie_value}    Set Variable    ${cookie_header}
     [Return]    ${cookie_value}
 
+
+
+[ WARN ] Keyword 'RequestsLibrary.Get Request' is deprecated. Please use `GET On Session` instead.  
+Get Cookie from API :: Get the cookie from the API response.          | FAIL |
+Keyword 'RequestsLibrary.Get Request' expected 2 to 8 arguments, got 1.
