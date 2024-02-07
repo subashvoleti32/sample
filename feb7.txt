@@ -17,3 +17,84 @@ class SingletonSession:
             self.session = Session()
             self.session.execute(f"SET search_path TO {get_active_schema()}")
             SingletonSession._instance = self
+
+
+def _init_session():
+    app_logger.info("Init Session calledB")
+    for tries in range(5):
+        try:
+            session = _try_connection()
+            return session
+        except Exception as e:
+            app_logger.error(f"DB connection failed {tries} times: {str(e)}")
+            continue
+    raise Exception("Cannot connect to Databse in __init_session(). Session cannot be created!")
+
+
+
+
+def _init_session():
+    app_logger.info("Init Session calledB")
+    for tries in range(5):
+        try:
+            session = _try_connection()
+            return session
+        except Exception as e:
+            app_logger.error(f"DB connection failed {tries} times: {str(e)}")
+            continue
+    raise Exception("Cannot connect to Databse in __init_session(). Session cannot be created!")
+
+
+
+def _try_connection():
+    app_logger.info(f'Attempting to set schema to {get_active_schema()}')
+    Session = sessionmaker(bind=get_db_engine())
+    session = Session()
+    session.execute(f"SET search_path TO {get_active_schema()}")
+    app_logger.info("Session returned")
+    app_logger.info(session)
+    return session
+
+
+class SingletonSession:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if SingletonSession._instance is None:
+            SingletonSession()
+        return SingletonSession._instance
+
+    def __init__(self):
+        if SingletonSession._instance is not None:
+            raise Exception("SingletonSession is already instantiated")
+        else:
+            app_logger.info("Attempting to extablish DB connection")
+            app_logger.info(f'Attempting to set schema to {get_active_schema()}')
+            Session = sessionmaker(bind=get_db_engine())
+            self.session = Session()
+            self.session.execute(f"SET search_path TO {get_active_schema()}")
+            SingletonSession._instance = self
+
+
+def _init_session():
+    app_logger.info("Init Session calledB")
+    for tries in range(5):
+        try:
+            session = _try_connection()
+            return session
+        except Exception as e:
+            app_logger.error(f"DB connection failed {tries} times: {str(e)}")
+            continue
+    raise Exception("Cannot connect to Databse in __init_session(). Session cannot be created!")
+
+
+
+def _try_connection():
+    app_logger.info("Returning Singleton Session")
+    session = SingletonSession.get_instance().session
+    app_logger.info("Session returned")
+    app_logger.info(session)
+    return session
+
+
