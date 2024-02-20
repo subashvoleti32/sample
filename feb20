@@ -1,0 +1,10 @@
+    from fastapi import FastAPI, Request
+  File "C:\LTVO\LTVO-DEV\ims-ltvo-audience-service\venv\Lib\site-packages\fastapi\__init__.py", line 7, in <module>
+    from .applications import FastAPI as FastAPI
+  File "C:\LTVO\LTVO-DEV\ims-ltvo-audience-service\venv\Lib\site-packages\fastapi\applications.py", line 16, in <module>       
+    from fastapi import routing
+  File "C:\LTVO\LTVO-DEV\ims-ltvo-audience-service\venv\Lib\site-packages\fastapi\routing.py", line 22, in <module>
+    from fastapi import params
+  File "C:\LTVO\LTVO-DEV\ims-ltvo-audience-service\venv\Lib\site-packages\fastapi\params.py", line 4, in <module>
+    from pydantic.fields import FieldInfo, Undefined
+ImportError: cannot import name 'Undefined' from 'pydantic.fields' (C:\LTVO\LTVO-DEV\ims-ltvo-audience-service\venv\Lib\site-packages\pydantic\fields.py)
