@@ -390,3 +390,90 @@ def download_template(country, template):
             "message": f"Could not able to download the file, error: {str(e)}"
         }, http.HTTPStatus.FORBIDDEN
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def download_large_template(blob):
+    try:
+        blob_content = blob.download_as_bytes()
+        df = pd.read_csv(BytesIO(blob_content))
+        df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], 
+                axis=1, inplace=True)
+        # download template
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as temp:
+            df.to_excel(temp, index=False)
+            return send_file(
+                temp.name, 
+                as_attachment=True,  
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                chunk_size=CHUNK_SIZE
+            )
+    except Exception as e:
+        return {
+            "message": f"Could not able to download the file, error: {str(e)}"
+        }, http.HTTPStatus.FORBIDDEN
+def download_normal_template(blob):
+    try:
+        blob_content = blob.download_as_bytes()
+        df = pd.read_csv(BytesIO(blob_content))
+        df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+        # Download template
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as temp:
+            df.to_excel(temp, index=False)
+            return send_file(
+                temp.name, 
+                as_attachment=True,  
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    except Exception as e:
+        return {
+            "message": f"Could not able to download the file, error: {str(e)}"
+        }, http.HTTPStatus.FORBIDDEN
+
+def download_template(country, template):
+    # check if correct country was provided
+    if country not in generate_fn: 
+        return {
+            'message': f"Country {country} not supported."
+        }, http.HTTPStatus.NOT_FOUND
+    try:
+        storage_client = storage.Client()
+        bucket_name = BUCKET_NAME # param from config
+        blob_name = 'ESM_STG/' + country + '/' + template + '.csv' 
+        
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.get_blob(blob_name)
+        if not blob: 
+            return {
+            "message": f"File not found for country{country} and template{template}"
+        },http.HTTPStatus.NOT_FOUND
+        file_size=blob.size   
+        if file_size>MAX_REQUEST_SIZE:
+            return download_large_template(blob)
+        else:
+            return download_normal_template(blob)
+    except Exception as e:
+        return {
+            "message": f"Could not able to download the file, error: {str(e)}"
+        }, http.HTTPStatus.FORBIDDEN
+        
+
