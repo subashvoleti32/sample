@@ -477,3 +477,105 @@ def download_template(country, template):
         }, http.HTTPStatus.FORBIDDEN
         
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+from io import BytesIO
+import tempfile
+from flask import Flask, Response, send_file
+from google.cloud import storage
+import http
+
+app = Flask(__name__)
+
+MAX_REQUEST_SIZE = 32 * 1024 * 1024  # 32 MiB
+CHUNK_SIZE = 1024  # Chunk size for streaming
+
+def generate_excel_chunks(blob):
+    blob_content = blob.download_as_bytes()
+    df = pd.read_csv(BytesIO(blob_content))
+    df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+    
+    # Download template
+    with tempfile.NamedTemporaryFile(suffix=".xlsx") as temp:
+        df.to_excel(temp, index=False)
+        temp.seek(0)
+        while True:
+            chunk = temp.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            yield chunk
+
+@app.route('/download_template/<country>/<template>')
+def download_template(country, template):
+    # check if correct country was provided
+    if country not in generate_fn: 
+        return {
+            'message': f"Country {country} not supported."
+        }, http.HTTPStatus.NOT_FOUND
+    try:
+        storage_client = storage.Client()
+        bucket_name = BUCKET_NAME # param from config
+        blob_name = 'ESM_STG/' + country + '/' + template + '.csv' 
+        
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.get_blob(blob_name)
+        if not blob:
+            return {
+                'message': f"File not found for country {country} and template {template}."
+            }, http.HTTPStatus.NOT_FOUND
+
+        # Check file size
+        file_size = blob.size
+        if file_size > MAX_REQUEST_SIZE:
+            return Response(generate_excel_chunks(blob), mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', direct_passthrough=True)
+
+        # If the file size is within the limit, return it as a whole
+        blob_content = blob.download_as_bytes()
+        df = pd.read_csv(BytesIO(blob_content))
+        df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+        
+        # Download template
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as temp:
+            df.to_excel(temp, index=False)
+            return send_file(
+                temp.name, 
+                as_attachment=True,  
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    except Exception as e:
+        return {
+            "message": f"Could not able to download the file, error: {str(e)}"
+        }, http.HTTPStatus.FORBIDDEN
+
+if __name__ == "__main__":
+    app.run()
+
