@@ -874,3 +874,89 @@ def download_tesseract_summary_df(output_path):
             "message": f"Could not able to download the file: {str(e)}"
         }
 
+==============================================================================================
+from flask import Flask, send_file, Response
+from google.cloud import storage
+import tempfile
+import http
+
+app = Flask(__name__)
+
+MAX_CHUNK_SIZE = 32 * 1024 * 1024  # 32 MiB (Cloud Run limit)
+
+def generate_chunks(file_path):
+    with open(file_path, "rb") as file:
+        while True:
+            chunk = file.read(MAX_CHUNK_SIZE)
+            if not chunk:
+                break
+            yield chunk
+
+def download_large_file(blob, output_path):
+    try:
+        # Download the blob to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            blob.download_to_filename(temp_file.name)
+        
+            # Generate the response using the chunks
+            response = Response(
+                generate_chunks(temp_file.name),
+                mimetype="application/octet-stream"
+            )
+            response.headers.set("Content-Disposition", "attachment", filename=output_path)
+            response.headers.set("Transfer-Encoding", "chunked")
+        
+        return response
+    
+    except Exception as e:
+        return {
+            "status": http.HTTPStatus.FORBIDDEN,
+            "message": f"Could not able to download the file: {str(e)}"
+        }
+
+def download_small_file(blob, output_path):
+    try:
+        # Download the blob to a temporary file
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+            blob.download_to_filename(temp_file.name)
+        
+            # Send the temporary file using send_file
+            return send_file(
+                temp_file.name,
+                attachment_filename=output_path
+            )
+    
+    except Exception as e:
+        return {
+            "status": http.HTTPStatus.FORBIDDEN,
+            "message": f"Could not able to download the file: {str(e)}"
+        }
+
+@app.route("/download_tesseract_summary_df/<output_path>")
+def download_tesseract_summary_df(output_path):
+    try:
+        storage_client = storage.Client()
+        bucket_name = get_app_configs().get(OUTPUT_GCS_BUCKET)
+        
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(output_path)
+        
+        # Check the file size
+        file_size = blob.size
+        
+        # Determine which function to use based on file size
+        if file_size > MAX_CHUNK_SIZE:
+            return download_large_file(blob, output_path)
+        else:
+            return download_small_file(blob, output_path)
+    
+    except Exception as e:
+        return {
+            "status": http.HTTPStatus.FORBIDDEN,
+            "message": f"Could not able to download the file: {str(e)}"
+        }
+
+if __name__ == "__main__":
+    app.run()
+
+
