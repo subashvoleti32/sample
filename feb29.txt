@@ -770,3 +770,27 @@ def get_blob_direct_url(optimization_id, file_part):
     return url
 
 
+class ExperimentOutputTotalFile(Resource):
+    def get(self):
+        args = request.args
+        app_logger.info(f"ExperimentOutputTotalFile args:-{args}")
+        country = args.get('country') if args.get('country') else None
+        path = str(args.get('output_path')) if args.get('output_path') else None
+        try:
+            if country == "USA":
+                resp = exp_output_service.download_total_df(output_path=path)
+                return resp
+            elif country == "CAN":
+                resp = exp_output_ca_service.download_total_df(output_path=path)
+                return resp
+            else:
+                return  {
+                    "status": http.HTTPStatus.NOT_FOUND,
+                    "message": "requested country recs were not found"
+            }
+        except BaseException as e:
+            resp = []
+        app_logger.info(f"ExperimentOutputTotalFileResponse:{resp}")
+
+api.add_resource(ExperimentOutputTotalFile, '/api/v1/exp_output_total_df/')
+        return resp
