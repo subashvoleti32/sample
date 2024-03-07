@@ -578,4 +578,195 @@ def download_template(country, template):
 
 if __name__ == "__main__":
     app.run()
+----------------------------
+import http
+import tempfile
+
+import pandas as pd
+from flask import json
+from flask import send_file
+from google.cloud import storage
+from tenacity import retry, retry_if_exception_type, stop_after_delay
+
+from configs import get_app_configs, _init_session
+
+from utils.app_constants import OUTPUT_GCS_BUCKET, OUTPUT_GCS_BUCKET_CA
+from models.optimizations import Optimization
+import my_logger
+app_logger = my_logger.configure_logger()
+
+def download_file(file_name):
+    app_logger.info(f"download_file_name:{file_name}")
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    blob = bucket.blob(file_name)
+    with tempfile.NamedTemporaryFile() as temp:
+        blob.download_to_filename(temp.name)
+        return send_file(temp.name, attachment_filename=file_name)
+
+
+def get_output_df(output_path, upper_partition, brand):
+    app_logger.info(f"get_output_df args:output_path:{output_path},upper_partition:{upper_partition},brand:{brand}")
+    summary_df = get_blob(bucket=get_app_configs().get(OUTPUT_GCS_BUCKET),
+                          output_path=output_path,
+                          file_part="base_sum_data")
+
+    df = pd.read_csv('gs://' + get_app_configs().get(OUTPUT_GCS_BUCKET) + '/' + summary_df)
+    print('df columns')
+    print(df.columns)
+    app_logger.info(f"df.columns:{df.columns}")
+    df = df[df.lower_partition == 0]
+    if upper_partition:
+        df = df[df.upper_partition == upper_partition]
+    if brand:
+        brand = brand.replace(' ', '_')
+        df = df[df.brand == brand]
+    js = df.to_json(orient='records')
+    # app_logger.info(f"get_output_df convert to json:{json.loads(js)}")
+    return json.loads(js)
+
+
+@retry(retry=retry_if_exception_type(OSError), stop=stop_after_delay(5))
+def get_output_dict_values(output_path):
+    print("================STARTING DICT DOWNLOAD=============")
+    summary_df = get_blob(get_app_configs().get(OUTPUT_GCS_BUCKET), output_path, "base_sum_data")
+
+    df = pd.read_csv('gs://' + get_app_configs().get(OUTPUT_GCS_BUCKET) + '/' + summary_df)
+    upper_partition = df['upper_partition'].drop_duplicates().to_list()
+    brand = df['brand'].drop_duplicates().to_list()
+    response = json.dumps({'upper_partition': upper_partition, 'brand': brand})
+    # app_logger.info(f"get_output_dict_values response:{json.loads(response)}")
+    return json.loads(response)
+
+
+def download_log_file(optimization_id):
+    print("=====STARTING DOWNLOAD=======")
+    session = _init_session()
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    log_file_path = session.query(Optimization.log_file_path).filter_by(id=optimization_id).scalar()
+
+    session.close()
+    with tempfile.NamedTemporaryFile() as temp:
+        bucket.blob(log_file_path).download_to_filename(temp.name)
+        return send_file(temp.name, as_attachment=True, attachment_filename="log.txt")
+
+
+def download_summary_df(output_path):
+    summary_df = get_blob(bucket=get_app_configs().get(OUTPUT_GCS_BUCKET),
+                          output_path=output_path,
+                          file_part= "base_sum_data")
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    blob = bucket.blob(summary_df)
+    with tempfile.NamedTemporaryFile() as temp:
+        blob.download_to_filename(temp.name)
+        return send_file(temp.name, attachment_filename=summary_df)
+
+
+def download_total_df(output_path):
+    total_df = get_blob(bucket=get_app_configs().get(OUTPUT_GCS_BUCKET),
+                        output_path=output_path,
+                        file_part= "base_dtl_data")
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    blob = bucket.blob(total_df)
+    with tempfile.NamedTemporaryFile() as temp:
+        blob.download_to_filename(temp.name)
+        return send_file(temp.name, attachment_filename=total_df)
+
+
+########################### TESSERACT ###########################
+def download_tesseract_summary_df(output_path):
+    tesseract_summary_df = get_blob(bucket=get_app_configs().get(OUTPUT_GCS_BUCKET),
+                                    output_path=output_path,
+                                    file_part= "tesseract_sum_data")
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    blob = bucket.blob(tesseract_summary_df)
+    with tempfile.NamedTemporaryFile() as temp:
+        blob.download_to_filename(temp.name)
+        return send_file(temp.name, attachment_filename=tesseract_summary_df)
+
+
+def download_tesseract_results_df(output_path):
+    tesseract_results_df = get_blob(bucket=get_app_configs().get(OUTPUT_GCS_BUCKET),
+                                    output_path=output_path,
+                                    file_part="tesseract_dtl_data")
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(get_app_configs().get(OUTPUT_GCS_BUCKET))
+    blob = bucket.blob(tesseract_results_df)
+    with tempfile.NamedTemporaryFile() as temp:
+        blob.download_to_filename(temp.name)
+        return send_file(temp.name, attachment_filename=tesseract_results_df)
+
+
+##################################################################
+
+def get_blob_name_from_gcs(output_path, endswith):
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(get_app_configs().get(OUTPUT_GCS_BUCKET), prefix=output_path, delimiter='/')
+
+    filename = ''
+    for blob in blobs:
+        if blob.name.endswith(endswith):
+            filename = blob.name
+
+    # print('filename - ' + filename)
+    # print('path - gs://' + get_app_configs().get(OUTPUT_GCS_BUCKET) + '/' + filename)
+    app_logger.info(f"get_blob_name_from_gcs filename is{filename}")
+    return filename
+
+
+def get_blob_by_name_part(bucket_name, file_name):
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name)
+
+    for blob in blobs:
+        if file_name in blob.name:
+            return blob
+
+    return f'File {file_name} was not found.'
+
+
+def get_blob(bucket, output_path, file_part):
+    client = storage.Client()
+    blobs = client.list_blobs(bucket, prefix=output_path.lstrip("/").rstrip("/"))
+    result = [blob for blob in blobs if file_part in blob.name]
+    if len(result) == 0:
+        print("==============> NO FILE FOUND")
+        return "ERROR"
+    else:
+        print("===============FOUND FILE(S)")
+        print(result[0].name)
+        app_logger.info(f"get_blob name is{result[0].name}")
+        return result[0].name
+
+def get_blob_direct_url(optimization_id, file_part):
+
+    # Get optimization by id
+    session = _init_session()
+    q = session.query(Optimization).filter(Optimization.id==3213).first()
+    session.close()
+
+    # Establish bucket based on country, set variables to build url
+    bucket = OUTPUT_GCS_BUCKET if q.country == 'USA' else OUTPUT_GCS_BUCKET_CA
+    bucket = get_app_configs().get(bucket)
+    output_path = q.output_file_path
+    prefix = 'https://console.cloud.google.com/storage/browser/_details/'
+
+    # Find the blob
+    client = storage.Client()
+    blobs = client.list_blobs(bucket, prefix=output_path.lstrip("/").rstrip("/"))
+    blob = [blob for blob in blobs if file_part in blob.name and blob.name.endswith('csv')].pop()
+
+    # Build URL to return
+    url = prefix + bucket + '/' + blob.name
+    app_logger.info(f"get_blob_direct_url :{url}")
+    return url
+
 
