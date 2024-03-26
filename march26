@@ -36,3 +36,61 @@ startdate = input("Enter start date (YYYY-MM-DD): ")
 enddate = input("Enter end date (YYYY-MM-DD): ")
 csv_file_names = get_csv_file_names(country, category, startdate, enddate)
 print(csv_file_names)
+
+
+
+
+
+
+
+
+
+
+
+
+from flask import Flask, request, jsonify
+from google.cloud import storage
+from datetime import datetime, timezone, timedelta
+from get_appconstants import dev_configs
+
+app = Flask(__name__)
+
+def objects_in_date_range(bucket, prefix, start_date, end_date):
+    start_datetime = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    end_datetime = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+    
+    for blob in bucket.list_blobs(prefix=prefix):
+        created = blob.time_created
+        if start_datetime <= created < end_datetime:
+            yield blob.name
+
+def get_csv_file_names(country, category, startdate=None, enddate=None):
+    storage_client = storage.Client()
+    bucket_name = dev_configs.get('bucket_name')
+    ns = dev_configs.get('ns')
+    blob_prefix = f"ltvo_{ns}/na/{country}/{category}"
+    bucket = storage_client.bucket(bucket_name)
+    
+    csv_file_names = []
+    for obj_name in objects_in_date_range(bucket, blob_prefix, startdate, enddate):
+        if obj_name.lower().endswith(".csv"):
+            csv_file_names.append({"csv_file_name": obj_name.split("/")[-1]})
+                
+    return csv_file_names
+
+@app.route('/get_csv_files', methods=['GET'])
+def get_csv_files():
+    country = request.args.get('country')
+    category = request.args.get('category')
+    startdate = request.args.get('startdate')
+    enddate = request.args.get('enddate')
+    
+    if not (country and category and startdate and enddate):
+        return jsonify({'error': 'Missing parameters'}), 400
+    
+    csv_file_names = get_csv_file_names(country, category, startdate, enddate)
+    return jsonify(csv_file_names)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    curl -X GET "http://127.0.0.1:5000/get_csv_files?country=USA&category=finance&startdate=2024-01-01&enddate=2024-03-01"
