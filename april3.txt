@@ -364,6 +364,284 @@ ALWAYS_DISCREET_UNDERWEAR,92000.0,W50+,English,1.0,1.0,2023 May,A18+,21821057000
 ALWAYS_FLEXFOAM,74000.0,W25-54,English,1.0,1.0,2023 May,A18+,6234848300000000.0,24773766.0,4987195000000000.0,24008900.0,A18+,29033537.304314546,21474642464.981995,85.3281008798004,17177360016.062784,82.69367851512926,0.0,10,ca,PORTFOLIO_ENGLISH,0a6f735a-fd30-40ff-84f9-2ff13d69d491,May-23
 ALWAYS_MAINLINE,66000.0,W35+,English,1.0,1.0,2023 May,A18+,36530766000.0,24744312.0,26675888000.0,24004774.0,A18+,29033537.304314546,125822.64930760373,85.22665268321562,91879.56620096654,82.67946736353326,0.0,10,ca,PORTFOLIO_ENGLISH,0a6f735a-fd30-40ff-84f9-2ff13d69d491,May-23
 
+==============================================================================================
+from google.cloud import storage, bigquery
+import pandas as pd
+import io
+import datetime
+import re
+import os
+
+def add_additional_columns(df):
+    # Add the two additional columns to the DataFrame based on the given logic
+    df['Optimizing_Demo'] = df['KPI Demo']
+    df['KPI_Match'] = df['Optimizing_Demo'] == df['target_audience']
+    return df
+
+def read_csv_from_gcs(bucket_name, blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    data = blob.download_as_string()
+    df = pd.read_csv(io.BytesIO(data))
+    return df
+
+def upload_csv_to_gcs(df, bucket_name, blob_name):
+    csv_data = df.to_csv(index=False).encode()
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.upload_from_string(csv_data)
+    print(f"File {blob_name} uploaded to bucket {bucket_name}")
+
+def load_table_from_uri(project, source_gcs, dataset_name_lz, table_name, scenario_id):
+    # BigQuery load job
+    bigquery_client = bigquery.Client(project)
+    dataset = bigquery_client.dataset(dataset_name_lz)
+    table_name = table_name + scenario_id
+    table = dataset.table(table_name)
+    job_config = bigquery.LoadJobConfig()
+    job_config.source_format = bigquery.SourceFormat.CSV
+    job_config.autodetect = True
+    job_config.create_disposition = "CREATE_IF_NEEDED"
+    job_config.write_disposition = 'WRITE_TRUNCATE'
+    
+    # Start the load job
+    load_job = bigquery_client.load_table_from_uri(source_uris=source_gcs, destination=table, job_config=job_config)
+    print('Starting job {}'.format(load_job.job_id))
+    load_job.result()  # Waits for table load to complete.
+    print('Job finished.')
+    # Retrieve the destination table
+    destination_table = bigquery_client.get_table(table)
+    print('Loaded {} rows.'.format(destination_table.num_rows))
+
+def lz_table_load(project, dataset_name_lz, table_name, scenario_id, file_name, ct):
+    print("Start lz table Load", table_name)
+    bigquery_client = bigquery.Client(project)
+    dataset = bigquery_client.dataset(dataset_name_lz)
+    temp_table_name = table_name + scenario_id
+    table = dataset.table(table_name)
+    job_config_rpt = bigquery.QueryJobConfig()
+
+    if temp_table_name == 'ltvo_base_smry_lz' + scenario_id:
+        sql = """INSERT INTO `""" + project + '.' + dataset_name_lz + '.' + table_name + '_' + os.environ.get(
+            'country_code') + """`
+            
+            SELECT
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_code,
+            CAST(category AS STRING) category_name,
+            CAST(date AS STRING) date,
+            CAST(product_name AS STRING) brand_name,
+            CAST(product_name AS STRING) product_name,
+            CAST(max_cost AS FLOAT64) max_cost_usd_amt,
+            CAST(target_audience AS STRING) target_audience_code,
+            CAST(max_cost_prop AS INT64) max_cost_prop,
+            CAST(discount AS INT64) dicount,
+            CAST(KPI_Demo AS STRING) kpi_demographics_code,
+            CAST(Impressions_Program AS FLOAT64) impression_program_qty,
+            CAST(Unique_Impressions_Program AS FLOAT64) unique_impression_program_qty,
+            CAST(Impressions_Commercial AS FLOAT64) impression_commercial_qty,
+            CAST(Unique_Impressions_Commercial AS FLOAT64) unique_impression_commercial_qty,
+            CAST(demo AS STRING) demographics_code,
+            CAST(universe_estimate AS FLOAT64) universe_estimate_cnt,
+            CAST(TRPs_Program AS FLOAT64) trp_program_factor,
+            CAST(Reach_Program AS FLOAT64) reach_program_factor,
+            CAST(TRPs_Commercial AS FLOAT64) trp_commercial_factor,
+            CAST(Reach_Commercial AS FLOAT64) reach_commercial_factor,
+            CAST(spend AS FLOAT64) spend_amt,
+            CAST(`partition` AS INT64) partition_cnt
+
+            FROM `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+
+    elif temp_table_name == 'ltvo_base_dtl_lz' + scenario_id:
+        sql = """INSERT INTO `""" + project + '.' + dataset_name_lz + '.' + table_name + '_' + os.environ.get(
+            'country_code') + """`
+            
+            SELECT
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_code,
+            CAST(category AS STRING) category_name,
+            CAST(date AS STRING) date,
+            CAST(agency AS STRING) agency_name,
+            CAST(use_cmr AS STRING) use_cmr,
+            CAST(region_code AS STRING) region_code,
+            CAST(station_name AS STRING) station_name,
+            CAST(daypart AS STRING) daypart_code,
+            CAST(element_name AS STRING) element_name,
+            CAST(type AS STRING) type,
+            CAST(vendor AS STRING) vendor_name,
+            CAST(deal AS STRING) deal,
+            CAST(channel_name AS INT64) channel_name,
+            CAST(buying_audience AS STRING) buying_audience_name,
+            CAST(start_day AS INT64) start_day,
+            CAST(end_day AS INT64) end_day,
+            CAST(start_time AS INT64) start_time,
+            CAST(end_time AS INT64) end_time,
+            CAST(cost_range_low AS FLOAT64) cost_range_low,
+            CAST(cost_range_high AS FLOAT64) cost_range_high,
+            CAST(price_tier AS INT64) price_tier,
+            CAST(element_id AS INT64) element_id,
+            CAST(product_name AS STRING) product_name,
+            CAST(solution AS FLOAT64) solution,
+            CAST(cost AS FLOAT64) cost_amt,
+            CAST(ba_imp AS FLOAT64) ba_imp,
+            CAST(KPI_Demo AS STRING) KPI_demographics,
+            CAST(Impressions_Program AS FLOAT64) Impressions_Program_cnt,
+            CAST(Unique_Impressions_Program AS FLOAT64) Unique_Impressions_Program_cnt,
+            CAST(Impressions_Commercial AS FLOAT64) Impressions_Commercial_cnt,
+            CAST(Unique_Impressions_Commercial AS FLOAT64) Unique_Impressions_Commercial_cnt,
+            CAST(demo AS STRING) demographics_name,
+            CAST(universe_estimate AS FLOAT64) universe_estimate,
+            CAST(TRPs_Program AS FLOAT64) TRPs_Program_factor,
+            CAST(Reach_Program AS FLOAT64) Reach_Program_factor,
+            CAST(TRPs_Commercial AS FLOAT64) TRPs_Commercial_factor,
+            CAST(Reach_Commercial AS FLOAT64) Reach_Commercial_factor,
+            CAST(spend AS FLOAT64) spend_amt,
+            CAST(CPM AS FLOAT64) CPM,
+            CAST(`partition` AS INT64) partition_cnt
+              FROM   `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+
+    elif temp_table_name == 'ltvo_tesseract_smry_lz' + scenario_id:
+        sql = """INSERT INTO `""" + project + '.' + dataset_name_lz + '.' + table_name + '_' + os.environ.get(
+            'country_code') + """`
+            
+            SELECT 
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_name,
+            CAST(category AS STRING) category_name,
+            CAST(element_name AS STRING) element_name,
+            CAST(price_tier AS INT64) tier_num,
+            CAST(product_name AS STRING) product_name,
+            CAST(buy_max AS FLOAT64) buy_max_pct,
+            CAST(buy_min AS FLOAT64) buy_min_pct,
+            CAST(elastic AS FLOAT64) elastic_pct,
+            CAST(buy_max_bound AS FLOAT64) buy_max_bound_cost_amt,
+            CAST(buy_min_bound AS FLOAT64) buy_min_bound_cost_amt,
+            CAST(elasticity__units__100_ AS FLOAT64) elasticity_rate,
+            CAST(est_elastic_units AS FLOAT64) estimated_elastic_unit_cnt,
+            CAST(buy_min_score AS INT64) buy_min_score_rate,
+            CAST(elastic_score AS INT64) elastic_score_rate,
+            CAST(total_score AS INT64) total_score_rate,
+            CAST(buy_priority AS STRING) buy_priority_code,
+            CAST(date AS STRING) date
+
+            FROM `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+
+    elif temp_table_name == 'ltvo_tesseract_dtl_lz' + scenario_id:
+        sql = """INSERT INTO `""" + project + '.' + dataset_name_lz + '.' + table_name + '_' + os.environ.get(
+            'country_code') + """`
+            
+            SELECT
+            
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) category_name,
+            CAST(category AS STRING) country_name,
+            CAST(date AS STRING) date,
+            CAST(element_id AS INT64) element_id,
+            CAST(product_name AS STRING) product_name,
+            CAST(element_name AS STRING) element_name,
+            CAST(channel_name AS STRING) channel_name,
+            CAST(daypart AS STRING) daypart_code,
+            CAST(price_tier AS INT64) tier_num,
+            CAST(base_solution AS FLOAT64) base_solution_cnt,
+            CAST(trial_name AS STRING) trial_name,
+            CAST(vendor AS STRING) vendor_name,
+            CAST(new_cost AS FLOAT64) new_cost,
+            CAST(cost_range_low AS FLOAT64) cost_range_low_rate,
+            CAST(cost_range_high AS FLOAT64) cost_range_high_rate,
+            CAST(percentage_change AS FLOAT64) percentage_change_increment_rate,
+            CAST(solution_alt AS FLOAT64) solution_alt_cnt,
+            CAST(breaks AS INT64) breaks_cnt,
+            CAST(raw_element_cost AS FLOAT64) raw_element_cost_amt,
+            CAST(Demo AS STRING) demographics,
+            CAST(TRP AS FLOAT64) TRP,
+            ROW_NUMBER() OVER() AS scenario_row_num 
+
+          
+            FROM `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+
+    else:
+        sql = 'no matching table file'
+
+    sql_cleanup = """DROP TABLE IF EXISTS `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+    print(sql)
+
+    # Start the load job
+    print('Ready to load LZ table', table_name)
+    query_job = bigquery_client.query(sql, job_config=job_config_rpt)
+    query_job.result()  # Waits for table load to complete.
+    print('LZ table load job finished.')
+
+    # Deleting temp table
+    sql_cleanup = """DROP TABLE IF EXISTS `""" + project + '.' + dataset_name_lz + '.' + temp_table_name + '`;'
+    print(sql_cleanup)
+
+    # Start the delete job
+    print('Deleting temp table', temp_table_name)
+    query_job_cleanup = bigquery_client.query(sql_cleanup)
+    query_job_cleanup.result()  # Waits for table delete to complete.
+    print('Temp table deleted.')
+
+    # Print the table details
+    destination_table = bigquery_client.get_table(table)
+    print('Loaded {} rows.'.format(destination_table.num_rows))
+    print("Completed lz table Load", table_name)
+    
+def copy_file_archived_generation(project, bucket_name, file_name, archival_bucket_name, archival_blob_name):
+    storage_client = storage.Client(project)
+    source_bucket = storage_client.bucket(bucket_name)
+    source_blob = source_bucket.blob(file_name)
+    destination_bucket = storage_client.bucket(archival_bucket_name)
+    source_bucket.copy_blob(source_blob, destination_bucket, archival_blob_name)
+    print(f'File {file_name} copied to {archival_bucket_name} as {archival_blob_name}.')
+
+def delete_blob(project, bucket_name, file_name):
+    storage_client = storage.Client(project)
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    blob.delete()
+    print(f'File {file_name} deleted from bucket {bucket_name}.')
+
+def ltvo_ca_load(event, context):
+    """Triggered by a change to a Cloud Storage bucket.
+    Args:
+         event (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    file = event
+    bucket_name = event.get('bucket')
+    file_name = event.get('name')
+    print(f"Processing file: {file_name}")
+
+    # Read CSV from GCS
+    df = read_csv_from_gcs(bucket_name, file_name)
+
+    # Add additional columns
+    df = add_additional_columns(df)
+
+    # Upload updated CSV to GCS
+    upload_csv_to_gcs(df, bucket_name, file_name)
+
+    # Load the table from GCS URI
+    load_table_from_uri(project, f'gs://{bucket_name}/{file_name}', dataset_name_lz, table_name, scenario_id)
+    
+    # Load the LZ table
+    lz_table_load(project, dataset_name_lz, table_name, scenario_id, file_name, ct)
+    
+    # Copy the file to archival bucket
+    copy_file_archived_generation(project, bucket_name, file_name, archival_bucket_name, archival_blob_name)
+    
+    # Delete the file from source bucket
+    delete_blob(project, bucket_name, file_name)
+
+# Example usage
+bucket_name = "your_bucket_name"
+input_blob_name = "input.csv"
+output_blob_name = "output.csv"
+ltvo_ca_load({"bucket": bucket_name, "name": input_blob_name}, None)
+
+
 
 
 
