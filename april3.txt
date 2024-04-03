@@ -1,0 +1,357 @@
+##GCS Canada Cloud Function
+
+from datetime import datetime
+from google.cloud import storage
+from google.cloud import bigquery
+import re
+import datetime
+import os
+
+##Blob Functions
+def delete_blob(project,bucket_name, blob_name):
+    # bucket_name = "your-bucket-name"
+    # blob_name = "your-object-name"
+    from google.cloud import storage
+    storage_client = storage.Client(project)
+
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.delete()
+
+    print(f"Blob {blob_name} deleted.")
+
+def copy_file_archived_generation(project,bucket_name, blob_name, destination_bucket_name, destination_blob_name):
+    
+    # bucket_name = "your-bucket-name"
+    # blob_name = "your-object-name"
+    # destination_bucket_name = "destination-bucket-name"
+    # destination_blob_name = "destination-object-name"
+    # generation = 1579287380533984
+    from google.cloud import storage
+    
+    storage_client = storage.Client()
+
+    source_bucket = storage_client.bucket(bucket_name)
+    source_blob = source_bucket.blob(blob_name)
+    destination_bucket = storage_client.bucket(destination_bucket_name)
+
+    blob_copy = source_bucket.copy_blob(source_blob, destination_bucket, destination_blob_name)
+
+    print(
+        "blob {} in bucket {} copied to blob {} in bucket {}.".format(
+            source_blob.name,
+            source_bucket.name,
+            blob_copy.name,
+            destination_bucket.name,
+        )
+    )
+  
+
+def load_table_from_uri(project,source_gcs,dataset_name_lz, table_name,scenario_id):
+    ##BigQuery load job
+    print('Ready to load table') 
+    bigquery_client = bigquery.Client(project)
+    dataset= bigquery_client.dataset(dataset_name_lz)
+    table_name = table_name+scenario_id
+    table = dataset.table(table_name)
+    job_config = bigquery.LoadJobConfig()
+    job_config.source_format = bigquery.SourceFormat.CSV
+    job_config.autodetect = True
+    skip_leading_rows=1
+    job_config.create_disposition = "CREATE_IF_NEEDED"
+    job_config.write_disposition = 'WRITE_TRUNCATE'
+    
+
+    # Start the load job
+    load_job = bigquery_client.load_table_from_uri(source_uris=source_gcs,destination=table,job_config=job_config)
+    print('Starting job {}'.format(load_job.job_id))
+    load_job.result()  # Waits for table load to complete.
+    print('Job finished.')
+    # Retreive the destination table
+    destination_table = bigquery_client.get_table(table)
+    print('Loaded {} rows.'.format(destination_table.num_rows))
+
+def audit_table_load(project,dataset_name_lz,table_name_audit,scenario_id,file_name,ct):
+    print("Start Audit table Load")
+    bigquery_client = bigquery.Client(project)
+    dataset= bigquery_client.dataset(dataset_name_lz)
+    table = dataset.table(table_name_audit)
+    job_config_rpt = bigquery.QueryJobConfig()
+
+    sql= 'insert into `' +project+'.'+dataset_name_lz+'.'+table_name_audit+"` VALUES('"+str(scenario_id)+"','"+str(ct)+"','"+'ltvo_lz_load'+"','"+file_name+"');"
+    print(sql)
+
+    # Start the load job
+    print('Ready to load audit table') 
+    query_job = bigquery_client.query(sql, job_config = job_config_rpt)
+    query_job.result() # Waits for table load to complete.
+    print('Audit load job finished.')
+    
+ 
+def get_project_id():
+    import urllib.request
+    global project_id
+    url = "http://metadata.google.internal/computeMetadata/v1/project/project-id"
+    req = urllib.request.Request(url)
+    req.add_header("Metadata-Flavor", "Google")
+    project_id = urllib.request.urlopen(req).read().decode()
+    print(project_id)
+    
+    
+
+def lz_table_load(project,dataset_name_lz,table_name,scenario_id,file_name,ct):
+    print("Start lz table Load",table_name)
+    bigquery_client = bigquery.Client(project)
+    dataset= bigquery_client.dataset(dataset_name_lz)
+    temp_table_name = table_name+scenario_id
+    table = dataset.table(table_name)
+    job_config_rpt = bigquery.QueryJobConfig()
+
+    if temp_table_name == 'ltvo_base_smry_lz'+scenario_id:
+        sql = """INSERT INTO `"""+project+'.'+dataset_name_lz+'.'+table_name+'_'+os.environ.get('country_code')+ """`
+            
+            SELECT
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_code,
+            CAST(category AS STRING) category_name,
+            CAST(date AS STRING) date,
+            CAST(product_name AS STRING) brand_name,
+            CAST(product_name AS STRING) product_name,
+            CAST(max_cost AS FLOAT64) max_cost_usd_amt,
+            CAST(target_audience AS STRING) target_audience_code,
+            CAST(max_cost_prop AS INT64) max_cost_prop,
+            CAST(discount AS INT64) dicount,
+            CAST(KPI_Demo AS STRING) kpi_demographics_code,
+            CAST(Impressions_Program AS FLOAT64) impression_program_qty,
+            CAST(Unique_Impressions_Program AS FLOAT64) unique_impression_program_qty,
+            CAST(Impressions_Commercial AS FLOAT64) impression_commercial_qty,
+            CAST(Unique_Impressions_Commercial AS FLOAT64) unique_impression_commercial_qty,
+            CAST(demo AS STRING) demographics_code,
+            CAST(universe_estimate AS FLOAT64) universe_estimate_cnt,
+            CAST(TRPs_Program AS FLOAT64) trp_program_factor,
+            CAST(Reach_Program AS FLOAT64) reach_program_factor,
+            CAST(TRPs_Commercial AS FLOAT64) trp_commercial_factor,
+            CAST(Reach_Commercial AS FLOAT64) reach_commercial_factor,
+            CAST(spend AS FLOAT64) spend_amt,
+            CAST(`partition` AS INT64) partition_cnt
+
+            FROM `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'
+        
+              
+    elif temp_table_name == 'ltvo_base_dtl_lz'+scenario_id:
+        sql = """INSERT INTO `"""+project+'.'+dataset_name_lz+'.'+table_name+'_'+os.environ.get('country_code')+ """`
+            
+            SELECT
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_code,
+            CAST(category AS STRING) category_name,
+            CAST(date AS STRING) date,
+            CAST(agency AS STRING) agency_name,
+            CAST(use_cmr AS STRING) use_cmr,
+            CAST(region_code AS STRING) region_code,
+            CAST(station_name AS STRING) station_name,
+            CAST(daypart AS STRING) daypart_code,
+            CAST(element_name AS STRING) element_name,
+            CAST(type AS STRING) type,
+            CAST(vendor AS STRING) vendor_name,
+            CAST(deal AS STRING) deal,
+            CAST(channel_name AS INT64) channel_name,
+            CAST(buying_audience AS STRING) buying_audience_name,
+            CAST(start_day AS INT64) start_day,
+            CAST(end_day AS INT64) end_day,
+            CAST(start_time AS INT64) start_time,
+            CAST(end_time AS INT64) end_time,
+            CAST(cost_range_low AS FLOAT64) cost_range_low,
+            CAST(cost_range_high AS FLOAT64) cost_range_high,
+            CAST(price_tier AS INT64) price_tier,
+            CAST(element_id AS INT64) element_id,
+            CAST(product_name AS STRING) product_name,
+            CAST(solution AS FLOAT64) solution,
+            CAST(cost AS FLOAT64) cost_amt,
+            CAST(ba_imp AS FLOAT64) ba_imp,
+            CAST(KPI_Demo AS STRING) KPI_demographics,
+            CAST(Impressions_Program AS FLOAT64) Impressions_Program_cnt,
+            CAST(Unique_Impressions_Program AS FLOAT64) Unique_Impressions_Program_cnt,
+            CAST(Impressions_Commercial AS FLOAT64) Impressions_Commercial_cnt,
+            CAST(Unique_Impressions_Commercial AS FLOAT64) Unique_Impressions_Commercial_cnt,
+            CAST(demo AS STRING) demographics_name,
+            CAST(universe_estimate AS FLOAT64) universe_estimate,
+            CAST(TRPs_Program AS FLOAT64) TRPs_Program_factor,
+            CAST(Reach_Program AS FLOAT64) Reach_Program_factor,
+            CAST(TRPs_Commercial AS FLOAT64) TRPs_Commercial_factor,
+            CAST(Reach_Commercial AS FLOAT64) Reach_Commercial_factor,
+            CAST(spend AS FLOAT64) spend_amt,
+            CAST(CPM AS FLOAT64) CPM,
+            CAST(`partition` AS INT64) partition_cnt
+              FROM   `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'
+        
+    
+    elif temp_table_name == 'ltvo_tesseract_smry_lz'+scenario_id:
+        sql = """INSERT INTO `"""+project+'.'+dataset_name_lz+'.'+table_name+'_'+os.environ.get('country_code')+ """`
+            
+            SELECT 
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) country_name,
+            CAST(category AS STRING) category_name,
+            CAST(element_name AS STRING) element_name,
+            CAST(price_tier AS INT64) tier_num,
+            CAST(product_name AS STRING) product_name,
+            CAST(buy_max AS FLOAT64) buy_max_pct,
+            CAST(buy_min AS FLOAT64) buy_min_pct,
+            CAST(elastic AS FLOAT64) elastic_pct,
+            CAST(buy_max_bound AS FLOAT64) buy_max_bound_cost_amt,
+            CAST(buy_min_bound AS FLOAT64) buy_min_bound_cost_amt,
+            CAST(elasticity__units__100_ AS FLOAT64) elasticity_rate,
+            CAST(est_elastic_units AS FLOAT64) estimated_elastic_unit_cnt,
+            CAST(buy_min_score AS INT64) buy_min_score_rate,
+            CAST(elastic_score AS INT64) elastic_score_rate,
+            CAST(total_score AS INT64) total_score_rate,
+            CAST(buy_priority AS STRING) buy_priority_code,
+            CAST(date AS STRING) date
+
+            FROM `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'
+                       
+    
+    elif temp_table_name == 'ltvo_tesseract_dtl_lz'+scenario_id:
+        sql = """INSERT INTO `"""+project+'.'+dataset_name_lz+'.'+table_name+'_'+os.environ.get('country_code')+ """`
+            
+            SELECT
+            
+            CAST(scenario_id AS STRING) scenario_id,
+            CAST(country AS STRING) category_name,
+            CAST(category AS STRING) country_name,
+            CAST(date AS STRING) date,
+            CAST(element_id AS INT64) element_id,
+            CAST(product_name AS STRING) product_name,
+            CAST(element_name AS STRING) element_name,
+            CAST(channel_name AS STRING) channel_name,
+            CAST(daypart AS STRING) daypart_code,
+            CAST(price_tier AS INT64) tier_num,
+            CAST(base_solution AS FLOAT64) base_solution_cnt,
+            CAST(trial_name AS STRING) trial_name,
+            CAST(vendor AS STRING) vendor_name,
+            CAST(new_cost AS FLOAT64) new_cost,
+            CAST(cost_range_low AS FLOAT64) cost_range_low_rate,
+            CAST(cost_range_high AS FLOAT64) cost_range_high_rate,
+            CAST(percentage_change AS FLOAT64) percentage_change_increment_rate,
+            CAST(solution_alt AS FLOAT64) solution_alt_cnt,
+            CAST(breaks AS INT64) breaks_cnt,
+            CAST(raw_element_cost AS FLOAT64) raw_element_cost_amt,
+            CAST(Demo AS STRING) demographics,
+            CAST(TRP AS FLOAT64) TRP,
+            ROW_NUMBER() OVER() AS scenario_row_num 
+
+          
+            FROM `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'
+            
+        
+    else:
+        sql = 'no matching table file'
+
+    sql_cleanup = """DROP TABLE IF EXISTS `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'    
+    print(sql)
+
+    # Start the load job
+    print('Ready to load LZ table',table_name) 
+    query_job = bigquery_client.query(sql, job_config = job_config_rpt)
+    query_job.result() # Waits for table load to complete.
+    print('LZ table load job finished.') 
+    
+    #deleting temp table
+    sql_cleanup = """DROP TABLE IF EXISTS `"""+project+'.'+dataset_name_lz+'.'+temp_table_name+'`;'     
+    print(sql_cleanup)
+
+    # Start the delete job
+    print('Deleting temp table ',table_name) 
+    query_job = bigquery_client.query(sql_cleanup, job_config = job_config_rpt)
+    query_job.result() # Waits for table load to complete.
+    print('Temp table deleted.') 
+ 
+
+def ltvo_ca_load(event, context):
+    """Triggered by a change to a Cloud Storage bucket.
+    Args:
+         event (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    
+    file = event
+    print(event)
+    bucket_name = event.get('bucket')
+    print(bucket_name)
+    file_name = event.get('name')
+    print(file_name)
+    print(os.environ)
+
+
+    #stores current time
+    ct = datetime.datetime.now()
+    print("current time:-", ct)
+
+    #Archival Names
+    archival_bucket_name = os.environ.get('archival_bucket_name')
+    archival_blob_name = "archived_"+file_name
+
+    ##DATASETS
+    dataset_name_lz = os.environ.get('dataset_name_lz_var')
+    dataset_name_rpt = os.environ.get('dataset_name_rpt_var')
+
+    ##TABLES
+    table_name_base_smry_lz = 'ltvo_base_smry_lz'
+    table_name_base_dtl_lz = 'ltvo_base_dtl_lz'
+    table_name_tesseract_smry_lz = 'ltvo_tesseract_smry_lz'
+    table_name_tesseract_dtl_lz = 'ltvo_tesseract_dtl_lz'
+    table_name_audit = 'etl_audit'
+
+    #PROJECT ENV
+    get_project_id()
+    project = project_id
+    print('Project Name:', project)
+
+    #Construct a BigQuery client object and define tables.
+    bigquery_client = bigquery.Client(project)
+    dataset= bigquery_client.dataset(dataset_name_lz)
+    source_gcs = 'gs://'+bucket_name+'/'+file_name
+    print('Blob storage for this load: '+source_gcs)
+
+    #Extract Scenario ID from Filename
+    x=file_name.split('_')
+    scenario_id = x[0]
+    print('The scenario to be processed is: ',scenario_id)
+
+    base_smry_file = re.search("base_sum", file_name)
+    base_dtl_file = re.search("base_dtl", file_name)
+    base_ts_smry_file = re.search("tesseract_sum", file_name)
+    base_ts_dtl_file = re.search("tesseract_dtl", file_name)
+
+    if base_smry_file:
+        print("We have a match for BASE SMRY:"+file_name)
+        table_name = table_name_base_smry_lz
+
+    elif base_dtl_file:
+        print("We have a match for BASE_DTL:"+file_name)
+        table_name = table_name_base_dtl_lz
+
+    elif base_ts_smry_file:
+        print("We have a match for Tesseract Summary" +file_name)
+        table_name = table_name_tesseract_smry_lz
+
+    elif base_ts_dtl_file:
+        print("We have a match for Tesseract detail:"+file_name)
+        table_name = table_name_tesseract_dtl_lz
+
+    else:
+        raise RuntimeError('File does not match any pattern')
+
+
+    load_table_from_uri(project,source_gcs,dataset_name_lz, table_name,scenario_id)
+    print("temp table loaded")
+    lz_table_load(project,dataset_name_lz,table_name,scenario_id,file_name,ct)
+    print("lz table loaded")
+    copy_file_archived_generation(project,bucket_name, file_name, archival_bucket_name, archival_blob_name)
+    print("File copied")
+    delete_blob(project,bucket_name,file_name)
+    print("File deleted")
+    audit_table_load(project,dataset_name_lz,table_name_audit,scenario_id,file_name,ct)
+    print("Audit table loaded")
+
