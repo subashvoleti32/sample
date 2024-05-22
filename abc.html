@@ -140,3 +140,133 @@ DE_TABLE_SCHEMAS = {
         SchemaField('job_name', 'STRING')
     ]
 }
+
+
+
+Here is the tabular format with table names listed once and their respective columns and data types grouped accordingly:
+
+| Table Name             | Column Name                       | Data Type |
+|------------------------|------------------------------------|-----------|
+| constraint_dataframe   | name                               | STRING    |
+|                        | params                             | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| products_dataframe     | brand_name                         | STRING    |
+|                        | variable                           | STRING    |
+|                        | value                              | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| scenario_dataframe     | name                               | STRING    |
+|                        | variable                           | STRING    |
+|                        | value                              | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| kpis_df_comp           | Product                            | STRING    |
+|                        | Deals                              | INT64     |
+|                        | Cost                               | FLOAT64   |
+|                        | Target_cost                        | FLOAT64   |
+|                        | Target_reach                       | FLOAT64   |
+|                        | name                               | STRING    |
+|                        | pctg                               | FLOAT64   |
+|                        | abs                                | FLOAT64   |
+|                        | wgt                                | FLOAT64   |
+|                        | reach                              | FLOAT64   |
+|                        | TRP                                | FLOAT64   |
+|                        | CPM                                | FLOAT64   |
+|                        | CPR                                | FLOAT64   |
+|                        | avgFreq                            | FLOAT64   |
+|                        | Viewership                         | STRING    |
+|                        | Audience                           | STRING    |
+|                        | country                            | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| solution_trunc         | element_id                         | INT64     |
+|                        | product_name                       | STRING    |
+|                        | record_date                        | DATE      |
+|                        | breakcode                          | STRING    |
+|                        | station                            | STRING    |
+|                        | round                              | STRING    |
+|                        | date                               | DATE      |
+|                        | start_time                         | TIME      |
+|                        | length                             | INT64     |
+|                        | CPM_deal                           | INT64     |
+|                        | original_brand                     | STRING    |
+|                        | program_before                     | STRING    |
+|                        | program_after                      | STRING    |
+|                        | poolrun                            | STRING    |
+|                        | supplier                           | STRING    |
+|                        | week_num                           | INT64     |
+|                        | channel_name                       | STRING    |
+|                        | breakcode_original                 | STRING    |
+|                        | breakcode_short_original           | STRING    |
+|                        | start_time_tmstp                   | TIMESTAMP |
+|                        | temp_element_id                    | INT64     |
+|                        | ad_break_code_2_left               | STRING    |
+|                        | breakcode_short                    | STRING    |
+|                        | spot_id_update_break_code          | STRING    |
+|                        | spot_start_time                    | TIMESTAMP |
+|                        | time_gap                           | INT64     |
+|                        | close_time_index                   | INT64     |
+|                        | price_type                         | INT64     |
+|                        | price_group                        | INT64     |
+|                        | ad_break_hour                      | STRING    |
+|                        | add_break_id                       | INT64     |
+|                        | price_by_second                    | INT64     |
+|                        | date_from                          | DATE      |
+|                        | date_to                            | DATE      |
+|                        | supplier_group                     | STRING    |
+|                        | exclusive_id                       | INT64     |
+|                        | exclusive_id_without_nan           | INT64     |
+|                        | exclusive_id_post                  | INT64     |
+|                        | exclusive_id_post_without_nan      | INT64     |
+|                        | lps_duration                       | INT64     |
+|                        | original_duration                  | INT64     |
+|                        | solution                           | INT64     |
+|                        | TRP_BA_general                     | FLOAT64   |
+|                        | TRP_TA_general                     | FLOAT64   |
+|                        | cost                               | FLOAT64   |
+|                        | cost_gross                         | FLOAT64   |
+|                        | cost_no_scale                      | FLOAT64   |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| solution_cost_transpose| product_name                       | STRING    |
+|                        | program_name                       | STRING    |
+|                        | record_date                        | DATE      |
+|                        | breakcode                          | STRING    |
+|                        | station                            | STRING    |
+|                        | Variable                           | STRING    |
+|                        | cost                               | FLOAT64   |
+|                        | country                            | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| solution_trp_transpose | program_name                       | STRING    |
+|                        | record_date                        | DATE      |
+|                        | breakcode                          | STRING    |
+|                        | station                            | STRING    |
+|                        | Audience                           | STRING    |
+|                        | TRP                                | FLOAT64   |
+|                        | size                               | FLOAT64   |
+|                        | country                            | STRING    |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
+| inventory              | poolrun                            | STRING    |
+|                        | date                               | DATE      |
+|                        | start_time                         | TIME      |
+|                        | original_brand                     | STRING    |
+|                        | length                             | INT64     |
+|                        | breakcode                          | STRING    |
+|                        | program_before                     | STRING    |
+|                        | program_after                      | STRING    |
+|                        | station                            | STRING    |
+|                        | Auftrag                            | STRING    |
+|                        | cost                               | FLOAT64   |
+|                        | source_file                        | STRING    |
+|                        | scenario_id                        | STRING    |
+|                        | job_name                           | STRING    |
