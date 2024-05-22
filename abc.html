@@ -471,3 +471,81 @@ df.to_excel('pharmacy_data_schema.xlsx', index=False)
 
 print("Excel file 'pharmacy_data_schema.xlsx' created successfully.")
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+
+data = {
+    'Table Name': ['constraint_dataframe'] * 5 + ['products_dataframe'] * 6 + ['scenario_dataframe'] * 6 + 
+                  ['kpis_df_comp'] * 20 + ['solution_trunc'] * 51 + ['solution_cost_transpose'] * 10 + 
+                  ['solution_trp_transpose'] * 9 + ['inventory'] * 13,
+    'Column Name': ['name', 'params', 'source_file', 'scenario_id', 'job_name',
+                    'brand_name', 'variable', 'value', 'source_file', 'scenario_id', 'job_name',
+                    'name', 'variable', 'value', 'source_file', 'scenario_id', 'job_name',
+                    'Product', 'Deals', 'Cost', 'Target_cost', 'Target_reach', 'name', 'pctg', 'abs', 'wgt', 'reach', 
+                    'TRP', 'CPM', 'CPR', 'avgFreq', 'Viewership', 'Audience', 'country', 'source_file', 'scenario_id', 
+                    'job_name',
+                    'element_id', 'product_name', 'record_date', 'breakcode', 'station', 'round', 'date', 'start_time', 
+                    'length', 'CPM_deal', 'original_brand', 'program_before', 'program_after', 'poolrun', 'supplier', 
+                    'week_num', 'channel_name', 'breakcode_original', 'breakcode_short_original', 'start_time_tmstp', 
+                    'temp_element_id', 'ad_break_code_2_left', 'breakcode_short', 'spot_id_update_break_code', 
+                    'spot_start_time', 'time_gap', 'close_time_index', 'price_type', 'price_group', 'ad_break_hour', 
+                    'add_break_id', 'price_by_second', 'date_from', 'date_to', 'supplier_group', 'exclusive_id', 
+                    'exclusive_id_without_nan', 'exclusive_id_post', 'exclusive_id_post_without_nan', 'lps_duration', 
+                    'original_duration', 'solution', 'TRP_BA_general', 'TRP_TA_general', 'cost', 'cost_gross', 
+                    'cost_no_scale', 'source_file', 'scenario_id', 'job_name',
+                    'product_name', 'program_name', 'record_date', 'breakcode', 'station', 'Variable', 'cost', 'country', 
+                    'source_file', 'scenario_id', 'job_name',
+                    'program_name', 'record_date', 'breakcode', 'station', 'Audience', 'TRP', 'size', 'country', 
+                    'source_file', 'scenario_id', 'job_name',
+                    'poolrun', 'date', 'start_time', 'original_brand', 'length', 'breakcode', 'program_before', 
+                    'program_after', 'station', 'Auftrag', 'cost', 'source_file', 'scenario_id', 'job_name'],
+    'Data Type': ['STRING', 'STRING', 'STRING', 'STRING', 'STRING',
+                  'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING',
+                  'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING',
+                  'STRING', 'INT64', 'FLOAT64', 'FLOAT64', 'FLOAT64', 'STRING', 'FLOAT64', 'FLOAT64', 'FLOAT64', 'FLOAT64', 
+                  'FLOAT64', 'FLOAT64', 'FLOAT64', 'FLOAT64', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING',
+                  'INT64', 'STRING', 'DATE', 'STRING', 'STRING', 'STRING', 'DATE', 'TIME', 'INT64', 'INT64', 'STRING', 
+                  'STRING', 'STRING', 'STRING', 'STRING', 'INT64', 'STRING', 'STRING', 'TIMESTAMP', 'INT64', 'STRING', 
+                  'STRING', 'STRING', 'TIMESTAMP', 'INT64', 'INT64', 'INT64', 'INT64', 'STRING', 'INT64', 'INT64', 'DATE', 
+                  'DATE', 'STRING', 'INT64', 'INT64', 'INT64', 'INT64', 'INT64', 'INT64', 'INT64', 'FLOAT64', 'FLOAT64', 
+                  'FLOAT64', 'FLOAT64', 'FLOAT64', 'STRING', 'STRING', 'STRING',
+                  'STRING', 'STRING', 'DATE', 'STRING', 'STRING', 'STRING', 'FLOAT64', 'STRING', 'STRING', 'STRING', 
+                  'STRING',
+                  'STRING', 'DATE', 'STRING', 'STRING', 'STRING', 'FLOAT64', 'FLOAT64', 'STRING', 'STRING', 'STRING', 
+                  'STRING',
+                  'STRING', 'DATE', 'TIME', 'STRING', 'INT64', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'FLOAT64', 
+                  'STRING', 'STRING', 'STRING']
+}
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Save to Excel
+df.to_excel('pharmacy_data_schema.xlsx', index=False)
+
+print("Excel file 'pharmacy_data_schema.xlsx' created successfully.")
+
